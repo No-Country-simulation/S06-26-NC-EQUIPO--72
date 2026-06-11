@@ -106,8 +106,8 @@ Extiende `/mapa` con capas de indicadores territoriales.
 
 Endpoint principal consumido por frontend y agente IA.
 
-### Request
-
+### Request (si se usa ia como servicio independiente)
+# NO USAR AHORA. USAR EL SIGUIENTE RESPONSE PROPUESTO POR QA
 ``` json
 {
   "filtros": {
@@ -129,7 +129,29 @@ Endpoint principal consumido por frontend y agente IA.
 }
 ```
 
-### Response `200`
+### Request (como lo propone QA)
+```json
+{
+  "consulta": "¿Dónde faltan programas de formación para jóvenes de bajos ingresos?",
+  "filtros": {
+    "municipio": "São José",
+    "cluster": "SAO_JOSE_KOBRASOL",
+    "periodo": "MANHA",
+    "fecha_desde": "2026-03-01",
+    "fecha_hasta": "2026-03-15",
+    "income_cluster": "D",
+    "categoria": "SALUD_MENTAL"
+  },
+  "indicadores": ["n_usuarios", "congestionamento_medio", "taxa_internacao_psiquiatrica"],
+  "agrupar_por": ["cluster", "periodo"],
+  "idioma": "es"
+}
+```
+> `consulta` es opcional. Si se envía, el backend delega al AI Service y el response incluye `respuesta_ia`. Si no se envía, retorna solo datos estructurados.
+
+
+### Response `200` (si se usa ia como servicio independiente)
+# NO USAR AHORA. USAR EL SIGUIENTE RESPONSE PROPUESTO POR QA
 
 ``` json
 {
@@ -158,6 +180,29 @@ Endpoint principal consumido por frontend y agente IA.
   "idioma": "es"
 }
 ```
+
+### Response (como lo propone QA)
+```json
+{
+  "respuesta_ia": "En FPOLIS_NORTE hay 8.200 personas con cobertura precaria y ningún programa activo.",
+  "datos": [
+    {
+      "cluster": "SAO_JOSE_KOBRASOL",
+      "periodo": "MANHA",
+      "n_usuarios": 8200,
+      "congestionamento_medio": 0.68,
+      "taxa_internacao_psiquiatrica": 14.2
+    }
+  ],
+  "fuentes": [
+    { "nombre": "Vísent CDRView v2", "codigo_origem": "tensor_concentracao", "fecha_referencia": "2026-03-10" },
+    { "nombre": "DATASUS", "codigo_origem": "SIH-SUS", "fecha_referencia": "2025-12-01" }
+  ],
+  "total_registros": 1,
+  "idioma": "es"
+}
+```
+> `respuesta_ia` solo aparece en el response cuando se envió `consulta` en el request.
 
 ------------------------------------------------------------------------
 
@@ -279,19 +324,16 @@ Cruza datos Vísent con indicadores_territoriales y programas_sociales para iden
 
 Edición de un programa existente. Todos los campos son opcionales, solo se actualizan los enviados.
 
-### Response `200`
-
-``` json
+### Request
+```json
 {
   "impacto_estimado": "ALTO",
   "fecha_fin": "2026-12-31"
 }
 ```
 
-
 ### Response `200`
-
-``` json
+```json
 {
   "id": 42,
   "mensaje": "Programa actualizado correctamente."
@@ -299,8 +341,7 @@ Edición de un programa existente. Todos los campos son opcionales, solo se actu
 ```
 
 ### Response `404`
-
-``` json
+```json
 {
   "error": "PROGRAMA_NO_ENCONTRADO",
   "mensaje": "No existe un programa con el id indicado."
