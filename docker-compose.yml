@@ -1,0 +1,9 @@
+services:
+  app:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: Appbitb2g
+    restart: always
+    ports:
+      - "8080:8080"
