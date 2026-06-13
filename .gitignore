@@ -48,3 +48,11 @@ build/
 .eslintcache
 .stylelintcache
 
+### Docker
+docker-compose.override.yml
+*.log
+
+### OS files
+Thumbs.db
+
+
