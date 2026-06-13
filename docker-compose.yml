@@ -1,15 +1,39 @@
+version: '3.8'
 services:
+
+  db:
+    image: mysql:8.0
+    container_name: Appbitb2g_Mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+
   backend:
     build:
       context: ./back
       dockerfile: Dockerfile
-    container_name: app-bit-b2g
+    container_name: Appbitb2g
     restart: always
     ports:
       - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/${DB_NAME}?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+    depends_on:
+      - db
     networks:
-      - bit-b2g-network
-  
+      - app-network
+
+
+
 
   react-frontend:
     container_name: react_app
@@ -28,14 +52,16 @@ services:
       - /app/node_modules  
     ports:
       - "5173:5173"
-    networks:
-      - bit-b2g-network
     depends_on:
-      - backend  
+      - backend
+    networks:
+      - app-network
 
 
-     
+volumes:
+  mysql_data:
+
 networks:
-  bit-b2g-network:  
+  app-network:
+    driver: bridge
 
-     
