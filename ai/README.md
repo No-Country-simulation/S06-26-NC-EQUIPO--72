@@ -3,6 +3,20 @@
 
 Agente de IA para consultas en lenguaje natural sobre datos de inclusión social.
 
+## Documentación de la API (Swagger UI)
+
+¡La documentación interactiva está disponible automáticamente con FastAPI!
+- **Swagger UI**: `http://localhost:8000/docs` — Probar los endpoints directamente desde el navegador
+- **Redoc**: `http://localhost:8000/redoc` — Documentación más limpia
+- **OpenAPI Schema**: `http://localhost:8000/openapi.json` — Esquema JSON de la API
+
+## Endpoints disponibles
+
+| Método | Ruta       | Descripción                                    |
+|--------|------------|------------------------------------------------|
+| GET    | `/health`  | Verificar el estado del servicio               |
+| POST   | `/consulta`| Enviar una consulta al agente de IA            |
+
 ## Configuración (Docker - Recomendado para desarrollo)
 
 1. Copiar y configurar variables de entorno:
@@ -17,8 +31,6 @@ Agente de IA para consultas en lenguaje natural sobre datos de inclusión social
     ```
 
 3. El servicio estará disponible en `http://localhost:8000`.
-   - Documentación de la API: `http://localhost:8000/docs`
-   - Qdrant Dashboard: `http://localhost:6333/dashboard`
 
 ## Ejecución local (sin Docker)
 
@@ -30,7 +42,7 @@ Si prefieres correr el servicio sin Docker:
     ```
 
 2. Activar entorno virtual:
-    - Linux:
+    - Linux/macOS:
         ```bash
         source venv/bin/activate
         ```
