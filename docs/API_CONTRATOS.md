@@ -104,30 +104,20 @@ Extiende `/mapa` con capas de indicadores territoriales.
 
 ## POST /datos
 
-Endpoint principal consumido por frontend y agente IA.
+Endpoint principal consumido por el frontend. El backend busca contexto en la DB con los filtros recibidos, luego delega al AI Service (`POST /consulta`) que usa ese contexto + tools propias para generar la respuesta.
 
-### Request (si se usa ia como servicio independiente)
-# NO USAR AHORA. USAR EL SIGUIENTE RESPONSE PROPUESTO POR QA
-``` json
-{
-  "filtros": {
-    "municipio": "São José",
-    "cluster": "SAO_JOSE_KOBRASOL",
-    "periodo": "MANHA",
-    "fecha_desde": "2026-03-01",
-    "fecha_hasta": "2026-03-15",
-    "income_cluster": "D",
-    "categoria": "SALUD_MENTAL"
-  },
-  "indicadores": [
-    "n_usuarios",
-    "congestionamento_medio",
-    "taxa_internacao_psiquiatrica"
-  ],
-  "agrupar_por": ["cluster", "periodo"],
-  "idioma": "es"
-}
-```
+| Campo                     | Tipo     | Requerido | Default                 | Descripción                                                                                         |
+| -------------------------- | -------- | --------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
+| `consulta`                 | `string` | No        | —                       | Pregunta en lenguaje natural. Si se envía, el response incluye `respuesta_ia` y `visualizacion_sugerida`. |
+| `filtros.municipio`        | `string` | **Sí**    | —                       | Sin esto el backend no sabe contra qué datos buscar contexto.                                       |
+| `filtros.cluster`          | `string` | No        | `todos`                 | Afina dentro del municipio.                                                                         |
+| `filtros.periodo`          | `string` | No        | `TARDE`                 | Valores posibles: `MADRUGADA`, `MANHA`, `TARDE`, `NOITE`.                                           |
+| `filtros.fecha_desde`      | `DATE`   | No        | `últimos 30 días`       | —                                                                                                   |
+| `filtros.fecha_hasta`      | `DATE`   | No        | `último día disponible` | —                                                                                                   |
+| `filtros.income_cluster`   | `string` | No        | `todos`                 | Valores posibles: `A`, `B`, `C`, `D`. Solo aplica a `mobilidade_agregada`.                         |
+| `filtros.categoria`        | `string` | No        | `todas`                 | Valores posibles: `SALUD_MENTAL`, `EMPLEO`, `EDUCACION`. Determina qué trae de `indicadores_territoriales`. |
+| `indicadores`              | `string[]` | No      | `todos`                 | Métricas específicas a incluir en el contexto del agente. Útil para reducir tokens.               |
+| `idioma`                   | `string` | No        | `es`                    | Idioma de la respuesta del agente. En el MVP el backend puede hardcodearlo.                        |
 
 ### Request (como lo propone QA)
 ```json
@@ -143,48 +133,18 @@ Endpoint principal consumido por frontend y agente IA.
     "categoria": "SALUD_MENTAL"
   },
   "indicadores": ["n_usuarios", "congestionamento_medio", "taxa_internacao_psiquiatrica"],
-  "agrupar_por": ["cluster", "periodo"],
   "idioma": "es"
 }
 ```
-> `consulta` es opcional. Si se envía, el backend delega al AI Service y el response incluye `respuesta_ia`. Si no se envía, retorna solo datos estructurados.
 
 
-### Response `200` (si se usa ia como servicio independiente)
-# NO USAR AHORA. USAR EL SIGUIENTE RESPONSE PROPUESTO POR QA
 
-``` json
-{
-  "datos": [
-    {
-      "cluster": "SAO_JOSE_KOBRASOL",
-      "periodo": "MANHA",
-      "n_usuarios": 8200,
-      "congestionamento_medio": 0.68,
-      "taxa_internacao_psiquiatrica": 14.2
-    }
-  ],
-  "fuentes": [
-    {
-      "nombre": "Vísent CDRView v2",
-      "codigo_origem": "tensor_concentracao",
-      "fecha_referencia": "2026-03-10"
-    },
-    {
-      "nombre": "DATASUS",
-      "codigo_origem": "SIH-SUS",
-      "fecha_referencia": "2025-12-01"
-    }
-  ],
-  "total_registros": 1,
-  "idioma": "es"
-}
-```
 
 ### Response (como lo propone QA)
 ```json
 {
-  "respuesta_ia": "En FPOLIS_NORTE hay 8.200 personas con cobertura precaria y ningún programa activo.",
+  "respuesta_ia": "En SAO_JOSE_KOBRASOL hay 8.200 personas con cobertura WCDMA precaria y ningún programa activo.",
+  "visualizacion_sugerida": "mapa_brechas",
   "datos": [
     {
       "cluster": "SAO_JOSE_KOBRASOL",
@@ -202,8 +162,27 @@ Endpoint principal consumido por frontend y agente IA.
   "idioma": "es"
 }
 ```
-> `respuesta_ia` solo aparece en el response cuando se envió `consulta` en el request.
+> `respuesta_ia` y `visualizacion_sugerida` solo aparecen cuando se envió `consulta` en el request.
 
+### Response `400` — municipio ausente
+
+```json
+{
+  "error": "FILTRO_REQUERIDO",
+  "mensaje": "El campo 'filtros.municipio' es obligatorio."
+}
+```
+
+### Response `422` — consulta irrelevante
+
+> Solo aplica cuando se envió `consulta`. El backend intercepta el 422 del AI Service y lo reenvía al frontend con este formato.
+
+```json
+{
+  "error": "CONSULTA_IRRELEVANTE",
+  "mensaje": "La consulta no puede resolverse con los datos disponibles."
+}
+```
 ------------------------------------------------------------------------
 
 ## GET /brechas
@@ -447,5 +426,14 @@ Alertas automáticas cuando un indicador supera o cae por debajo de un umbral co
 {
   "error": "ERROR_INTERNO",
   "mensaje": "Error al procesar la consulta."
+}
+```
+
+## Response `400` — campo obligatorio ausente
+
+```json
+{
+  "error": "FILTRO_REQUERIDO",
+  "mensaje": "El campo 'filtros.municipio' es obligatorio."
 }
 ```
