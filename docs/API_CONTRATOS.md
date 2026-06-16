@@ -106,44 +106,27 @@ Extiende `/mapa` con capas de indicadores territoriales.
 
 Endpoint principal consumido por el frontend. El backend busca contexto en la DB con los filtros recibidos, luego delega al AI Service (`POST /consulta`) que usa ese contexto + tools propias para generar la respuesta.
 
-> **Flujo interno:** el backend consulta la DB con los `filtros` para construir contexto, luego llama al AI Service (`POST /consulta`) pasando ese contexto. El AI Service puede usar tools propias para complementar la respuesta. El frontend no interactúa con el AI Service directamente.
+## Flujo interno
+
+1. El **Frontend** envía una consulta en texto libre.
+2. El **Backend** delega la solicitud al **AI Service** mediante `POST /consulta`.
+3. El **AI Service** convierte la consulta a SQL (**Text-to-SQL**) y la ejecuta contra la base de datos utilizando herramientas.
+4. El **AI Service** formula una respuesta a partir de los datos obtenidos.
+5. El **Backend** retorna la respuesta al **Frontend**.
+
+> **Nota:** El Frontend no interactúa directamente con el AI Service; toda la comunicación pasa por el Backend.
+
 
 | Campo                     | Tipo     | Requerido | Default                 | Descripción                                                                                         |
 | -------------------------- | -------- | --------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
-| `consulta`                 | `string` | Si        | -                       | Pregunta en lenguaje natural. Si se envía, el response incluye `respuesta_ia` y `visualizacion_sugerida`. |
-| `filtros.municipio` | `string` | No | `todos` | Si se omite, el backend usa datos de toda la región piloto configurada. Consistente con el comportamiento de `GET /mapa`. |
-| `filtros.cluster`          | `string` | No        | `todos`                 | Afina dentro del municipio.                                                                         |
-| `filtros.periodo`          | `string` | No        | `TARDE`                 | Valores posibles: `MADRUGADA`, `MANHA`, `TARDE`, `NOITE`.                                           |
-| `filtros.fecha_desde`      | `DATE`   | No        | `últimos 15 días`       | -                                                                                                   |
-| `filtros.fecha_hasta`      | `DATE`   | No        | `último día disponible` | -                                                                                                   |
-| `filtros.income_cluster`   | `string` | No        | `todos`                 | Valores posibles: `A`, `B`, `C`, `D`. Solo aplica a `mobilidade_agregada`.                         |
-| `filtros.categoria`        | `string` | No        | `todas`                 | Valores posibles: `SALUD_MENTAL`, `EMPLEO`, `EDUCACION`. Determina qué trae de `indicadores_territoriales`. |
-| `indicadores`              | `string[]` | No      | `todos`                 | Métricas específicas a incluir en el contexto del agente. Útil para reducir tokens.               |
-| `idioma`                   | `string` | No        | `es`                    | Idioma de la respuesta del agente. En el MVP el backend puede hardcodearlo.                        |
+| `consulta`                 | `string` | Si        | -                       | Pregunta en lenguaje natural. El AI Service infiere el contexto necesario vía Text-to-SQL.|
+| `idioma`                   | `string` | No        | `es`                    | Idioma de la respuesta del agente.|
 
 
-### Request — consulta sin filtros (región piloto completa)
+### Request — consulta sin filtros 
 ```json
 {
   "consulta": "¿Qué regiones tienen alto desempleo y baja conectividad?",
-  "idioma": "es"
-}
-```
-
-### Request — consulta con filtros específicos
-```json
-{
-  "consulta": "¿Dónde faltan programas de formación para jóvenes de bajos ingresos?",
-  "filtros": {
-    "municipio": "São José",
-    "cluster": "SAO_JOSE_KOBRASOL",
-    "periodo": "MANHA",
-    "fecha_desde": "2026-03-01",
-    "fecha_hasta": "2026-03-15",
-    "income_cluster": "D",
-    "categoria": "SALUD_MENTAL"
-  },
-  "indicadores": ["n_usuarios", "congestionamento_medio", "taxa_internacao_psiquiatrica"],
   "idioma": "es"
 }
 ```
