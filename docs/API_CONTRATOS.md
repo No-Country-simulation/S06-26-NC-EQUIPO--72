@@ -1,7 +1,7 @@
 # Contratos de la API
 
-> Son recomendaciones. Backend y frontend pueden acordar una versión
-> modificada del contrato.
+> Son recomendaciones. Backend y frontend pueden acordar una versión modificada del contrato.
+> Este documento describe los endpoints del **backend** consumidos por el frontend.
 
 ## GET /regiones
 
@@ -106,20 +106,22 @@ Extiende `/mapa` con capas de indicadores territoriales.
 
 Endpoint principal consumido por el frontend. El backend busca contexto en la DB con los filtros recibidos, luego delega al AI Service (`POST /consulta`) que usa ese contexto + tools propias para generar la respuesta.
 
+> **Flujo interno:** el backend consulta la DB con los `filtros` para construir contexto, luego llama al AI Service (`POST /consulta`) pasando ese contexto. El AI Service puede usar tools propias para complementar la respuesta. El frontend no interactúa con el AI Service directamente.
+
 | Campo                     | Tipo     | Requerido | Default                 | Descripción                                                                                         |
 | -------------------------- | -------- | --------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
-| `consulta`                 | `string` | No        | —                       | Pregunta en lenguaje natural. Si se envía, el response incluye `respuesta_ia` y `visualizacion_sugerida`. |
-| `filtros.municipio`        | `string` | **Sí**    | —                       | Sin esto el backend no sabe contra qué datos buscar contexto.                                       |
+| `consulta`                 | `string` | No        | -                       | Pregunta en lenguaje natural. Si se envía, el response incluye `respuesta_ia` y `visualizacion_sugerida`. |
+| `filtros.municipio`        | `string` | **Sí**    | -                       | Sin esto el backend no sabe contra qué datos buscar contexto.                                       |
 | `filtros.cluster`          | `string` | No        | `todos`                 | Afina dentro del municipio.                                                                         |
 | `filtros.periodo`          | `string` | No        | `TARDE`                 | Valores posibles: `MADRUGADA`, `MANHA`, `TARDE`, `NOITE`.                                           |
-| `filtros.fecha_desde`      | `DATE`   | No        | `últimos 30 días`       | —                                                                                                   |
-| `filtros.fecha_hasta`      | `DATE`   | No        | `último día disponible` | —                                                                                                   |
+| `filtros.fecha_desde`      | `DATE`   | No        | `últimos 15 días`       | -                                                                                                   |
+| `filtros.fecha_hasta`      | `DATE`   | No        | `último día disponible` | -                                                                                                   |
 | `filtros.income_cluster`   | `string` | No        | `todos`                 | Valores posibles: `A`, `B`, `C`, `D`. Solo aplica a `mobilidade_agregada`.                         |
 | `filtros.categoria`        | `string` | No        | `todas`                 | Valores posibles: `SALUD_MENTAL`, `EMPLEO`, `EDUCACION`. Determina qué trae de `indicadores_territoriales`. |
 | `indicadores`              | `string[]` | No      | `todos`                 | Métricas específicas a incluir en el contexto del agente. Útil para reducir tokens.               |
 | `idioma`                   | `string` | No        | `es`                    | Idioma de la respuesta del agente. En el MVP el backend puede hardcodearlo.                        |
 
-### Request (como lo propone QA)
+### Request
 ```json
 {
   "consulta": "¿Dónde faltan programas de formación para jóvenes de bajos ingresos?",
@@ -140,7 +142,7 @@ Endpoint principal consumido por el frontend. El backend busca contexto en la DB
 
 
 
-### Response (como lo propone QA)
+### Response
 ```json
 {
   "respuesta_ia": "En SAO_JOSE_KOBRASOL hay 8.200 personas con cobertura WCDMA precaria y ningún programa activo.",
@@ -162,9 +164,8 @@ Endpoint principal consumido por el frontend. El backend busca contexto en la DB
   "idioma": "es"
 }
 ```
-> `respuesta_ia` y `visualizacion_sugerida` solo aparecen cuando se envió `consulta` en el request.
 
-### Response `400` — municipio ausente
+### Response `400` - municipio ausente
 
 ```json
 {
@@ -173,7 +174,7 @@ Endpoint principal consumido por el frontend. El backend busca contexto en la DB
 }
 ```
 
-### Response `422` — consulta irrelevante
+### Response `422` - consulta irrelevante
 
 > Solo aplica cuando se envió `consulta`. El backend intercepta el 422 del AI Service y lo reenvía al frontend con este formato.
 
@@ -189,6 +190,8 @@ Endpoint principal consumido por el frontend. El backend busca contexto en la DB
 
 Cruza datos Vísent con indicadores_territoriales y programas_sociales para identificar zonas con demanda sin oferta.El agente  IA lo consume directamente para responder preguntas como "dónde faltan programas de mentoría?" sin encadenar múltiples llamadas a /datos
 
+> **Nota:** el parámetro `servicio` en `/brechas` y `categoria` en `/mapa/indicadores` comparten los mismos valores (`SALUD_MENTAL` / `EMPLEO` / `EDUCACION`). Son nombres distintos porque representan conceptos distintos: `categoria` refiere al tipo de indicador territorial, `servicio` refiere al servicio social que el agente analiza para detectar brechas.
+
 ### Query Params
 
 | Parámetro   | Tipo     | Requerido | Descripción |
@@ -196,6 +199,7 @@ Cruza datos Vísent con indicadores_territoriales y programas_sociales para iden
 | `servicio`  | `string` | Sí | `SALUD_MENTAL` / `MENTORIA` / `EXPERIENCIA` / `FORMACION` / `EMPLEO` |
 | `municipio` | `string` | No | Filtra por municipio |
 | `periodo`   | `string` | No | Default: `TARDE` |
+| `income_cluster` | `string` | No | `todos` | `A` / `B` / `C` / `D`. Filtra por segmento de ingresos en `mobilidade_agregada`. |
 
 ### Response `200`
 
@@ -396,44 +400,45 @@ Alertas automáticas cuando un indicador supera o cae por debajo de un umbral co
 
 # Pendientes (fuera del MVP)
 
--   Exportación PDF
--   Gestión de indicadores territoriales
--   Soporte multilingüe
+- Exportación PDF
+- Gestión de indicadores territoriales (carga manual por el gestor)
+- Soporte multilingüe
+- `agrupar_por` en `POST /datos`
+- Historial de conversación en el AI Service (stateful vs stateless - pendiente de decisión de arquitectura)
+- ETL por fuente para `indicadores_territoriales` (DATASUS / IBGE / OMS) - en MVP se usa seeder mock
+- `tensor_sequencias` en el pipeline - coordinar con Jonathan si el front incorpora trayectos individuales en el mapa (fuera del scope actual)
+- `GET /alertas` - funcionalidad opcional, no incluida en el MVP
 
 # Errores generales
 
-## Response `400`
-
-``` json
+## Response `400` - filtro con valor inválido
+```json
 {
   "error": "FILTRO_INVALIDO",
   "mensaje": "El valor de 'periodo' debe ser MADRUGADA / MANHA / TARDE / NOITE."
 }
 ```
 
-## Response `404`
+## Response `400` - campo obligatorio ausente
+```json
+{
+  "error": "FILTRO_REQUERIDO",
+  "mensaje": "El campo 'filtros.municipio' es obligatorio."
+}
+```
 
-``` json
+## Response `404` - sin resultados
+```json
 {
   "error": "SIN_RESULTADOS",
   "mensaje": "No se encontraron datos para los filtros aplicados."
 }
 ```
 
-## Response `500`
-
-``` json
+## Response `500` - error interno
+```json
 {
   "error": "ERROR_INTERNO",
   "mensaje": "Error al procesar la consulta."
-}
-```
-
-## Response `400` — campo obligatorio ausente
-
-```json
-{
-  "error": "FILTRO_REQUERIDO",
-  "mensaje": "El campo 'filtros.municipio' es obligatorio."
 }
 ```
