@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import MainLayout from './app/layouts/MainLayout'
 import DashboardPage from './features/dashboard/pages/DashboardPage'
+import FormacionesPage from './features/formaciones/pages/FormacionesPage'
 
 function App() {
   const [currentTab, setCurrentTab] = useState('inicio')
@@ -9,6 +10,8 @@ function App() {
     <MainLayout currentTab={currentTab} onTabChange={setCurrentTab}>
       {currentTab === 'inicio' ? (
         <DashboardPage />
+      ) : currentTab === 'formaciones' ? (
+        <FormacionesPage />
       ) : (
         <div className="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-500">
           <h3 className="text-base font-bold text-slate-700 capitalize">{currentTab}</h3>
@@ -20,3 +23,4 @@ function App() {
 }
 
 export default App
+
