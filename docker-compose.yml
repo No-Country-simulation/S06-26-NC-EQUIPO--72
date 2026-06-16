@@ -1,0 +1,86 @@
+version: '3.8'
+services:
+
+  db:
+    image: mysql:8.0
+    container_name: Appbitb2g_Mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: Appbitb2g
+    restart: always
+    ports:
+      - "8080:8080"
+
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/${DB_NAME}?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+
+
+
+  react-frontend:
+    container_name: react_app
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    restart: always
+
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+      - HOST=0.0.0.0
+      - NODE_ENV=development
+
+    volumes:
+      - ./front:/app
+      - /app/node_modules  
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  ai:
+    build:
+      context: ./ai
+      dockerfile: Dockerfile
+    container_name: Appbitb2g_AI
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./ai:/app
+      - /app/__pycache__
+    env_file:
+      - ./ai/.env  # Usa el .env del directorio ai/
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+
+volumes:
+  mysql_data:
+
+networks:
+  app-network:
+    driver: bridge
+

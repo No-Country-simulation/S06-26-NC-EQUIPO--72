@@ -1,0 +1,58 @@
+
+### Environment variables (global)
+.env
+.env.local
+.env.*.local
+
+### IDEs and editors
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+### Docker
+docker-compose.override.yml
+*.log
+
+### OS files
+Thumbs.db
+
+
+### Node.js/Frontend (front directory)
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+.vuepress/dist/
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.vscode-test
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+.yarn-integrity
+.parcel-cache/
+.cache/
+.eslintcache
+.stylelintcache
+
+### Docker
+docker-compose.override.yml
+*.log
+
+### OS files
+Thumbs.db
+
+
