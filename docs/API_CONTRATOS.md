@@ -110,8 +110,8 @@ Endpoint principal consumido por el frontend. El backend busca contexto en la DB
 
 | Campo                     | Tipo     | Requerido | Default                 | Descripción                                                                                         |
 | -------------------------- | -------- | --------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
-| `consulta`                 | `string` | No        | -                       | Pregunta en lenguaje natural. Si se envía, el response incluye `respuesta_ia` y `visualizacion_sugerida`. |
-| `filtros.municipio`        | `string` | **Sí**    | -                       | Sin esto el backend no sabe contra qué datos buscar contexto.                                       |
+| `consulta`                 | `string` | Si        | -                       | Pregunta en lenguaje natural. Si se envía, el response incluye `respuesta_ia` y `visualizacion_sugerida`. |
+| `filtros.municipio` | `string` | No | `todos` | Si se omite, el backend usa datos de toda la región piloto configurada. Consistente con el comportamiento de `GET /mapa`. |
 | `filtros.cluster`          | `string` | No        | `todos`                 | Afina dentro del municipio.                                                                         |
 | `filtros.periodo`          | `string` | No        | `TARDE`                 | Valores posibles: `MADRUGADA`, `MANHA`, `TARDE`, `NOITE`.                                           |
 | `filtros.fecha_desde`      | `DATE`   | No        | `últimos 15 días`       | -                                                                                                   |
@@ -121,7 +121,16 @@ Endpoint principal consumido por el frontend. El backend busca contexto en la DB
 | `indicadores`              | `string[]` | No      | `todos`                 | Métricas específicas a incluir en el contexto del agente. Útil para reducir tokens.               |
 | `idioma`                   | `string` | No        | `es`                    | Idioma de la respuesta del agente. En el MVP el backend puede hardcodearlo.                        |
 
-### Request
+
+### Request — consulta sin filtros (región piloto completa)
+```json
+{
+  "consulta": "¿Qué regiones tienen alto desempleo y baja conectividad?",
+  "idioma": "es"
+}
+```
+
+### Request — consulta con filtros específicos
 ```json
 {
   "consulta": "¿Dónde faltan programas de formación para jóvenes de bajos ingresos?",
@@ -138,8 +147,6 @@ Endpoint principal consumido por el frontend. El backend busca contexto en la DB
   "idioma": "es"
 }
 ```
-
-
 
 
 ### Response
@@ -165,14 +172,7 @@ Endpoint principal consumido por el frontend. El backend busca contexto en la DB
 }
 ```
 
-### Response `400` - municipio ausente
 
-```json
-{
-  "error": "FILTRO_REQUERIDO",
-  "mensaje": "El campo 'filtros.municipio' es obligatorio."
-}
-```
 
 ### Response `422` - consulta irrelevante
 
@@ -419,13 +419,6 @@ Alertas automáticas cuando un indicador supera o cae por debajo de un umbral co
 }
 ```
 
-## Response `400` - campo obligatorio ausente
-```json
-{
-  "error": "FILTRO_REQUERIDO",
-  "mensaje": "El campo 'filtros.municipio' es obligatorio."
-}
-```
 
 ## Response `404` - sin resultados
 ```json
