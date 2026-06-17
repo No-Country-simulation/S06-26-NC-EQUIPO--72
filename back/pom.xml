@@ -72,7 +72,7 @@
             <version>${kotlin.version}</version>
             <scope>test</scope>
         </dependency>
-		</dependency>
+		
 		<dependency>
     		<groupId>org.mapstruct</groupId>
     		<artifactId>mapstruct</artifactId>
