@@ -17,8 +17,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Entity(name = "antena")
-public class Antena {
+@Entity(name = "antenas")
+public class Antenna {
     @Id
     @Column(name = "ecgi")
     private String ecgi;// Clave primaria(PK) que conecta con Concentracao

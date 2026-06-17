@@ -27,8 +27,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Entity(name = "indicadores_territoriales")
-public class IndicadoresTerritoriales {
+@Entity(name = "territorial_indicators")
+public class TerritorialIndicators {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id; // SERIAL PK
