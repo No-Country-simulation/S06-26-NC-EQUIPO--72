@@ -4,6 +4,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.appbitb2g.model.TerritorialIndicators;
 
-public interface TerritorialIndicatorsRepository  extends JpaRepository<TerritorialIndicators,Integer>{
+import java.util.List;
+
+public interface TerritorialIndicatorsRepository{
+    List<TerritorialIndicators> findAll();
     
 }

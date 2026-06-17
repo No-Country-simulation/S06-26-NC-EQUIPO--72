@@ -1,6 +1,5 @@
 package com.example.appbitb2g.controller;
 
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -19,18 +18,19 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.appbitb2g.dto.requestDTO.socialProgram.SocialProgramFilterDTO;
 import com.example.appbitb2g.dto.requestDTO.socialProgram.SocialProgramRequestDTO;
 import com.example.appbitb2g.dto.responseDTO.socialProgram.SocialProgramResponseDTO;
-import com.example.appbitb2g.service.ProgramService;
+import com.example.appbitb2g.service.SocialProgramService;
 
 import lombok.AllArgsConstructor;
 
 @RestController
 @RequestMapping("/api")
 @AllArgsConstructor
-public class ProgramController {
+public class SocialProgramController {
 
-    private final ProgramService programService;
+    private final SocialProgramService programService;
 
-    @PostMapping("/program")
+    // TODO: @RequestMapping("/programas") // <-- En español y plural.. Segun el contrato de CLiente
+     @PostMapping("/program")
     public ResponseEntity<SocialProgramResponseDTO> createProgram(
             @RequestBody SocialProgramRequestDTO socialProgramRequestDTO) {
 
@@ -47,7 +47,9 @@ public class ProgramController {
 
         Page<SocialProgramResponseDTO.ProgramDetail> programPage = programService.programs(pageable, filtro);
 
-        return ResponseEntity.ok(programPage);
+        return ResponseEntity.ok(programPage);// <-- ACÁ devuelve el Page crudo
+         //TODO: Adaptar Page al DTO plano. El front espera {"programas": [...], "total": X}
+         //TODO: y Page crudo envía "content" y "totalElements", rompiendo el renderizado.
 
     }
 

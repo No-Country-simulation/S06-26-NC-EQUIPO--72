@@ -1,9 +1,5 @@
 package com.example.appbitb2g.service;
 
-import java.beans.Transient;
-import java.time.LocalDate;
-
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,7 +16,7 @@ import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
-public class ProgramService {
+public class SocialProgramService {
 
     private final SocialProgramRepository socialProgramRepository;
     private final SocialProgramMapper socialProgramMapper;
