@@ -4,6 +4,8 @@ import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -31,6 +33,7 @@ public class Concentracao {
     private String municipio;
     @Column(name = "day_date")
     private LocalDate dayDate; // DATE
+    @Enumerated(EnumType.STRING)
     private String periodo; // MADRUGADA / MANHA / TARDE
     @Column(name = "n_usuarios")
     private Integer nUsuarios; // INT
@@ -38,6 +41,7 @@ public class Concentracao {
     private Double downloadGb; // FLOAT
     @Column(name = "congestionamento_medio")
     private Double congestionamentoMedio; // FLOAT
+    @Enumerated(EnumType.STRING)
     @Column(name = "rat_type_predominante")
     private String ratTypePredominante; // NR / LTE / WCDMA
 }
