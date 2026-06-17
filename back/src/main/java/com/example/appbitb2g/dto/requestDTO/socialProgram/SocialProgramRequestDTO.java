@@ -33,10 +33,10 @@ public class SocialProgramRequestDTO {
 
     private String urlReferencia;
 
-    private LocalDate fechaInicio = LocalDate.now(); // DATE
+    private LocalDate fechaInicio; // DATE
 
     private LocalDate fechaFin; // DATE
 
-    // SMALLINT (0 / 1)
+    private boolean activo;
 
 }

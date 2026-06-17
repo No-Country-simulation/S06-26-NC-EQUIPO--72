@@ -21,8 +21,7 @@ import lombok.Setter;
 public class Antenna {
     @Id
     @Column(name = "ecgi")
-    private String ecgi;// Clave primaria(PK) que conecta con Concentracao
-
+    private String ecgi;
     private String cluster;
     private String municipio;
     private BigDecimal lat;

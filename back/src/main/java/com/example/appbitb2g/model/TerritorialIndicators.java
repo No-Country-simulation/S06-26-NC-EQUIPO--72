@@ -33,16 +33,12 @@ public class TerritorialIndicators {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id; // SERIAL PK
     private String municipio;
-   
     private String cluster; // FK semântica -> antenas.cluster
-    
     private String categoria; // SALUD_MENTAL / EMPLEO / EDUCACION
     private String indicador; // taxa_internacao_psiquiatrica / etc
     private BigDecimal valor; // DECIMAL(15,4) -> BigDecimal para precisão exata
     private String unidad;
-    
     private String fonte; // DATASUS / IBGE / OMS / MOCK
-    
     @Column(name = "codigo_origem")
     private String codigoOrigem; // SIH-SUS / PNAD / GHO
     @Column(name = "url_origem")

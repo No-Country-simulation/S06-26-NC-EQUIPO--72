@@ -50,5 +50,5 @@ public class SocialProgram {
     @Column(name = "fecha_fin")
     private LocalDate fechaFin; // DATE
 
-    private Short activo; // SMALLINT (0 / 1)
+    private Boolean activo; // SMALLINT (0 / 1)
 }
