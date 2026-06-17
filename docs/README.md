@@ -3,7 +3,7 @@
 | Servicio | Endpoints |
 | --------- | --------- |
 | **Formaciones** | `GET /mapa/indicadores?categoria=EDUCACION`<br>`GET /programas?tipo=FORMACION`<br>`GET /brechas?servicio=FORMACION` |
-| **Empleabilidad** | `POST /datos`<br>`GET /brechas?servicio=EMPLEO` |
+| **Empleabilidad** | `POST /datos` (agente IA - contexto vía `filtros.categoria=EMPLEO`)<br>`GET /brechas?servicio=EMPLEO` |
 | **Experiencias estructurantes** | `GET /programas?tipo=EXPERIENCIA`<br>`POST /programas` / `PUT /programas/:id` / `DELETE /programas/:id` |
 | **Mentorías** | `GET /programas?tipo=MENTORIA`<br>`GET /brechas?servicio=MENTORIA`<br>`POST /programas` / `PUT /programas/:id` / `DELETE /programas/:id` |
 | **Salud Mental** | `GET /mapa/indicadores?categoria=SALUD_MENTAL`<br>`GET /brechas?servicio=SALUD_MENTAL` |

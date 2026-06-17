@@ -1,7 +1,7 @@
 # Contratos de la API
 
-> Son recomendaciones. Backend y frontend pueden acordar una versión
-> modificada del contrato.
+> Son recomendaciones. Backend y frontend pueden acordar una versión modificada del contrato.
+> Este documento describe los endpoints del **backend** consumidos por el frontend.
 
 ## GET /regiones
 
@@ -104,87 +104,39 @@ Extiende `/mapa` con capas de indicadores territoriales.
 
 ## POST /datos
 
-Endpoint principal consumido por frontend y agente IA.
+Endpoint principal consumido por el frontend. El backend busca contexto en la DB con los filtros recibidos, luego delega al AI Service (`POST /consulta`) que usa ese contexto + tools propias para generar la respuesta.
 
-### Request (si se usa ia como servicio independiente)
-# NO USAR AHORA. USAR EL SIGUIENTE RESPONSE PROPUESTO POR QA
-``` json
-{
-  "filtros": {
-    "municipio": "São José",
-    "cluster": "SAO_JOSE_KOBRASOL",
-    "periodo": "MANHA",
-    "fecha_desde": "2026-03-01",
-    "fecha_hasta": "2026-03-15",
-    "income_cluster": "D",
-    "categoria": "SALUD_MENTAL"
-  },
-  "indicadores": [
-    "n_usuarios",
-    "congestionamento_medio",
-    "taxa_internacao_psiquiatrica"
-  ],
-  "agrupar_por": ["cluster", "periodo"],
-  "idioma": "es"
-}
-```
+## Flujo interno
 
-### Request (como lo propone QA)
+1. El **Frontend** envía una consulta en texto libre.
+2. El **Backend** delega la solicitud al **AI Service** mediante `POST /consulta`.
+3. El **AI Service** convierte la consulta a SQL (**Text-to-SQL**) y la ejecuta contra la base de datos utilizando herramientas.
+4. El **AI Service** formula una respuesta a partir de los datos obtenidos.
+5. El **Backend** retorna la respuesta al **Frontend**.
+
+> **Nota:** El Frontend no interactúa directamente con el AI Service; toda la comunicación pasa por el Backend.
+
+
+| Campo                     | Tipo     | Requerido | Default                 | Descripción                                                                                         |
+| -------------------------- | -------- | --------- | ----------------------- | --------------------------------------------------------------------------------------------------- |
+| `consulta`                 | `string` | Si        | -                       | Pregunta en lenguaje natural. El AI Service infiere el contexto necesario vía Text-to-SQL.|
+| `idioma`                   | `string` | No        | `es`                    | Idioma de la respuesta del agente.|
+
+
+### Request — consulta sin filtros 
 ```json
 {
-  "consulta": "¿Dónde faltan programas de formación para jóvenes de bajos ingresos?",
-  "filtros": {
-    "municipio": "São José",
-    "cluster": "SAO_JOSE_KOBRASOL",
-    "periodo": "MANHA",
-    "fecha_desde": "2026-03-01",
-    "fecha_hasta": "2026-03-15",
-    "income_cluster": "D",
-    "categoria": "SALUD_MENTAL"
-  },
-  "indicadores": ["n_usuarios", "congestionamento_medio", "taxa_internacao_psiquiatrica"],
-  "agrupar_por": ["cluster", "periodo"],
-  "idioma": "es"
-}
-```
-> `consulta` es opcional. Si se envía, el backend delega al AI Service y el response incluye `respuesta_ia`. Si no se envía, retorna solo datos estructurados.
-
-
-### Response `200` (si se usa ia como servicio independiente)
-# NO USAR AHORA. USAR EL SIGUIENTE RESPONSE PROPUESTO POR QA
-
-``` json
-{
-  "datos": [
-    {
-      "cluster": "SAO_JOSE_KOBRASOL",
-      "periodo": "MANHA",
-      "n_usuarios": 8200,
-      "congestionamento_medio": 0.68,
-      "taxa_internacao_psiquiatrica": 14.2
-    }
-  ],
-  "fuentes": [
-    {
-      "nombre": "Vísent CDRView v2",
-      "codigo_origem": "tensor_concentracao",
-      "fecha_referencia": "2026-03-10"
-    },
-    {
-      "nombre": "DATASUS",
-      "codigo_origem": "SIH-SUS",
-      "fecha_referencia": "2025-12-01"
-    }
-  ],
-  "total_registros": 1,
+  "consulta": "¿Qué regiones tienen alto desempleo y baja conectividad?",
   "idioma": "es"
 }
 ```
 
-### Response (como lo propone QA)
+
+### Response
 ```json
 {
-  "respuesta_ia": "En FPOLIS_NORTE hay 8.200 personas con cobertura precaria y ningún programa activo.",
+  "respuesta_ia": "En SAO_JOSE_KOBRASOL hay 8.200 personas con cobertura WCDMA precaria y ningún programa activo.",
+  "visualizacion_sugerida": "mapa_brechas",
   "datos": [
     {
       "cluster": "SAO_JOSE_KOBRASOL",
@@ -202,13 +154,26 @@ Endpoint principal consumido por frontend y agente IA.
   "idioma": "es"
 }
 ```
-> `respuesta_ia` solo aparece en el response cuando se envió `consulta` en el request.
 
+
+
+### Response `422` - consulta irrelevante
+
+> Solo aplica cuando se envió `consulta`. El backend intercepta el 422 del AI Service y lo reenvía al frontend con este formato.
+
+```json
+{
+  "error": "CONSULTA_IRRELEVANTE",
+  "mensaje": "La consulta no puede resolverse con los datos disponibles."
+}
+```
 ------------------------------------------------------------------------
 
 ## GET /brechas
 
 Cruza datos Vísent con indicadores_territoriales y programas_sociales para identificar zonas con demanda sin oferta.El agente  IA lo consume directamente para responder preguntas como "dónde faltan programas de mentoría?" sin encadenar múltiples llamadas a /datos
+
+> **Nota:** el parámetro `servicio` en `/brechas` y `categoria` en `/mapa/indicadores` comparten los mismos valores (`SALUD_MENTAL` / `EMPLEO` / `EDUCACION`). Son nombres distintos porque representan conceptos distintos: `categoria` refiere al tipo de indicador territorial, `servicio` refiere al servicio social que el agente analiza para detectar brechas.
 
 ### Query Params
 
@@ -217,6 +182,7 @@ Cruza datos Vísent con indicadores_territoriales y programas_sociales para iden
 | `servicio`  | `string` | Sí | `SALUD_MENTAL` / `MENTORIA` / `EXPERIENCIA` / `FORMACION` / `EMPLEO` |
 | `municipio` | `string` | No | Filtra por municipio |
 | `periodo`   | `string` | No | Default: `TARDE` |
+| `income_cluster` | `string` | No | `todos` | `A` / `B` / `C` / `D`. Filtra por segmento de ingresos en `mobilidade_agregada`. |
 
 ### Response `200`
 
@@ -417,33 +383,36 @@ Alertas automáticas cuando un indicador supera o cae por debajo de un umbral co
 
 # Pendientes (fuera del MVP)
 
--   Exportación PDF
--   Gestión de indicadores territoriales
--   Soporte multilingüe
+- Exportación PDF
+- Gestión de indicadores territoriales (carga manual por el gestor)
+- Soporte multilingüe
+- `agrupar_por` en `POST /datos`
+- Historial de conversación en el AI Service (stateful vs stateless - pendiente de decisión de arquitectura)
+- ETL por fuente para `indicadores_territoriales` (DATASUS / IBGE / OMS) - en MVP se usa seeder mock
+- `tensor_sequencias` en el pipeline - coordinar con Jonathan si el front incorpora trayectos individuales en el mapa (fuera del scope actual)
+- `GET /alertas` - funcionalidad opcional, no incluida en el MVP
 
 # Errores generales
 
-## Response `400`
-
-``` json
+## Response `400` - filtro con valor inválido
+```json
 {
   "error": "FILTRO_INVALIDO",
   "mensaje": "El valor de 'periodo' debe ser MADRUGADA / MANHA / TARDE / NOITE."
 }
 ```
 
-## Response `404`
 
-``` json
+## Response `404` - sin resultados
+```json
 {
   "error": "SIN_RESULTADOS",
   "mensaje": "No se encontraron datos para los filtros aplicados."
 }
 ```
 
-## Response `500`
-
-``` json
+## Response `500` - error interno
+```json
 {
   "error": "ERROR_INTERNO",
   "mensaje": "Error al procesar la consulta."
