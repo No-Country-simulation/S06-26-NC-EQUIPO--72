@@ -72,6 +72,12 @@
             <version>${kotlin.version}</version>
             <scope>test</scope>
         </dependency>
+		
+		<dependency>
+    		<groupId>org.mapstruct</groupId>
+    		<artifactId>mapstruct</artifactId>
+    		<version>1.6.3</version> <!-- Usá la última versión estable -->
+		</dependency>
 
 		</dependencies>
 
@@ -135,6 +141,11 @@
 									<groupId>org.projectlombok</groupId>
 									<artifactId>lombok</artifactId>
 								</path>
+								 <path>
+                					<groupId>org.mapstruct</groupId>
+                					<artifactId>mapstruct-processor</artifactId>
+               						<version>1.6.3</version>
+            					</path>
 								<path>
 									<groupId>org.springframework.boot</groupId>
 									<artifactId>spring-boot-configuration-processor</artifactId>

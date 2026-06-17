@@ -1,15 +1,19 @@
 package com.example.appbitb2g.service;
 
+import java.time.LocalDate;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.example.appbitb2g.dto.requestDTO.socialProgram.SocialProgramFilterDTO;
 import com.example.appbitb2g.dto.requestDTO.socialProgram.SocialProgramRequestDTO;
 import com.example.appbitb2g.dto.responseDTO.socialProgram.SocialProgramResponseDTO;
+import com.example.appbitb2g.mapper.SocialProgramMapper;
 import com.example.appbitb2g.model.SocialProgram;
 import com.example.appbitb2g.repository.SocialProgramRepository;
 
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
 @Service
@@ -17,23 +21,17 @@ import lombok.AllArgsConstructor;
 public class SocialProgramService {
 
     private final SocialProgramRepository socialProgramRepository;
+    private final SocialProgramMapper socialProgramMapper;
 
     @Transactional
     public SocialProgramResponseDTO createProgram(SocialProgramRequestDTO socialProgramRequestDTO) {
+        if (socialProgramRequestDTO.getFechaInicio() == null) {
+            socialProgramRequestDTO.setFechaInicio(LocalDate.now());
+        }
 
-        SocialProgram socialProgram = new SocialProgram();
-        socialProgram.setNombre(socialProgramRequestDTO.getNombre());
-        socialProgram.setTipo(socialProgramRequestDTO.getTipo());
-        socialProgram.setDescripcion(socialProgramRequestDTO.getDescripcion());
-        socialProgram.setMunicipio(socialProgramRequestDTO.getMunicipio());
-        socialProgram.setCluster(socialProgramRequestDTO.getCluster());
-        socialProgram.setOrganizacion(socialProgramRequestDTO.getOrganizacion());
-        socialProgram.setLiderReferente(socialProgramRequestDTO.getLiderReferente());
-        socialProgram.setReplicable(socialProgramRequestDTO.getReplicable());
-        socialProgram.setImpactoEstimado(socialProgramRequestDTO.getImpactoEstimado());
-        socialProgram.setUrlReferencia(socialProgramRequestDTO.getUrlReferencia());
-        socialProgram.setFechaInicio(socialProgramRequestDTO.getFechaInicio());
-        socialProgram.setFechaFin(socialProgramRequestDTO.getFechaFin());
+        socialProgramRequestDTO.setActivo(true);
+
+        SocialProgram socialProgram = socialProgramMapper.toEntity(socialProgramRequestDTO);
 
         var socialProgramdb = socialProgramRepository.save(socialProgram);
 
@@ -45,24 +43,47 @@ public class SocialProgramService {
         return socialDto;
     }
 
-    public Page<SocialProgramResponseDTO.ProgramDetail> programs(Pageable pageable) {
-        Page<SocialProgram> onboardingPage = socialProgramRepository.findAll(pageable);
+    @Transactional(readOnly = true)
+    public Page<SocialProgramResponseDTO.ProgramDetail> programs(Pageable pageable, SocialProgramFilterDTO filtro) {
 
-        return onboardingPage.map(sm -> SocialProgramResponseDTO.ProgramDetail.builder()
-            .id(sm.getId())
-            .nombre(sm.getNombre())
-            .tipo(sm.getTipo())
-            .descripcion(sm.getDescripcion())
-            .municipio(sm.getMunicipio())
-            .cluster(sm.getCluster())
-            .organizacion(sm.getOrganizacion())
-            .liderReferente(sm.getLiderReferente())
-            .replicable(sm.getReplicable())
-            .impactoEstimado(sm.getImpactoEstimado())
-            .urlReferencia(sm.getUrlReferencia())
-            .fechaInicio(sm.getFechaInicio())
-            .fechaFin(sm.getFechaFin())
-            .build());
+        SocialProgramFilterDTO f = (filtro != null) ? filtro : new SocialProgramFilterDTO(null, null, null, true);
+
+        Page<SocialProgram> socialProgramDetailPag = socialProgramRepository.findWithDynamicFilters(
+                f.tipo(),
+                f.municipio(),
+                f.cluster(),
+                f.activo(),
+                pageable);
+
+        return socialProgramDetailPag.map(socialProgramMapper::toProgramDetailDto);
+    }
+
+    public SocialProgramResponseDTO deleteProgram(Integer id) {
+
+     SocialProgram program = socialProgramRepository.findById(id).orElseThrow(
+                () -> new com.example.appbitb2g.exception.NotFoundException("No existe un programa con el id indicado."));
+
+        socialProgramRepository.deleteById(program.getId());
+
+        return SocialProgramResponseDTO.builder()
+                .id(id)
+                .mensaje("Programa desactivado correctamente.")
+                .build();
+    }
+
+    public SocialProgramResponseDTO updateProgram(Integer id, SocialProgramRequestDTO requestDto) {
+
+        SocialProgram program = socialProgramRepository.findById(id).orElseThrow(
+                () -> new com.example.appbitb2g.exception.NotFoundException("No existe un programa con el id indicado."));
+
+        socialProgramMapper.updateEntityFromDto(requestDto, program);
+
+        SocialProgram updatedProgram = socialProgramRepository.save(program);
+
+        return SocialProgramResponseDTO.builder()
+                .id(updatedProgram.getId())
+                .mensaje("Programa actualizado correctamente.")
+                .build();
     }
 
 }
