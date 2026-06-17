@@ -26,14 +26,13 @@ public class Concentracao {
     @Id
     @Column(name = "id")
     private Integer id; // SERIAL PK
-    @ManyToOne
-    @JoinColumn(name = "ecgi")
+    
     private String ecgi; // FK -> antenas
     private String cluster;
     private String municipio;
     @Column(name = "day_date")
     private LocalDate dayDate; // DATE
-    @Enumerated(EnumType.STRING)
+  
     private String periodo; // MADRUGADA / MANHA / TARDE
     @Column(name = "n_usuarios")
     private Integer nUsuarios; // INT
@@ -41,7 +40,7 @@ public class Concentracao {
     private Double downloadGb; // FLOAT
     @Column(name = "congestionamento_medio")
     private Double congestionamentoMedio; // FLOAT
-    @Enumerated(EnumType.STRING)
+   
     @Column(name = "rat_type_predominante")
     private String ratTypePredominante; // NR / LTE / WCDMA
 }
