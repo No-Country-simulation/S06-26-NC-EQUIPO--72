@@ -14,7 +14,6 @@ import java.util.Arrays;
 
 @RestController
 @RequestMapping("/mapa")
-
 public class MapController{
     private final MapService mapService;
 
