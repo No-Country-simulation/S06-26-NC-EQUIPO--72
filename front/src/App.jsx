@@ -1,23 +1,26 @@
-import { useState } from 'react'
-import MainLayout from './app/layouts/MainLayout'
-import DashboardPage from './features/dashboard/pages/DashboardPage'
-import FormacionesPage from './features/formaciones/pages/FormacionesPage'
-import ExperienciasPage from './features/experiencias/pages/ExperienciasPage'
-import SaludMentalPage from './features/salud-mental/pages/SaludMentalPage'
+import { useState } from "react";
+import MainLayout from "./app/layouts/MainLayout";
+import DashboardPage from "./features/dashboard/pages/DashboardPage";
+import FormacionesPage from "./features/formaciones/pages/FormacionesPage";
+import ExperienciasPage from "./features/experiencias/pages/ExperienciasPage";
+import SaludMentalPage from "./features/salud-mental/pages/SaludMentalPage";
+import MentoriasPage from "./features/mentorias/pages/MentoriasPage";
 
 function App() {
-  const [currentTab, setCurrentTab] = useState('inicio')
+  const [currentTab, setCurrentTab] = useState("inicio");
 
   return (
     <MainLayout currentTab={currentTab} onTabChange={setCurrentTab}>
-      {currentTab === 'inicio' ? (
+      {currentTab === "inicio" ? (
         <DashboardPage />
-      ) : currentTab === 'formaciones' ? (
+      ) : currentTab === "formaciones" ? (
         <FormacionesPage />
-      ) : currentTab === 'experiencias' ? (
+      ) : currentTab === "experiencias" ? (
         <ExperienciasPage />
-      ) : currentTab === 'salud-mental' ? (
+      ) : currentTab === "salud-mental" ? (
         <SaludMentalPage />
+      ) : currentTab === "mentorias" ? (
+        <MentoriasPage />
       ) : (
         <div className="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-500">
           <h3 className="text-base font-bold text-slate-700 capitalize">
@@ -29,8 +32,7 @@ function App() {
         </div>
       )}
     </MainLayout>
-  )
+  );
 }
 
-export default App
-
+export default App;
