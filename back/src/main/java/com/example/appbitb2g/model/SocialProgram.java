@@ -14,7 +14,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Entity(name = "social_program")
+@Entity
+@Table(name = "programas_sociales")
 public class SocialProgram {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
