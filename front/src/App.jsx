@@ -6,6 +6,7 @@ import ExperienciasPage from "./features/experiencias/pages/ExperienciasPage";
 import SaludMentalPage from "./features/salud-mental/pages/SaludMentalPage";
 import MentoriasPage from "./features/mentorias/pages/MentoriasPage";
 import EmpleabilidadPage from "./features/empleabilidad/pages/EmpleabilidadPage";
+import AlertasPage from "./features/alertas/pages/AlertasPage";
 
 function App() {
   const [currentTab, setCurrentTab] = useState("inicio");
@@ -24,6 +25,8 @@ function App() {
         <SaludMentalPage />
       ) : currentTab === "mentorias" ? (
         <MentoriasPage />
+      ) : currentTab === "alertas" ? (
+        <AlertasPage />
       ) : (
         <div className="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-500">
           <h3 className="text-base font-bold text-slate-700 capitalize">
