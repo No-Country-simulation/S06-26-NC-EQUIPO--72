@@ -78,14 +78,7 @@
     		<artifactId>mapstruct</artifactId>
     		<version>1.6.3</version> <!-- Usá la última versión estable -->
 		</dependency>
-		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-mysql</artifactId>
-		</dependency>
+		
 
 		</dependencies>
 

@@ -1,12 +1,11 @@
 package com.example.appbitb2g.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import com.example.appbitb2g.model.TerritorialIndicators;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
+@Repository
+public interface TerritorialIndicatorsRepository
+        extends JpaRepository<TerritorialIndicators, Integer> {
 
-public interface TerritorialIndicatorsRepository extends JpaRepository<TerritorialIndicators,Integer> {
-    List<TerritorialIndicators> findAll();
-    
 }
