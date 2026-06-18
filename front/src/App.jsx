@@ -6,6 +6,7 @@ import ExperienciasPage from "./features/experiencias/pages/ExperienciasPage";
 import SaludMentalPage from "./features/salud-mental/pages/SaludMentalPage";
 import MentoriasPage from "./features/mentorias/pages/MentoriasPage";
 import EmpleabilidadPage from "./features/empleabilidad/pages/EmpleabilidadPage";
+import ReportesPage from "./features/reportes/pages/ReportesPage";
 import AlertasPage from "./features/alertas/pages/AlertasPage";
 
 function App() {
@@ -25,6 +26,8 @@ function App() {
         <SaludMentalPage />
       ) : currentTab === "mentorias" ? (
         <MentoriasPage />
+      ) : currentTab === "reportes" ? (
+        <ReportesPage />
       ) : currentTab === "alertas" ? (
         <AlertasPage />
       ) : (
@@ -42,3 +45,4 @@ function App() {
 }
 
 export default App;
+
