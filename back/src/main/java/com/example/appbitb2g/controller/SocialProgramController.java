@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -43,7 +44,7 @@ public class SocialProgramController {
     @GetMapping("/programs")
     public ResponseEntity<Page<SocialProgramResponseDTO.ProgramDetail>> program(
             @PageableDefault(page = 0, size = 5) Pageable pageable,
-            @RequestParam(required = false) SocialProgramFilterDTO filtro) {
+            @ModelAttribute SocialProgramFilterDTO filtro) {
 
         Page<SocialProgramResponseDTO.ProgramDetail> programPage = programService.programs(pageable, filtro);
 

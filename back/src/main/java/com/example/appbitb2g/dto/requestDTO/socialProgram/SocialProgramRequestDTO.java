@@ -37,6 +37,6 @@ public class SocialProgramRequestDTO {
 
     private LocalDate fechaFin; // DATE
 
-    private boolean activo;
+    private Boolean activo;
 
 }

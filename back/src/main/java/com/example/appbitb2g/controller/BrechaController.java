@@ -12,9 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
 
-/**
- * Expone la lógica analítica que cruza la infraestructura de red con los programas sociales.
- */
+
 @RestController
 @RequestMapping("/brechas")
 public class BrechaController {

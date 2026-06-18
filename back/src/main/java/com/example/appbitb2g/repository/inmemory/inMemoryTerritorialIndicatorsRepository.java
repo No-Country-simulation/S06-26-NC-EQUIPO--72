@@ -5,9 +5,9 @@ import com.example.appbitb2g.repository.TerritorialIndicatorsRepository;
 
 import java.util.List;
 
-public class inMemoryTerritorialIndicatorsRepository implements TerritorialIndicatorsRepository {
-    @Override
-    public List<TerritorialIndicators> findAll() {
-        return List.of();
-    }
-}
+//public class inMemoryTerritorialIndicatorsRepository implements TerritorialIndicatorsRepository {
+ //   @Override
+  //  public List<TerritorialIndicators> findAll() {
+   //     return List.of();
+    //}
+//}
