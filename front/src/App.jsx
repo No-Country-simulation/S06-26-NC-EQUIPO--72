@@ -5,6 +5,7 @@ import FormacionesPage from "./features/formaciones/pages/FormacionesPage";
 import ExperienciasPage from "./features/experiencias/pages/ExperienciasPage";
 import SaludMentalPage from "./features/salud-mental/pages/SaludMentalPage";
 import MentoriasPage from "./features/mentorias/pages/MentoriasPage";
+import EmpleabilidadPage from "./features/empleabilidad/pages/EmpleabilidadPage";
 
 function App() {
   const [currentTab, setCurrentTab] = useState("inicio");
@@ -17,6 +18,8 @@ function App() {
         <FormacionesPage />
       ) : currentTab === "experiencias" ? (
         <ExperienciasPage />
+      ) : currentTab === "empleabilidad" ? (
+        <EmpleabilidadPage />
       ) : currentTab === "salud-mental" ? (
         <SaludMentalPage />
       ) : currentTab === "mentorias" ? (
