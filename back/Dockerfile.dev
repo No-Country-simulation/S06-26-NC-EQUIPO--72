@@ -6,6 +6,9 @@ COPY .mvn .mvn
 COPY mvnw pom.xml ./
 
 RUN chmod +x mvnw
+
+ENV MAVEN_OPTS="-Dmaven.repo.local=/root/.m2/repository"
+
 RUN ./mvnw dependency:go-offline
 
 EXPOSE 8080
