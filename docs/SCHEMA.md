@@ -35,6 +35,9 @@ congestionamento_medio  FLOAT
 rat_type_predominante   VARCHAR(5)  -- NR / LTE / WCDMA
 ```
 
+> `download_gb` viene de `download_bytes` (INT64) en `tensor_concentracao.csv`, convertido con `/ 1e9`.
+> `rat_type_predominante` no existe en `tensor_concentracao.csv`. Se calcula como moda de `rat_type` agrupando `tensor_mobilidade.csv` por (ecgi, day_date, periodo).
+
 ```sql
 mobilidade_agregada
 id             SERIAL        PK
@@ -51,6 +54,7 @@ download_bytes FLOAT
 drop_pct_avg   FLOAT
 congestionamento_avg  FLOAT
 ```
+>a diferencia de concentracao.rat_type_predominante, este rat_type es parte de la clave de agregación de la tabla (cada fila ya está agrupada por un valor específico de rat_type, no es una moda calculada).
 
 ```sql
 flujo_od
@@ -95,7 +99,11 @@ nombre              VARCHAR(150)
 tipo                VARCHAR(30)   -- FORMACION / MENTORIA / EXPERIENCIA
 descripcion         TEXT
 municipio           VARCHAR(60)
-cluster             VARCHAR(40)   -- FK semántica -> antenas.cluster
+cluster             VARCHAR(40)   -- FK semántica -> antenas.cluster (sin constraint real).
+                                    -- Debe validarse en la capa de aplicación contra los 23
+                                    -- clusters válidos antes de insertar/actualizar, ya que
+                                    -- GET /brechas depende de esta coincidencia exacta para
+                                    -- calcular severidad_brecha.
 organizacion        VARCHAR(150)
 lider_referente     VARCHAR(150)  NULL   -- relevante para tipo EXPERIENCIA
 replicable          SMALLINT      NULL   -- 0 / 1, relevante para tipo EXPERIENCIA
@@ -110,7 +118,9 @@ activo              SMALLINT      -- 0 / 1
 indicadores_territoriales
 id                  SERIAL          PK
 municipio           VARCHAR(60)
-cluster             VARCHAR(40)     -- FK semántica -> antenas.cluster
+cluster             VARCHAR(40)     -- FK semántica -> antenas.cluster (sin constraint real).
+                                      -- El seeder debe validar contra los 23 clusters válidos
+                                      -- antes de insertar.
 categoria           VARCHAR(30)     -- SALUD_MENTAL / EMPLEO / EDUCACION
 indicador           VARCHAR(100)    -- taxa_internacao_psiquiatrica / taxa_emprego_formal / etc
 valor               DECIMAL(15,4)
