@@ -6,7 +6,7 @@ import com.example.appbitb2g.model.TerritorialIndicators;
 
 import java.util.List;
 
-public interface TerritorialIndicatorsRepository{
+public interface TerritorialIndicatorsRepository extends JpaRepository<TerritorialIndicators,Integer> {
     List<TerritorialIndicators> findAll();
     
 }

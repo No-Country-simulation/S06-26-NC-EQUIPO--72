@@ -14,7 +14,7 @@ Catálogo de clusters disponibles. Pobla los filtros del frontend.
   "regiones": [
     {
       "cluster": "SAO_JOSE_KOBRASOL",
-      "municipio": "São José",
+      "municipio": "Sao Jose",
       "lat_centroide": -27.5935,
       "lon_centroide": -48.6358,
       "n_antenas": 7
@@ -177,12 +177,12 @@ Cruza datos Vísent con indicadores_territoriales y programas_sociales para iden
 
 ### Query Params
 
-| Parámetro   | Tipo     | Requerido | Descripción |
-| ------------| -------- | :-------: | ----------- |
-| `servicio`  | `string` | Sí | `SALUD_MENTAL` / `MENTORIA` / `EXPERIENCIA` / `FORMACION` / `EMPLEO` |
-| `municipio` | `string` | No | Filtra por municipio |
-| `periodo`   | `string` | No | Default: `TARDE` |
-| `income_cluster` | `string` | No | `todos` | `A` / `B` / `C` / `D`. Filtra por segmento de ingresos en `mobilidade_agregada`. |
+| Parámetro   | Tipo     | Requerido | Default | Descripción |
+| ------------| -------- | :-------: | ------- | ----------- |
+| `servicio`  | `string` | Sí | - | `SALUD_MENTAL` / `MENTORIA` / `EXPERIENCIA` / `FORMACION` / `EMPLEO` |
+| `municipio` | `string` | No | todos | Filtra por municipio |
+| `periodo`   | `string` | No | `TARDE` | - |
+| `income_cluster` | `string` | No | todos | `A` / `B` / `C` / `D`. Filtra por segmento de ingresos en `mobilidade_agregada`. |
 
 ### Response `200`
 
@@ -191,7 +191,7 @@ Cruza datos Vísent con indicadores_territoriales y programas_sociales para iden
   "brechas": [
     {
       "cluster": "BIGUACU_BR101_NORTE",
-      "municipio": "Biguaçu",
+      "municipio": "Biguacu",
       "n_usuarios": 9800,
       "congestionamento_medio": 0.81,
       "rat_type_predominante": "WCDMA",
@@ -238,7 +238,7 @@ Cruza datos Vísent con indicadores_territoriales y programas_sociales para iden
       "nombre": "Jóvenes Tech Norte",
       "tipo": "FORMACION",
       "municipio": "Florianópolis",
-      "cluster": "FPOLIS_NORTE",
+      "cluster": "ESTREITO_CAPOEIRAS",
       "organizacion": "Prefeitura Municipal",
       "lider_referente": null,
       "replicable": null,
@@ -264,7 +264,7 @@ Cruza datos Vísent con indicadores_territoriales y programas_sociales para iden
   "tipo": "MENTORIA",
   "descripcion": "Programa de mentoría para jóvenes de 18-24 en zona norte",
   "municipio": "Florianópolis",
-  "cluster": "FPOLIS_NORTE",
+  "cluster": "ESTREITO_CAPOEIRAS",
   "organizacion": "Secretaria Municipal de Educação",
   "lider_referente": "María González",
   "replicable": 1,
@@ -359,7 +359,7 @@ Alertas automáticas cuando un indicador supera o cae por debajo de un umbral co
   "alertas": [
     {
       "cluster": "BIGUACU_BR101_NORTE",
-      "municipio": "Biguaçu",
+      "municipio": "Biguacu",
       "indicador": "congestionamento_medio",
       "valor_actual": 0.82,
       "umbral": 0.7,

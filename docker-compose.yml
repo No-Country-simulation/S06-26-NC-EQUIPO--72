@@ -65,7 +65,7 @@ services:
       - VITE_API_URL=${VITE_API_URL}
       - HOST=0.0.0.0
       - NODE_ENV=development
-
+      - CHOKIDAR_USEPOLLING=true
     volumes:
       - ./front:/app
       - /app/node_modules  
