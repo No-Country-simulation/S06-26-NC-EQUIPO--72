@@ -1,5 +1,6 @@
 package com.example.appbitb2g.controller;
 
+import com.example.appbitb2g.dto.responseDTO.socialProgram.SocialProgramListResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.appbitb2g.dto.requestDTO.socialProgram.SocialProgramFilterDTO;
 import com.example.appbitb2g.dto.requestDTO.socialProgram.SocialProgramRequestDTO;
 import com.example.appbitb2g.dto.responseDTO.socialProgram.SocialProgramResponseDTO;
-import com.example.appbitb2g.service.SocialProgramService;
+import com.example.appbitb2g.service.impl.SocialProgramServiceImpl;
 
 import lombok.AllArgsConstructor;
 
@@ -27,9 +28,8 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class SocialProgramController {
 
-    private final SocialProgramService programService;
+    private final SocialProgramServiceImpl programService;
 
-    // TODO: @RequestMapping("/programas") // <-- En español y plural.. Segun el contrato de CLiente
      @PostMapping("/program")
     public ResponseEntity<SocialProgramResponseDTO> createProgram(
             @RequestBody SocialProgramRequestDTO socialProgramRequestDTO) {
@@ -47,9 +47,7 @@ public class SocialProgramController {
 
         Page<SocialProgramResponseDTO.ProgramDetail> programPage = programService.programs(pageable, filtro);
 
-        return ResponseEntity.ok(programPage);// <-- ACÁ devuelve el Page crudo
-         //TODO: Adaptar Page al DTO plano. El front espera {"programas": [...], "total": X}
-         //TODO: y Page crudo envía "content" y "totalElements", rompiendo el renderizado.
+        return ResponseEntity.ok(programPage);
 
     }
 
@@ -68,5 +66,22 @@ public class SocialProgramController {
 
         return ResponseEntity.ok(response);
     }
+
+    /**
+     * GET /programas?tipo=FORMACION
+     * Retorna la lista de programas sociales activos o filtrados por tipo, municipio o clúster.
+     */
+    @GetMapping
+    public ResponseEntity<SocialProgramListResponseDTO> obtenerProgramas(
+            @RequestParam(name = "tipo", required = false) String tipo,
+            @RequestParam(name = "municipio", required = false) String municipio,
+            @RequestParam(name = "cluster", required = false) String cluster,
+            @RequestParam(name = "activo", required = false, defaultValue = "true") Boolean activo
+    ) {
+        // Delegamos el filtrado dinámico al servicio de negocio
+        SocialProgramListResponseDTO response = programService.listarProgramas(tipo, municipio, cluster, activo);
+        return ResponseEntity.ok(response);
+    }
+
 
 }
