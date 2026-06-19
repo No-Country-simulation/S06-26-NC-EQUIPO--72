@@ -8,9 +8,12 @@ import com.example.appbitb2g.service.MapService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import com.example.appbitb2g.dto.responseDTO.socialProgram.MapResponseDTO;
 /**
  * Implementación Mock de MapService para la tarea de Endpoints Iniciales.
  *
@@ -129,5 +132,62 @@ public class MapServiceImpl implements MapService {
 
         // Retornamos el DTO de respuesta final envuelto en el Record
         return new MapIndicadoresResponseDTO(regionesMock);
+    }
+
+    @Override
+    public MapResponseDTO obtenerMapa(String periodo, String municipio, String fecha) {
+        // Valores por defecto según contrato
+        String periodoFinal = (periodo != null && !periodo.isBlank()) ? periodo.toUpperCase() : "TARDE";
+        String fechaFinal = (fecha != null && !fecha.isBlank()) ? fecha : LocalDate.now().toString();
+
+        List<MapResponseDTO.MapRegionDTO> regiones = new ArrayList<>();
+
+        regiones.add(new MapResponseDTO.MapRegionDTO(
+                "SAO_JOSE_KOBRASOL",
+                "São José",
+                -27.5935,
+                -48.6358,
+                12400,
+                0.72,
+                "LTE",
+                34.5,
+                periodoFinal,
+                fechaFinal
+        ));
+
+        regiones.add(new MapResponseDTO.MapRegionDTO(
+                "FLORIANOPOLIS_CENTRO",
+                "Florianópolis",
+                -27.5969,
+                -48.5495,
+                18500,
+                0.42,
+                "5G",
+                45.2,
+                periodoFinal,
+                fechaFinal
+        ));
+
+        regiones.add(new MapResponseDTO.MapRegionDTO(
+                "FLORIANOPOLIS_TRINDADE",
+                "Florianópolis",
+                -27.5862,
+                -48.5152,
+                8200,
+                0.18,
+                "LTE",
+                28.1,
+                periodoFinal,
+                fechaFinal
+        ));
+
+        // Filtrar por municipio si se proporciona
+        if (municipio != null && !municipio.isBlank() && !municipio.equalsIgnoreCase("todos")) {
+            regiones = regiones.stream()
+                    .filter(r -> r.municipio().equalsIgnoreCase(municipio))
+                    .toList();
+        }
+
+        return new MapResponseDTO(regiones);
     }
 }

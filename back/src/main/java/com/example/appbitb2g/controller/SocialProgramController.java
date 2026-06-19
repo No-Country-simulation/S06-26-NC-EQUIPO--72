@@ -25,34 +25,31 @@ import com.example.appbitb2g.service.impl.SocialProgramServiceImpl;
 import lombok.AllArgsConstructor;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/programas")
 @AllArgsConstructor
 public class SocialProgramController {
 
     private final SocialProgramServiceImpl programService;
 
-     @PostMapping("/program")
+    @PostMapping
     public ResponseEntity<SocialProgramResponseDTO> createProgram(
             @RequestBody SocialProgramRequestDTO socialProgramRequestDTO) {
 
         var response = programService.createProgram(socialProgramRequestDTO);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
     }
 
-    @GetMapping("/programs")
+    @GetMapping
     public ResponseEntity<Page<SocialProgramResponseDTO.ProgramDetail>> program(
             @PageableDefault(page = 0, size = 5) Pageable pageable,
             @ModelAttribute SocialProgramFilterDTO filtro) {
 
         Page<SocialProgramResponseDTO.ProgramDetail> programPage = programService.programs(pageable, filtro);
-
         return ResponseEntity.ok(programPage);
-
     }
 
-    @DeleteMapping("/programas/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<SocialProgramResponseDTO> delete(@PathVariable Integer id) {
         SocialProgramResponseDTO response = programService.deleteProgram(id);
         return ResponseEntity.ok(response);
@@ -64,7 +61,6 @@ public class SocialProgramController {
             @RequestBody SocialProgramRequestDTO requestDto) {
 
         var response = programService.updateProgram(id, requestDto);
-
         return ResponseEntity.ok(response);
     }
 
@@ -72,14 +68,13 @@ public class SocialProgramController {
      * GET /programas?tipo=FORMACION
      * Retorna la lista de programas sociales activos o filtrados por tipo, municipio o clúster.
      */
-    @GetMapping
+    @GetMapping("/list")
     public ResponseEntity<SocialProgramListResponseDTO> obtenerProgramas(
             @RequestParam(name = "tipo", required = false) String tipo,
             @RequestParam(name = "municipio", required = false) String municipio,
             @RequestParam(name = "cluster", required = false) String cluster,
             @RequestParam(name = "activo", required = false, defaultValue = "true") Boolean activo
     ) {
-        // Delegamos el filtrado dinámico al servicio de negocio
         SocialProgramListResponseDTO response = programService.listarProgramas(tipo, municipio, cluster, activo);
         return ResponseEntity.ok(response);
     }

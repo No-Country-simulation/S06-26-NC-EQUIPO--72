@@ -18,7 +18,7 @@ import com.example.appbitb2g.service.EmployabilityService;
 import lombok.AllArgsConstructor;
 
 @RestController
-@RequestMapping("/api/employability")
+@RequestMapping("/employability")
 @AllArgsConstructor
 public class EmployabilityController {
 
