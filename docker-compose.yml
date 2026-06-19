@@ -31,6 +31,9 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/${DB_NAME}?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=${DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_JPA_SHOW_SQL=true
+      - SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
+      - LOGGING_LEVEL_ORG_HIBERNATE_ORM_RESULTS_BASIC=TRACE
     depends_on:
       - db
     networks:

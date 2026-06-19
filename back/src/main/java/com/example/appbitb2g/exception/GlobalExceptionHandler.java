@@ -30,5 +30,15 @@ public class GlobalExceptionHandler {
                 ex.getMessage());
                  return ResponseEntity.status(422).body(errorDTO);
     }
+      @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponseDto> handleBadRequest(BadRequestException ex) {
+        
+       
+        ErrorResponseDto errorDTO = new ErrorResponseDto(
+                "FILTRO_INVALIDO",
+                ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDTO);
+    }
 
 }
