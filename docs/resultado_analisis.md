@@ -35,40 +35,70 @@ El `schema_db.md` documenta:
 
 (en `programas_sociales` e `indicadores_territoriales`).
 
-La auditoría real de `antenas_flp.csv` (132 antenas) muestra **23 clusters únicos**, no 27:
+La auditoría real de `antenas_flp.csv` (132 antenas) muestra **23 clusters únicos**, no 27. Los clusters se distribuyen en **4 municipios** y uno de ellos (`ESTREITO_CAPOEIRAS`) es inter-municipal (cubre áreas de Florianopolis y Sao Jose).
 
+## Clusters por Municipio
 ```
-SC401_CORREDOR
-ESTREITO_CAPOEIRAS
-NORTE_ILHA
-TRINDADE
-UFSC
-CANASVIEIRAS
-AEROPORTO_HLZ
-CBD_BEIRAMAR
-RESIDENCIAL_NORTE
-SAO_JOSE_KOBRASOL
-LAGOA_CONCEICAO
-CAMPECHE
-SAO_JOSE_CENTRO
-PALHOCA_PEDRA_BRANCA
-SAO_JOSE_ROÇADO
-INGLESES
-VIA_EXPRESSA_CORREDOR
-COQUEIROS
-BIGUACU_BR101_NORTE
-JURERE
-PALHOCA_CENTRO
-SAO_JOSE_BARREIROS
-CENTRO_HISTORICO
+Florianopolis:
+  - AEROPORTO_HLZ
+  - CAMPECHE
+  - CANASVIEIRAS
+  - CBD_BEIRAMAR
+  - CENTRO_HISTORICO
+  - COQUEIROS
+  - ESTREITO_CAPOEIRAS (10 antenas)
+  - INGLESES
+  - JURERE
+  - LAGOA_CONCEICAO
+  - NORTE_ILHA
+  - RESIDENCIAL_NORTE
+  - SC401_CORREDOR
+  - TRINDADE
+  - UFSC
+  - VIA_EXPRESSA_CORREDOR
+
+Sao Jose:
+  - ESTREITO_CAPOEIRAS (3 antenas)
+  - SAO_JOSE_CENTRO
+  - SAO_JOSE_KOBRASOL
+  - SAO_JOSE_ROÇADO
+
+Palhoca:
+  - PALHOCA_CENTRO
+  - PALHOCA_PEDRA_BRANCA
+  - SAO_JOSE_BARREIROS
+
+Biguacu:
+  - BIGUACU_BR101_NORTE
 ```
 
-Distribuidos en **4 municipios**:
+## Lista detallada (Cluster → Municipio)
+1. AEROPORTO_HLZ → Florianopolis
+2. BIGUACU_BR101_NORTE → Biguacu
+3. CAMPECHE → Florianopolis
+4. CANASVIEIRAS → Florianopolis
+5. CBD_BEIRAMAR → Florianopolis
+6. CENTRO_HISTORICO → Florianopolis
+7. COQUEIROS → Florianopolis
+8. ESTREITO_CAPOEIRAS → Florianopolis
+9. ESTREITO_CAPOEIRAS → Sao Jose
+10. INGLESES → Florianopolis
+11. JURERE → Florianopolis
+12. LAGOA_CONCEICAO → Florianopolis
+13. NORTE_ILHA → Florianopolis
+14. PALHOCA_CENTRO → Palhoca
+15. PALHOCA_PEDRA_BRANCA → Palhoca
+16. RESIDENCIAL_NORTE → Florianopolis
+17. SAO_JOSE_BARREIROS → Palhoca
+18. SAO_JOSE_CENTRO → Sao Jose
+19. SAO_JOSE_KOBRASOL → Sao Jose
+20. SAO_JOSE_ROÇADO → Sao Jose
+21. SC401_CORREDOR → Florianopolis
+22. TRINDADE → Florianopolis
+23. UFSC → Florianopolis
+24. VIA_EXPRESSA_CORREDOR → Florianopolis
 
-* Florianopolis
-* Sao Jose
-* Palhoca
-* Biguacu
+> Nota: El cluster `ESTREITO_CAPOEIRAS` aparece dos veces porque está presente en 2 municipios diferentes.
 
 ## Acción requerida
 
