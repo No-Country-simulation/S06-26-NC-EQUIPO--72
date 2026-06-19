@@ -20,3 +20,7 @@ de los datos recibidos mediante Query Params o Request Bodies.
 
 
   ### Prerrequisitos
+  - Java JDK 21 o superior.
+  - Maven 3.8+.
+  - Spring Boot
+  - Docker
