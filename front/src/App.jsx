@@ -8,6 +8,7 @@ import MentoriasPage from "./features/mentorias/pages/MentoriasPage";
 import EmpleabilidadPage from "./features/empleabilidad/pages/EmpleabilidadPage";
 import ReportesPage from "./features/reportes/pages/ReportesPage";
 import AlertasPage from "./features/alertas/pages/AlertasPage";
+import ConfiguracionPage from "./features/configuracion/pages/ConfiguracionPage";
 
 function App() {
   const [currentTab, setCurrentTab] = useState("inicio");
@@ -30,6 +31,8 @@ function App() {
         <ReportesPage />
       ) : currentTab === "alertas" ? (
         <AlertasPage />
+      ) : currentTab === "configuracion" ? (
+        <ConfiguracionPage />
       ) : (
         <div className="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-500">
           <h3 className="text-base font-bold text-slate-700 capitalize">
@@ -45,4 +48,3 @@ function App() {
 }
 
 export default App;
-
