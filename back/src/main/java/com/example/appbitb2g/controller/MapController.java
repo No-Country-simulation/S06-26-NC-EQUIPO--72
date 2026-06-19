@@ -1,6 +1,7 @@
 package com.example.appbitb2g.controller;
 
 import com.example.appbitb2g.dto.responseDTO.socialProgram.MapIndicadoresResponseDTO;
+import com.example.appbitb2g.dto.responseDTO.socialProgram.MapResponseDTO;
 import com.example.appbitb2g.dto.responseDTO.socialProgram.MensajeResponseDTO;
 import com.example.appbitb2g.service.MapService;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,27 @@ public class MapController{
 
     public MapController(MapService mapService) {
         this.mapService = mapService;
+    }
+
+    // GET /mapa?periodo=TARDE
+    @GetMapping
+    public ResponseEntity<?> getMapa(
+            @RequestParam(name = "periodo", required = false, defaultValue = "TARDE") String periodo,
+            @RequestParam(name = "municipio", required = false, defaultValue = "todos") String municipio,
+            @RequestParam(name = "fecha", required = false) String fecha
+    ) {
+        // Validar periodo
+        if (!Arrays.asList("MADRUGADA", "MANHA", "TARDE", "NOITE").contains(periodo.toUpperCase())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    new MensajeResponseDTO(
+                            "FILTRO_INVALIDO",
+                            "El valor de ´periodo´ debe ser MADRUGADA / MANHA / TARDE / NOITE"
+                    )
+            );
+        }
+
+        MapResponseDTO response = mapService.obtenerMapa(periodo, municipio, fecha);
+        return ResponseEntity.ok(response);
     }
 
     // GET /mapa/indicadores?categoria=EDUCACION
