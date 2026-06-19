@@ -4,6 +4,11 @@
 El código fuente se organiza de la siguiente manera dentro del paquete raíz `com.example.appbitb2g`:
      
 ### 📥 Capa de Controladores (controller)
+Es la puerta de entrada de la aplicación. Expone las rutas de la `API REST`, define los métodos 
+`HTTP (GET, POST, PUT, DELETE),` habilita políticas de CORS para el Frontend y valida la consistencia 
+de los datos recibidos mediante Query Params o Request Bodies.
+
+
 ### 📦Capa de Objetos de Transferencia de Datos (dto)
 ### ⚙️ Capa de Servicios (service e service.impl)
 ### 💾 Capa de Persistencia y Modelos (model y repository)
