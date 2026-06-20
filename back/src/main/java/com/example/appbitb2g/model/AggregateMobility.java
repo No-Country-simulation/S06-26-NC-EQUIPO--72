@@ -14,8 +14,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Entity(name = "movilidade_agregada")
-public class MobilidadeAgregada {
+@Entity(name = "mobilidade_agregada")
+public class AggregateMobility {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Id autoincremental
     private Integer id; // SERIAL PK
