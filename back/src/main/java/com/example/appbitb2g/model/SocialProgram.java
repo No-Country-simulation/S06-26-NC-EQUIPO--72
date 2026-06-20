@@ -14,8 +14,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Entity(name = "programas_sociales")
-public class ProgramasSociales {
+@Entity
+@Table(name = "programas_sociales")
+public class SocialProgram {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -50,5 +51,5 @@ public class ProgramasSociales {
     @Column(name = "fecha_fin")
     private LocalDate fechaFin; // DATE
 
-    private Short activo; // SMALLINT (0 / 1)
+    private Boolean activo; // SMALLINT (0 / 1)
 }
