@@ -1,4 +1,4 @@
-package com.example.appbitb2g.dto.requestDTO.employability;
+package com.example.appbitb2g.dto.requestDTO.queryrRequestDto;
 
 import lombok.Setter;
 
