@@ -34,9 +34,9 @@ Recibe una consulta en lenguaje natural. El AI Service realiza schema linking (v
     }
   ],
   "fuentes": [
-    { "nombre": "Vísent CDRView v2", "codigo_origem": "tensor_concentracao" },
-    { "nombre": "Vísent CDRView v2", "codigo_origem": "tensor_mobilidade" }
-  ],
+            { "nombre": "Vísent CDRView v2", "codigo_origem": "tensor_concentracao", "fecha_referencia": "2026-03-10" },
+            { "nombre": "DATASUS", "codigo_origem": "SIH-SUS", "fecha_referencia": "2025-12-01" }
+        ],
   "visualizacion_sugerida": "mapa_brechas",
   "idioma": "es"
 }
