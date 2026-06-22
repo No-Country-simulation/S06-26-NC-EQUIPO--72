@@ -4,6 +4,13 @@ import com.example.appbitb2g.dto.responseDTO.socialProgram.MapIndicadoresRespons
 import com.example.appbitb2g.dto.responseDTO.socialProgram.MapResponseDTO;
 import com.example.appbitb2g.dto.responseDTO.socialProgram.MensajeResponseDTO;
 import com.example.appbitb2g.service.MapService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +22,7 @@ import java.util.Arrays;
 
 @RestController
 @RequestMapping("/mapa")
+@Tag(name = "Mapa", description = "Endpoints para visualizar regiones y sus indicadores territoriales")
 public class MapController{
     private final MapService mapService;
 
@@ -23,10 +31,29 @@ public class MapController{
     }
 
     // GET /mapa?periodo=TARDE
+    @Operation(
+            summary = "Obtener mapa territorial",
+            description = "Devuelve regiones con métricas de congestión, usuarios y fecha para el mapa principal."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Mapa calculado correctamente",
+                    content = @Content(schema = @Schema(implementation = MapResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Filtro inválido",
+                    content = @Content(schema = @Schema(implementation = MensajeResponseDTO.class))
+            )
+    })
     @GetMapping
     public ResponseEntity<?> getMapa(
+            @Parameter(description = "Período horario para la vista del mapa", example = "TARDE")
             @RequestParam(name = "periodo", required = false, defaultValue = "TARDE") String periodo,
+            @Parameter(description = "Municipio a filtrar", example = "todos")
             @RequestParam(name = "municipio", required = false, defaultValue = "todos") String municipio,
+            @Parameter(description = "Fecha de referencia del mapa", example = "2025-12-01")
             @RequestParam(name = "fecha", required = false) String fecha
     ) {
         // Validar periodo
@@ -44,10 +71,34 @@ public class MapController{
     }
 
     // GET /mapa/indicadores?categoria=EDUCACION
+    @Operation(
+            summary = "Obtener indicadores por región",
+            description = "Devuelve el detalle de indicadores territoriales agrupados por región y categoría."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Indicadores calculados correctamente",
+                    content = @Content(schema = @Schema(implementation = MapIndicadoresResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Categoría inválida",
+                    content = @Content(schema = @Schema(implementation = MensajeResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "No hay resultados para los filtros",
+                    content = @Content(schema = @Schema(implementation = MensajeResponseDTO.class))
+            )
+    })
     @GetMapping("/indicadores")
     public ResponseEntity<?> getIndicadoresMap(
+            @Parameter(description = "Categoría de indicadores a consultar", example = "EDUCACION", required = true)
             @RequestParam(name = "categoria") String categoria,
+            @Parameter(description = "Indicador específico opcional", example = "idhm_2010_educacion")
             @RequestParam(name = "indicador", required = false) String indicador,
+            @Parameter(description = "Municipio a filtrar", example = "São José")
             @RequestParam(name = "municipio", required = false) String municipio
     ){
         // 1. Validación de seguridad contra el contrato
