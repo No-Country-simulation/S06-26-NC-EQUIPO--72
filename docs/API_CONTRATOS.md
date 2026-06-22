@@ -418,3 +418,8 @@ Alertas automáticas cuando un indicador supera o cae por debajo de un umbral co
   "mensaje": "Error al procesar la consulta."
 }
 ```
+
+---
+
+## Documentación Relacionada
+Para más detalles sobre la arquitectura de integración del AI Service, ver [ARQUITECTURA_IA.md](./ARQUITECTURA_IA.md).
