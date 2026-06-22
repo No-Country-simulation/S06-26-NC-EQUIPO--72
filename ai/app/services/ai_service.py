@@ -1,35 +1,48 @@
 
+from fastapi import HTTPException
 from app.models.schemas import ConsultaRequest, ConsultaResponse
-from app.agent.graph import agent
 
 
 class AIService:
     async def process_query(self, request: ConsultaRequest) -> ConsultaResponse:
         """
-        Procesa una consulta del usuario usando el agente LangGraph
+        Procesa una consulta del usuario con datos mockeados
         """
-        result = await agent.ainvoke({
-            "consulta": request.consulta,
-            "filtros": request.filtros,
-            "idioma": request.idioma,
-            "plan": {},
-            "tool_results": {},
-            "respuesta_ia": "",
-            "visualizacion_sugerida": "",
-            "fuentes": []
-        })
+        # Verifica si la consulta es irrelevante
+        consulta_lower = request.consulta.lower()
+        if "boca" in consulta_lower or "clima" in consulta_lower or "comida" in consulta_lower:
+            # Raise with exact response format from contract
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "error": "CONSULTA_IRRELEVANTE",
+                    "mensaje": "La consulta no puede resolverse con los datos disponibles."
+                }
+            )
 
-        datos = []
-        if "datos" in result.get("tool_results", {}):
-            datos = result["tool_results"]["datos"]
-        elif "brechas" in result.get("tool_results", {}):
-            datos = result["tool_results"]["brechas"]
-
+        # Datos mockeados
+        respuesta_ia = "En la región FPOLIS_NORTE hay 8.200 personas en horario laboral con cobertura WCDMA precaria y ningún programa de formación activo. Es la zona de mayor brecha para jóvenes de income D."
+        datos = [
+            {
+                "cluster": "FPOLIS_NORTE",
+                "municipio": "Florianópolis",
+                "n_usuarios": 8200,
+                "congestionamiento_medio": 0.81,
+                "programas_activos": 0,
+                "severidad_brecha": "ALTA"
+            }
+        ]
+        fuentes = [
+            {"nombre": "Vísent CDRView v2", "codigo_origem": "tensor_concentracao", "fecha_referencia": "2026-03-10"},
+            {"nombre": "DATASUS", "codigo_origem": "SIH-SUS", "fecha_referencia": "2025-12-01"}
+        ]
+        visualizacion_sugerida = "mapa_brechas"
+        
         return ConsultaResponse(
-            respuesta_ia=result["respuesta_ia"],
+            respuesta_ia=respuesta_ia,
             datos=datos,
-            fuentes=result["fuentes"],
-            visualizacion_sugerida=result["visualizacion_sugerida"],
+            fuentes=fuentes,
+            visualizacion_sugerida=visualizacion_sugerida,
             idioma=request.idioma
         )
 
