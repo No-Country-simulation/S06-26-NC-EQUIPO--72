@@ -14,10 +14,15 @@ public class DatabaseSeeder implements ApplicationRunner {
 
     @Autowired private SocialProgramSeeder socialProgramSeeder;
     @Autowired private TerritorialIndicatorsSeeder territorialIndicatorsSeeder;
-
+    @Autowired private AntenasSeeder antenasSeeder;
+    @Autowired private AssinantesSeeder assinantesSeeder;
+    @Autowired private ConcentracaoSeeder concentracaoSeeder;
     @Override
     public void run(ApplicationArguments args) {
         socialProgramSeeder.seed();
         territorialIndicatorsSeeder.seed();
+        antenasSeeder.seed();
+        assinantesSeeder.seed();
+        concentracaoSeeder.seed();
     }
 }
