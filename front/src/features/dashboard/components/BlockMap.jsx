@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { generarMapaOrganico } from "../utils/organicMap";
 
-// ENDPOINT: /map
+// ENDPOINT: /mapa/indicadores
 // {
 //   "regiones": [
 //     {
@@ -11,10 +11,16 @@ import { generarMapaOrganico } from "../utils/organicMap";
 //       "lon": -48.6358,
 //       "n_usuarios": 12400,
 //       "congestionamento_medio": 0.72,
-//       "rat_type_predominante": "LTE",
-//       "download_gb": 34.5,
-//       "periodo": "TARDE",
-//       "fecha": "2026-03-10"
+//       "indicadores": [
+//         {
+//           "categoria": "SALUD_MENTAL",
+//           "indicador": "taxa_internacao_psiquiatrica",
+//           "valor": 14.2,
+//           "unidad": "porcentaje",
+//           "fonte": "DATASUS",
+//           "fecha_referencia": "2025-12-01"
+//         }
+//       ]
 //     }
 //   ]
 // }
@@ -25,54 +31,144 @@ const regiones = [
     municipio: "Florianopolis",
     congestionamento_medio: 0.6,
     n_usuarios: 12400,
+    indicadores: [
+      {
+        categoria: "SALUD_MENTAL",
+        indicador: "taxa_internacao_psiquiatrica",
+        valor: 14.2,
+        unidad: "porcentaje",
+        fonte: "DATASUS",
+        fecha_referencia: "2025-12-01",
+      },
+    ],
   },
   {
     cluster: "CAMPECHE",
     municipio: "Florianopolis",
     congestionamento_medio: 0.6,
     n_usuarios: 12300,
+    indicadores: [
+      {
+        categoria: "SALUD_MENTAL",
+        indicador: "taxa_internacao_psiquiatrica",
+        valor: 14.2,
+        unidad: "porcentaje",
+        fonte: "DATASUS",
+        fecha_referencia: "2025-12-01",
+      },
+    ],
   },
   {
     cluster: "CANASVIEIRAS",
     municipio: "Florianopolis",
     congestionamento_medio: 0.7,
     n_usuarios: 12200,
+    indicadores: [
+      {
+        categoria: "SALUD_MENTAL",
+        indicador: "taxa_internacao_psiquiatrica",
+        valor: 14.2,
+        unidad: "porcentaje",
+        fonte: "DATASUS",
+        fecha_referencia: "2025-12-01",
+      },
+    ],
   },
   {
     cluster: "CBD_BEIRAMAR",
     municipio: "Florianopolis",
     congestionamento_medio: 0.65,
     n_usuarios: 12100,
+    indicadores: [
+      {
+        categoria: "SALUD_MENTAL",
+        indicador: "taxa_internacao_psiquiatrica",
+        valor: 14.2,
+        unidad: "porcentaje",
+        fonte: "DATASUS",
+        fecha_referencia: "2025-12-01",
+      },
+    ],
   },
   {
     cluster: "CENTRO_HISTORICO",
     municipio: "Florianopolis",
     congestionamento_medio: 0.82,
     n_usuarios: 13000,
+    indicadores: [
+      {
+        categoria: "SALUD_MENTAL",
+        indicador: "taxa_internacao_psiquiatrica",
+        valor: 14.2,
+        unidad: "porcentaje",
+        fonte: "DATASUS",
+        fecha_referencia: "2025-12-01",
+      },
+    ],
   },
   {
     cluster: "COQUEIROS",
     municipio: "Florianopolis",
     congestionamento_medio: 0.52,
     n_usuarios: 13100,
+    indicadores: [
+      {
+        categoria: "SALUD_MENTAL",
+        indicador: "taxa_internacao_psiquiatrica",
+        valor: 14.2,
+        unidad: "porcentaje",
+        fonte: "DATASUS",
+        fecha_referencia: "2025-12-01",
+      },
+    ],
   },
   {
     cluster: "ESTREITO_CAPOEIRAS",
     municipio: "Florianopolis",
     congestionamento_medio: 0.35,
     n_usuarios: 13200,
+    indicadores: [
+      {
+        categoria: "SALUD_MENTAL",
+        indicador: "taxa_internacao_psiquiatrica",
+        valor: 14.2,
+        unidad: "porcentaje",
+        fonte: "DATASUS",
+        fecha_referencia: "2025-12-01",
+      },
+    ],
   },
   {
     cluster: "INGLESES",
     municipio: "Florianopolis",
     congestionamento_medio: 0.62,
     n_usuarios: 13200,
+    indicadores: [
+      {
+        categoria: "SALUD_MENTAL",
+        indicador: "taxa_internacao_psiquiatrica",
+        valor: 14.2,
+        unidad: "porcentaje",
+        fonte: "DATASUS",
+        fecha_referencia: "2025-12-01",
+      },
+    ],
   },
   {
     cluster: "JURERE",
     municipio: "Florianopolis",
     congestionamento_medio: 0.2,
     n_usuarios: 13000,
+    indicadores: [
+      {
+        categoria: "SALUD_MENTAL",
+        indicador: "taxa_internacao_psiquiatrica",
+        valor: 14.2,
+        unidad: "porcentaje",
+        fonte: "DATASUS",
+        fecha_referencia: "2025-12-01",
+      },
+    ],
   },
 ];
 
@@ -266,6 +362,13 @@ export const BlockMap = () => {
 
                 <p className="text-sm font-bold text-blue-600">
                   {(tooltip.region.congestionamento_medio * 100).toFixed(0)}%
+                </p>
+              </div>
+              <div className="mt-3">
+                <p className="text-sm text-slate-400">Salud M.</p>
+
+                <p className="text-sm font-bold text-blue-600">
+                  {tooltip.region.indicadores[0].valor.toFixed(1)}%
                 </p>
               </div>
 
