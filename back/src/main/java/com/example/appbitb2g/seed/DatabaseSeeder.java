@@ -17,6 +17,9 @@ public class DatabaseSeeder implements ApplicationRunner {
     @Autowired private AntenasSeeder antenasSeeder;
     @Autowired private AssinantesSeeder assinantesSeeder;
     @Autowired private ConcentracaoSeeder concentracaoSeeder;
+    @Autowired private FluxoViasSeeder fluxoViasSeeder;
+    @Autowired private AggregateMobilitySeeder aggregateMobilitySeeder;
+
     @Override
     public void run(ApplicationArguments args) {
         socialProgramSeeder.seed();
@@ -24,5 +27,7 @@ public class DatabaseSeeder implements ApplicationRunner {
         antenasSeeder.seed();
         assinantesSeeder.seed();
         concentracaoSeeder.seed();
+        fluxoViasSeeder.seed();
+        aggregateMobilitySeeder.seed();
     }
 }
