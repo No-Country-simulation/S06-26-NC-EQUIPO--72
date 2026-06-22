@@ -58,6 +58,7 @@ services:
       - SPRING_JPA_SHOW_SQL=true
       - SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
       - LOGGING_LEVEL_ORG_HIBERNATE_ORM_RESULTS_BASIC=TRACE
+      - AI_SERVICE_URL=${AI_SERVICE_URL}
     depends_on:
       - db
     networks:

@@ -1,14 +1,10 @@
 package com.example.appbitb2g.dto.responseDTO.employability;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Getter
-@Setter
-@AllArgsConstructor
-public class FountainDTO {
-    String nombre;
-    String codigoOrigem;
-    String fechaReferencia;
-}
+//  Representa una fuente de datos en las respuestas
+public record FountainDTO(
+    @JsonProperty("nombre") String nombre,
+    @JsonProperty("codigo_origem") String codigoOrigem,
+    @JsonProperty("fecha_referencia") String fechaReferencia
+) {}

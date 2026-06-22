@@ -5,12 +5,11 @@ import java.util.List;
 import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-//  Envía la respuesta final al frontend
-public record AiQueryResponseDTO(
-    @JsonProperty("respuesta_ia") String respuestaIa,
-    @JsonProperty("visualizacion_sugerida") String visualizacionSugerida,
+//  Recibe la respuesta desde el servicio de IA
+public record AiServiceResponseDTO(
+    @JsonProperty("respuesta_ia") String respuesta_ia,
     @JsonProperty("datos") List<Map<String, Object>> datos,
     @JsonProperty("fuentes") List<FountainDTO> fuentes,
-    @JsonProperty("total_registros") Integer totalRegistros,
+    @JsonProperty("visualizacion_sugerida") String visualizacion_sugerida,
     @JsonProperty("idioma") String idioma
 ) {}

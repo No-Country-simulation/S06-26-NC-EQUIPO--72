@@ -18,17 +18,15 @@ import com.example.appbitb2g.service.DataService;
 import lombok.AllArgsConstructor;
 
 @RestController
-@RequestMapping("/employability")
+@RequestMapping
 @AllArgsConstructor
 public class DataController {
 
     private final DataService dataService;
 
-    @PostMapping("/query")
-    public ResponseEntity<AiQueryResponseDTO> employabilityQuery(@RequestBody AiQueryRequestDTO requestDto) {
-
+    @PostMapping("/datos")
+    public ResponseEntity<AiQueryResponseDTO> datosQuery(@RequestBody AiQueryRequestDTO requestDto) {
         var response = dataService.aiQueryAgent(requestDto);
-
         return ResponseEntity.ok(response);
     }
 

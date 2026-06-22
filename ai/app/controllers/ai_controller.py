@@ -9,8 +9,5 @@ class AIController:
         self.ai_service = AIService()
 
     async def handle_consulta(self, request: ConsultaRequest) -> ConsultaResponse:
-        try:
-            return await self.ai_service.process_query(request)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+        return await self.ai_service.process_query(request)
 
