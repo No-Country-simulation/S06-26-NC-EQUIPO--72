@@ -4,10 +4,14 @@
 ## POST /consulta
 
 
-Recibe una consulta en lenguaje natural. El AI Service realiza schema linking (vía embeddings) para identificar las tablas relevantes, genera SQL (Text-to-SQL), lo ejecuta contra la base de datos y retorna una respuesta estructurada con datos, fuentes y sugerencia de visualización.
+Recibe una consulta en lenguaje natural. El AI Service sigue esta regla de prioridad para obtener datos:
+1. **Primero**: Usa tools para llamar a endpoints existentes del backend (como `/api/brechas`, `/api/mapa`, `/api/programas`)
+2. **Solo si no hay alternativa**: Realiza schema linking (vía embeddings) para identificar las tablas relevantes, genera SQL (Text-to-SQL) y lo ejecuta contra la base de datos (solo lectura)
+
+Finalmente, retorna una respuesta estructurada con datos, fuentes y sugerencia de visualización.
 
 
-> **Nota:** el AI Service no recibe filtros estructurados. Toda la inferencia de contexto (municipio, cluster, periodo, categoría, etc.) se hace a partir del texto de la consulta.
+
 
 
 ### Request
@@ -43,8 +47,7 @@ Recibe una consulta en lenguaje natural. El AI Service realiza schema linking (v
 ```
 
 
-> `respuesta_ia` (antes `respuesta`) — renombrado para ser consistente con el contrato de `POST /datos` (backend↔frontend), que ya usa este nombre de campo.
->
+
 > `visualizacion_sugerida` es una señal para el frontend sobre qué componente renderizar. Valores posibles: `mapa_brechas` / `mapa_indicadores` / `tabla_datos` / `grafico_barras`. El frontend decide si la usa o no.
 
 
@@ -57,8 +60,17 @@ Recibe una consulta en lenguaje natural. El AI Service realiza schema linking (v
 ```
 
 
-> Aplica cuando el SQL generado no devuelve resultados, o cuando el agente determina que la consulta no puede resolverse con el schema disponible.
+>&gt; Aplica cuando:
+&gt; 1. El agente determina que la consulta es irrelevante (no relacionada con los datos disponibles)
+&gt; 2. Las tools (endpoints del backend) no devuelven resultados
+&gt; 3. El SQL generado no devuelve resultados
+&gt; 4. El agente determina que la consulta no puede resolverse con el schema disponible
 
 
 Historial de conversación: Pendiente por definir
+
+---
+
+## Documentación Relacionada
+Para más detalles sobre la arquitectura de integración, ver [ARQUITECTURA_IA.md](./ARQUITECTURA_IA.md).
 
