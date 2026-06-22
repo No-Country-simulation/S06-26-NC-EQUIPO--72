@@ -9,7 +9,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
     ports:
-      - "${DB_PORT}:3306"
+      - "3307:3306"  # Corregido: Mapea al 3307 en tu Windows para evitar el conflicto
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
@@ -23,9 +23,8 @@ services:
     restart: always
     ports:
       - "8080:8080"
-
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/${DB_NAME}?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/${DB_NAME}?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=${DB_USER}
       - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
     depends_on:
@@ -33,21 +32,17 @@ services:
     networks:
       - app-network
 
-
-
-
   react-frontend:
     container_name: react_app
     build:
       context: ./front
       dockerfile: Dockerfile
     restart: always
-
     environment:
       - VITE_API_URL=${VITE_API_URL}
       - HOST=0.0.0.0
       - NODE_ENV=development
-
+      - CHOKIDAR_USEPOLLING=true
     volumes:
       - ./front:/app
       - /app/node_modules  
@@ -70,12 +65,11 @@ services:
       - ./ai:/app
       - /app/__pycache__
     env_file:
-      - ./ai/.env  # Usa el .env del directorio ai/
+      - ./ai/.env
     depends_on:
       - backend
     networks:
       - app-network
-
 
 volumes:
   mysql_data:
@@ -83,4 +77,3 @@ volumes:
 networks:
   app-network:
     driver: bridge
-

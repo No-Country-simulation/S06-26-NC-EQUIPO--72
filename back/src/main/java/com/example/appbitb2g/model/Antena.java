@@ -2,6 +2,9 @@ package com.example.appbitb2g.model;
 
 import java.math.BigDecimal;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,12 +17,15 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Entity(name = "antena")
 public class Antena {
+    @Id
+    @Column(name = "ecgi")
+    private String ecgi;// Clave primaria(PK) que conecta con Concentracao
 
-private String ecgi;           //siempre string, nunca numeric
-private String cluster;       
-private String municipio;     
-private BigDecimal lat;         
-private BigDecimal lon;         
+    private String cluster;
+    private String municipio;
+    private BigDecimal lat;
+    private BigDecimal lon;
     
 }
