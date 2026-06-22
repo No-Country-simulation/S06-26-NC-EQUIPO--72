@@ -1,0 +1,18 @@
+[
+    {
+        "ecgi": "724051234567891",
+        "assinante_hash": 10543,
+        "municipio": "São Paulo",
+        "arrival_time": "2026-06-22 08:30:00",
+        "day_date": "2026-06-22",
+        "permanencia_seg": 3600
+    },
+    {
+        "ecgi": "724059876543210",
+        "assinante_hash": 22415,
+        "municipio": "Rio de Janeiro",
+        "arrival_time": "2026-06-22 09:15:00",
+        "day_date": "2026-06-22",
+        "permanencia_seg": 1800
+    }
+]

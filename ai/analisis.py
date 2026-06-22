@@ -86,11 +86,38 @@ def main() -> None:
     print("⚙️ INICIANDO PIPELINE DE CALIDAD DE DATOS (BACKEND AI)")
     print("==================================================================")
     
-    auditar_fluxo_vias(DATA_DIR / "tensor_fluxo_vias.csv")
-    auditar_tensor_sequencias(DATA_DIR / "tensor_sequencias.csv")
-    
-    print("\n✅ Proceso de auditoría finalizado.")
+    # 1. Definimos las rutas de origen
+    archivo_vias = DATA_DIR / "tensor_fluxo_vias.csv"
+    archivo_seq = DATA_DIR / "tensor_sequencias.csv"
 
+    # 2. Corre tu auditoría normal
+    auditar_fluxo_vias(archivo_vias)
+    auditar_tensor_sequencias(archivo_seq)
+    
+    # ==================================================================
+    # 🎯 NUEVO: CUMPLIR CON EL ISSUE #63 (DATOS MOCK PARA EL ENDPOINT)
+    # ==================================================================
+    mostrar_encabezado("ÉPICA 0.7: GENERANDO SUBCOJUNTO MOCK PARA BACKEND")
+
+    # Generar Mock de Vías (Fase 1)
+    if archivo_vias.exists():
+        df_vias_mock = pd.read_csv(archivo_vias, dtype=DTYPE_VIAS, nrows=50)
+        ruta_json_vias = DATA_DIR / "mock_fluxo_vias.json"
+        df_vias_mock.to_json(ruta_json_vias, orient="records", indent=4, force_ascii=False)
+        print(f"✅ Mock JSON creado con éxito: {ruta_json_vias.name} (50 filas)")
+
+    # Generar Mock de Secuencias (Fase 2)
+    if archivo_seq.exists():
+        df_seq_mock = pd.read_csv(archivo_seq, dtype=DTYPE_SECUENCIAS, nrows=50, parse_dates=["arrival_time", "day_date"])
+        # Pasamos fechas a texto para que no rompa el formato JSON
+        df_seq_mock["arrival_time"] = df_seq_mock["arrival_time"].astype(str)
+        df_seq_mock["day_date"] = df_seq_mock["day_date"].astype(str)
+        
+        ruta_json_seq = DATA_DIR / "mock_tensor_sequencias.json"
+        df_seq_mock.to_json(ruta_json_seq, orient="records", indent=4, force_ascii=False)
+        print(f"✅ Mock JSON creado con éxito: {ruta_json_seq.name} (50 filas)")
+    
+    print("\n✅ Proceso de auditoría y generación de mocks finalizado.")
 
 if __name__ == "__main__":
     main()

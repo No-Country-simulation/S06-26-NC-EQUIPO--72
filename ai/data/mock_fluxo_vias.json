@@ -1,0 +1,16 @@
+[
+    {
+        "ecgi_origem": "724051234567891",
+        "ecgi_destino": "724051234567892",
+        "municipio_origem": "São Paulo",
+        "n_usuarios": 150,
+        "dist_km": 5.4
+    },
+    {
+        "ecgi_origem": "724059876543210",
+        "ecgi_destino": "724059876543211",
+        "municipio_origem": "Rio de Janeiro",
+        "n_usuarios": 85,
+        "dist_km": 12.1
+    }
+]
