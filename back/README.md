@@ -16,6 +16,11 @@ de los datos recibidos mediante Query Params o Request Bodies.
 
 ## 🚦Endpoints de la API y Contratos de Datos
 
+### 📘 Documentación Swagger
+Puedes acceder a la documentación interactiva de la API en:
+
+https://s06-26-nc-equipo-72.onrender.com/api/swagger-ui/index.html
+
 ## 🚀Instrucciones para Correr el Proyecto Localmente
 
 
@@ -24,3 +29,4 @@ de los datos recibidos mediante Query Params o Request Bodies.
   - Maven 3.8+.
   - Spring Boot
   - Docker
+
