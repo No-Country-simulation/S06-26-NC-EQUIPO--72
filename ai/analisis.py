@@ -1,10 +1,8 @@
 from pathlib import Path
 import pandas as pd
 
-
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
-
 
 CHUNK_SIZE = 500_000
 DTYPE_VIAS = {"ecgi_origem": str, "ecgi_destino": str}
@@ -12,14 +10,12 @@ DTYPE_SECUENCIAS = {"ecgi": str, "assinante_hash": "int32", "municipio": str}
 
 
 def mostrar_encabezado(titulo: str) -> None:
-    """Imprime un separador visual limpio para la consola."""
     print("\n" + "=" * 66)
     print(f"🔍 {titulo}")
     print("=" * 66 + "\n")
 
 
 def auditar_fluxo_vias(ruta_archivo: Path) -> None:
-    """Audita el archivo de flujo de vías (volumen moderado)."""
     mostrar_encabezado("FASE 1: AUDITORÍA DE TENSOR_FLUXO_VIAS")
 
     if not ruta_archivo.exists():
@@ -34,7 +30,6 @@ def auditar_fluxo_vias(ruta_archivo: Path) -> None:
     usuarios_negativos = len(df_vias[df_vias["n_usuarios"] < 0])
     distancias_exageradas = len(df_vias[df_vias["dist_km"] > 200])
 
-   
     print(f"\n📊 RESULTADOS DE CALIDAD DE DATOS ({ruta_archivo.name}):")
     print(f"   - Total registros evaluados: {len(df_vias)}")
     print(f"   - Campos vacíos (Nulos): {nulos[nulos > 0].to_dict() if nulos.sum() > 0 else '✅ Ninguno'}")
@@ -47,7 +42,6 @@ def auditar_fluxo_vias(ruta_archivo: Path) -> None:
 
 
 def auditar_tensor_sequencias(ruta_archivo: Path) -> None:
-    """Audita el archivo masivo de secuencias optimizando la memoria RAM con chunks."""
     mostrar_encabezado("FASE 2: AUDITORÍA EN BLOQUES - TENSOR_SEQUENCIAS (915 MB)")
 
     if not ruta_archivo.exists():
@@ -72,7 +66,7 @@ def auditar_tensor_sequencias(ruta_archivo: Path) -> None:
         total_nulos_municipio += chunk["municipio"].isnull().sum()
         total_permanencias_negativas += len(chunk[chunk["permanencia_seg"] < 0])
         
-        print(f"   📦 Bloque {i} procesado de forma segura... ({total_registros:,} filas acumuladas)")
+        print(f"   📦 Bloque {i} processed... ({total_registros:,} filas acumuladas)")
 
     print(f"\n📊 REPORTE DE SECUENCIAS CONSOLIDADO ({ruta_archivo.name}):")
     print(f"   - Total absoluto de filas leídas: {total_registros:,}")
@@ -81,35 +75,26 @@ def auditar_tensor_sequencias(ruta_archivo: Path) -> None:
 
 
 def main() -> None:
-    """Punto de entrada principal del script."""
     print("==================================================================")
     print("⚙️ INICIANDO PIPELINE DE CALIDAD DE DATOS (BACKEND AI)")
     print("==================================================================")
     
-    # 1. Definimos las rutas de origen
     archivo_vias = DATA_DIR / "tensor_fluxo_vias.csv"
     archivo_seq = DATA_DIR / "tensor_sequencias.csv"
 
-    # 2. Corre tu auditoría normal
     auditar_fluxo_vias(archivo_vias)
     auditar_tensor_sequencias(archivo_seq)
     
-    # ==================================================================
-    # 🎯 NUEVO: CUMPLIR CON EL ISSUE #63 (DATOS MOCK PARA EL ENDPOINT)
-    # ==================================================================
     mostrar_encabezado("ÉPICA 0.7: GENERANDO SUBCOJUNTO MOCK PARA BACKEND")
 
-    # Generar Mock de Vías (Fase 1)
     if archivo_vias.exists():
         df_vias_mock = pd.read_csv(archivo_vias, dtype=DTYPE_VIAS, nrows=50)
         ruta_json_vias = DATA_DIR / "mock_fluxo_vias.json"
         df_vias_mock.to_json(ruta_json_vias, orient="records", indent=4, force_ascii=False)
         print(f"✅ Mock JSON creado con éxito: {ruta_json_vias.name} (50 filas)")
 
-    # Generar Mock de Secuencias (Fase 2)
     if archivo_seq.exists():
         df_seq_mock = pd.read_csv(archivo_seq, dtype=DTYPE_SECUENCIAS, nrows=50, parse_dates=["arrival_time", "day_date"])
-        # Pasamos fechas a texto para que no rompa el formato JSON
         df_seq_mock["arrival_time"] = df_seq_mock["arrival_time"].astype(str)
         df_seq_mock["day_date"] = df_seq_mock["day_date"].astype(str)
         
@@ -118,6 +103,7 @@ def main() -> None:
         print(f"✅ Mock JSON creado con éxito: {ruta_json_seq.name} (50 filas)")
     
     print("\n✅ Proceso de auditoría y generación de mocks finalizado.")
+
 
 if __name__ == "__main__":
     main()
