@@ -19,7 +19,7 @@ const pared1 = [
   [420, 400],
 ];
 
-export function generarMapaOrganico(data) {
+export function generarMapaOrganico(data = []) {
   const paredes = [bordeIzquierdoMapa, pared0, pared1];
 
   // Función para autogenerar la siguiente pared irregular (paredX)
