@@ -19,7 +19,6 @@ import java.util.Arrays;
 
 @RestController
 @RequestMapping("/mapa")
-@CrossOrigin(origins = "*")
 @Tag(name = "Mapa", description = "Endpoints para visualizar regiones y sus indicadores territoriales")
 public class MapController{
     private final MapService mapService;
