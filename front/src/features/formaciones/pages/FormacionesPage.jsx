@@ -38,6 +38,9 @@ import {
   useFormacionesBrechas,
 } from "../hooks/useFormaciones";
 
+// Importamos el formulario de creación de nuevo programa
+import NuevoProgramaForm from "../components/NuevoProgramaForm";
+
 // Lista de clústeres oficiales para el municipio de Florianópolis
 const FLORI_CLUSTERS = [
   "AEROPORTO_HLZ",
@@ -156,6 +159,9 @@ function FormacionesPage() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Estado para controlar la visibilidad del modal para crear un programa
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
   // 1. Petición al endpoint /programas?size=100&tipo=FORMACION
   const {
     data: rawProgramas,
@@ -189,11 +195,6 @@ function FormacionesPage() {
       // Para cada programa del backend, consultamos los datos del territorio (clúster)
       const territorial = getClusterData(prog.cluster, rawBrechas?.brechas);
 
-      // Mapeamos el estado del programa:
-      // En la base de datos real (SocialProgramSeeder), los programas están sembrados como activos (activo=true).
-      // Sin embargo, en el DTO de respuesta del backend (ProgramDetail), no está incluido el campo "activo".
-      // Por ende, 'prog.activo' llega como 'undefined'. Para solucionarlo y reflejar el estado real sembrado,
-      // asumimos que el programa está activo si 'prog.activo' es undefined.
       const isActivo = prog.activo !== undefined ? prog.activo : true;
 
       let estado = "Activo";
@@ -443,7 +444,10 @@ function FormacionesPage() {
           </p>
         </div>
         <div>
-          <button className="flex items-center gap-1.5 bg-[#2563eb] hover:bg-blue-600 text-white font-medium text-xs px-4 py-2.5 rounded-lg transition-colors cursor-pointer shadow-sm">
+          <button
+            onClick={() => setIsFormOpen(true)}
+            className="flex items-center gap-1.5 bg-[#2563eb] hover:bg-blue-600 text-white font-medium text-xs px-4 py-2.5 rounded-lg transition-colors cursor-pointer shadow-sm"
+          >
             <Plus className="w-4 h-4" />
             <span>Nuevo programa</span>
           </button>
@@ -797,6 +801,18 @@ function FormacionesPage() {
           </span>
         </div>
       </div>
+
+      {/* Modal del Formulario de Creación */}
+      {isFormOpen && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-lg border border-slate-200/80 overflow-hidden w-full max-w-md animate-in zoom-in-95 duration-200">
+            <NuevoProgramaForm
+              onSubmitSuccess={() => setIsFormOpen(false)}
+              onCancel={() => setIsFormOpen(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

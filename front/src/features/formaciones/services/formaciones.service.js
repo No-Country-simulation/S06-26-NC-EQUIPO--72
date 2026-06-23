@@ -27,6 +27,23 @@ class FormacionesService {
 
     return result;
   }
+
+  async createProgram(payload) {
+    const response = await fetch(`${this.API}programas`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.mensaje || "Error al registrar el programa");
+    }
+
+    return result;
+  }
 }
 
 export default new FormacionesService();
