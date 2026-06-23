@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
 import { generarMapaOrganico } from "../utils/organicMap";
+//import { useMapsIndicators } from "../hooks/useMaps";
+import { ChartColumn, Layers } from "lucide-react";
 
 // ENDPOINT: /mapa/indicadores
 // {
@@ -173,11 +175,12 @@ const regiones = [
 ];
 
 const tabs = [
-  { key: "empleo", label: "Tasa de Empleo" },
-  { key: "conectividad", label: "Conectividad" },
-  { key: "salud", label: "Salud Mental" },
-  { key: "digital", label: "Inclusión Digital" },
+  { key: "EMPLEO", label: "Tasa de Empleo" },
+  { key: "EDUCACION", label: "Educacion" },
+  { key: "SALUD_MENTAL", label: "Salud Mental" },
 ];
+
+const labelByKey = new Map(tabs.map((t) => [t.key, t.label]));
 
 const fillColors = {
   critico: "#f87171",
@@ -185,17 +188,6 @@ const fillColors = {
   bueno: "#86efac",
   optimo: "#93c5fd",
 };
-
-const regionesCompletas = generarMapaOrganico(regiones);
-
-const regionTextCenter = regionesCompletas.map((region) => {
-  const coords = region.points.split(" ").map((p) => p.split(",").map(Number));
-  const centerPositionX =
-    coords.reduce((sum, [x]) => sum + x, 0) / coords.length;
-  const centerPositionY =
-    coords.reduce((sum, [, y]) => sum + y, 0) / coords.length;
-  return { ...region, centerPositionX, centerPositionY };
-});
 
 const getStatusFromCongestion = (value) => {
   if (value >= 0.75) return fillColors.optimo;
@@ -212,12 +204,32 @@ const tabButtonClass = (isActive) =>
   }`;
 
 export const BlockMap = () => {
-  const [activeMapTab, setActiveMapTab] = useState("empleo");
+  const [activeMapTab, setActiveMapTab] = useState("EMPLEO");
   const [tooltip, setTooltip] = useState({
     visible: false,
     x: 0,
     y: 0,
     region: null,
+  });
+
+  //const regionesv1 = useMapsIndicators(activeMapTab);
+  const regionesCompletas = generarMapaOrganico(regiones);
+
+  // useEffect(() => {
+  //   if (regionesv1) {
+  //     console.log("reegionesv1", regionesv1.data);
+  //   }
+  // }, [regionesv1]);
+
+  const regionTextCenter = regionesCompletas.map((region) => {
+    const coords = region.points
+      .split(" ")
+      .map((p) => p.split(",").map(Number));
+    const centerPositionX =
+      coords.reduce((sum, [x]) => sum + x, 0) / coords.length;
+    const centerPositionY =
+      coords.reduce((sum, [, y]) => sum + y, 0) / coords.length;
+    return { ...region, centerPositionX, centerPositionY };
   });
 
   const viewBoxWidth = useMemo(() => {
@@ -266,15 +278,19 @@ export const BlockMap = () => {
     <div className="bg-white border border-slate-200 rounded-xl p-5 lg:col-span-2 flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h3 className="text-sm font-bold text-slate-800">
-            Mapa de Inclusión Social
-          </h3>
+          <div className="flex items-center gap-2">
+            <ChartColumn height={18} width={18} className="text-blue-600" />
+            <h3 className="text-sm font-bold text-slate-800">
+              Mapa de Inclusión Social
+            </h3>
+          </div>
           <button className="text-xs text-blue-600 hover:text-blue-700 font-semibold">
             Ver detalle →
           </button>
         </div>
         {/* Tabs */}
-        <div className="flex flex-wrap gap-1 mt-4">
+        <div className="flex flex-wrap items-center gap-2 mt-4">
+          <Layers height={18} width={18} className="mr-2" />
           {tabs.map(({ key, label }) => (
             <button
               key={key}
@@ -356,16 +372,10 @@ export const BlockMap = () => {
                   {(tooltip.region.n_usuarios / 10000).toFixed(1)}M hab.
                 </span>
               </div>
-
               <div className="mt-3">
-                <p className="text-sm text-slate-400">Empleo</p>
-
-                <p className="text-sm font-bold text-blue-600">
-                  {(tooltip.region.congestionamento_medio * 100).toFixed(0)}%
+                <p className="text-sm text-slate-400 lowercase">
+                  {labelByKey.get(tooltip.region.indicadores[0].categoria)}
                 </p>
-              </div>
-              <div className="mt-3">
-                <p className="text-sm text-slate-400">Salud M.</p>
 
                 <p className="text-sm font-bold text-blue-600">
                   {tooltip.region.indicadores[0].valor.toFixed(1)}%
