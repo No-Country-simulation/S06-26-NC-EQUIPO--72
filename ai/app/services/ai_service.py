@@ -20,14 +20,14 @@ class AIService:
                 }
             )
 
-        # Datos mockeados
+        # Datos mockeados basados en el contrato (ejemplo 1: formaciones)
         respuesta_ia = "En la región FPOLIS_NORTE hay 8.200 personas en horario laboral con cobertura WCDMA precaria y ningún programa de formación activo. Es la zona de mayor brecha para jóvenes de income D."
         datos = [
             {
                 "cluster": "FPOLIS_NORTE",
                 "municipio": "Florianópolis",
                 "n_usuarios": 8200,
-                "congestionamiento_medio": 0.81,
+                "congestionamento_medio": 0.81,
                 "programas_activos": 0,
                 "severidad_brecha": "ALTA"
             }
