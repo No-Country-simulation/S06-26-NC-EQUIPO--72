@@ -1,22 +1,20 @@
 import { useState } from "react";
 import {
   Briefcase,
-  TrendingUp,
   ArrowUpRight,
   MapPin,
-  Users,
   Award,
   AlertTriangle,
 } from "lucide-react";
 import {
-  AreaChart,
-  Area,
+  // AreaChart,
+  // Area,
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
-  ReferenceLine,
+  // ReferenceLine,
 } from "recharts";
 import {
   ChartContainer,
@@ -25,31 +23,32 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart";
+import { useEmpleabilidad } from "../hooks/useEmpleabilidad";
 
 // Mock Data
 
 // Tab 1: Evolución Temporal
-const evolutionData = [
-  { mes: "Ene", tasa: 64.0 },
-  { mes: "Feb", tasa: 65.0 },
-  { mes: "Mar", tasa: 66.5 },
-  { mes: "Abr", tasa: 66.0 },
-  { mes: "May", tasa: 67.5 },
-  { mes: "Jun", tasa: 68.0 },
-  { mes: "Jul", tasa: 67.6 },
-  { mes: "Ago", tasa: 69.0 },
-  { mes: "Sep", tasa: 69.5 },
-  { mes: "Oct", tasa: 68.8 },
-  { mes: "Nov", tasa: 69.8 },
-  { mes: "Dic", tasa: 70.2 },
-];
+// const evolutionData = [
+//   { mes: "Ene", tasa: 64.0 },
+//   { mes: "Feb", tasa: 65.0 },
+//   { mes: "Mar", tasa: 66.5 },
+//   { mes: "Abr", tasa: 66.0 },
+//   { mes: "May", tasa: 67.5 },
+//   { mes: "Jun", tasa: 68.0 },
+//   { mes: "Jul", tasa: 67.6 },
+//   { mes: "Ago", tasa: 69.0 },
+//   { mes: "Sep", tasa: 69.5 },
+//   { mes: "Oct", tasa: 68.8 },
+//   { mes: "Nov", tasa: 69.8 },
+//   { mes: "Dic", tasa: 70.2 },
+// ];
 
-const evolutionConfig = {
-  tasa: {
-    label: "Tasa de Empleo",
-    color: "#2563eb",
-  },
-};
+// const evolutionConfig = {
+//   tasa: {
+//     label: "Tasa de Empleo",
+//     color: "#2563eb",
+//   },
+// };
 
 const tooltipFormatter = (value, name, item) => {
   const color = item.color || item.payload?.fill;
@@ -69,76 +68,72 @@ const tooltipFormatter = (value, name, item) => {
   );
 };
 
-// Tab 2: Comparación Regional
-const comparisonData = [
-  { region: "Noroeste", formal: 35, informal: 23 },
-  { region: "Norte", formal: 38, informal: 24 },
-  { region: "Noreste", formal: 46, informal: 25 },
-  { region: "Occidente", formal: 41, informal: 24 },
-  { region: "Centro", formal: 54, informal: 28 },
-  { region: "Oriente", formal: 48, informal: 26 },
-  { region: "Suroeste", formal: 28, informal: 21 },
-  { region: "Sur", formal: 32, informal: 22 },
-  { region: "Sureste", formal: 37, informal: 24 },
-];
-
-const comparisonConfig = {
-  formal: {
-    label: "Empleo Formal",
-    color: "#2563eb",
-  },
-  informal: {
-    label: "Empleo Informal",
-    color: "#38bdf8",
-  },
-};
-
 // Tab 3: Brecha de Género
-const genderGapData = [
-  { region: "Centro", masculino: 87, femenino: 77 },
-  { region: "Oriente", masculino: 79, femenino: 69 },
-  { region: "Noreste", masculino: 76, femenino: 66 },
-  { region: "Occidente", masculino: 70, femenino: 60 },
-  { region: "Norte", masculino: 68, femenino: 56 },
-  { region: "Sureste", masculino: 66, femenino: 56 },
-  { region: "Noroeste", masculino: 64, femenino: 52 },
-  { region: "Sur", masculino: 59, femenino: 49 },
-  { region: "Suroeste", masculino: 54, femenino: 44 },
-];
+// const genderGapData = [
+//   { region: "Centro", masculino: 87, femenino: 77 },
+//   { region: "Oriente", masculino: 79, femenino: 69 },
+//   { region: "Noreste", masculino: 76, femenino: 66 },
+//   { region: "Occidente", masculino: 70, femenino: 60 },
+//   { region: "Norte", masculino: 68, femenino: 56 },
+//   { region: "Sureste", masculino: 66, femenino: 56 },
+//   { region: "Noroeste", masculino: 64, femenino: 52 },
+//   { region: "Sur", masculino: 59, femenino: 49 },
+//   { region: "Suroeste", masculino: 54, femenino: 44 },
+// ];
 
-const genderGapConfig = {
-  masculino: {
-    label: "Masculino",
-    color: "#2563eb",
-  },
-  femenino: {
-    label: "Femenino",
-    color: "#ec4899",
-  },
-};
+// const genderGapConfig = {
+//   masculino: {
+//     label: "Masculino",
+//     color: "#2563eb",
+//   },
+//   femenino: {
+//     label: "Femenino",
+//     color: "#ec4899",
+//   },
+// };
 
 // Bottom Section: Ranking de Empleabilidad
-const rankingData = [
-  { rank: 1, region: "Centro", rate: 82, population: "8.5M hab." },
-  { rank: 2, region: "Oriente", rate: 74, population: "2.8M hab." },
-  { rank: 3, region: "Noreste", rate: 71, population: "3.2M hab." },
-  { rank: 4, region: "Occidente", rate: 65, population: "1.8M hab." },
-  { rank: 5, region: "Norte", rate: 62, population: "2.1M hab." },
-  { rank: 6, region: "Sureste", rate: 61, population: "2.1M hab." },
-  { rank: 7, region: "Noroeste", rate: 58, population: "1.2M hab." },
-  { rank: 8, region: "Sur", rate: 54, population: "1.6M hab." },
-  { rank: 9, region: "Suroeste", rate: 49, population: "1.0M hab." },
-];
 
 function EmpleabilidadPage() {
   const [activeTab, setActiveTab] = useState("evolucion");
 
+  const empleo = useEmpleabilidad();
+  const brechaEmpleo = empleo?.data?.brechas?.[0];
+
+  const peorCongestionamiento = empleo?.data?.brechas?.reduce((peor, actual) =>
+    actual.congestionamento_medio > peor.congestionamento_medio ? actual : peor,
+  );
+
+  const mejorCongestionamiento = empleo?.data?.brechas?.reduce(
+    (mejor, actual) =>
+      actual.congestionamento_medio < mejor.congestionamento_medio
+        ? actual
+        : mejor,
+  );
+
   // Get progress bar styling for ranking list
   const getRankBarColors = (rate) => {
-    if (rate >= 70) return { text: "text-green-600", bar: "bg-green-500" };
-    if (rate >= 55) return { text: "text-amber-600", bar: "bg-amber-500" };
+    if (rate >= 0.7) return { text: "text-green-600", bar: "bg-green-500" };
+    if (rate >= 0.5) return { text: "text-amber-600", bar: "bg-amber-500" };
     return { text: "text-red-600", bar: "bg-red-500" };
   };
+
+  const comparisonConfig = {
+    formal: {
+      label: "Empleo Formal",
+      color: "#2563eb",
+    },
+    informal: {
+      label: "Empleo Informal",
+      color: "#38bdf8",
+    },
+  };
+
+  const comparisonData = empleo?.data?.brechas?.map((brecha) => ({
+    region: brecha.municipio,
+    formal: Math.round((10 - brecha.indicador_social?.valor) * 10),
+    informal: Math.round(brecha.indicador_social?.valor * 10),
+  }));
 
   return (
     <div className="space-y-6">
@@ -153,12 +148,12 @@ function EmpleabilidadPage() {
             Análisis de empleo, desempleo y participación laboral
           </p>
         </div>
-        <div>
+        {/* <div>
           <span className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-full text-xs font-semibold shadow-xs">
             <TrendingUp className="w-4 h-4 text-green-600" />
             <span>Tendencia nacional: +2.3%</span>
           </span>
-        </div>
+        </div> */}
       </div>
 
       {/* Average Metrics Cards Row */}
@@ -170,7 +165,7 @@ function EmpleabilidadPage() {
               Tasa de Empleo Promedio
             </p>
             <h3 className="text-2xl font-bold text-slate-800 tracking-tight mt-1.5">
-              68.4%
+              {brechaEmpleo?.indicador_social?.valor.toFixed(1)}%
             </h3>
           </div>
           <div className="flex items-center gap-1 text-[10px] text-green-600 font-bold mt-2">
@@ -186,12 +181,14 @@ function EmpleabilidadPage() {
               Mejor Región
             </p>
             <h3 className="text-2xl font-bold text-slate-800 tracking-tight mt-1.5">
-              Centro
+              {mejorCongestionamiento?.municipio}
             </h3>
           </div>
           <div className="flex items-center gap-1 text-[10px] text-green-600 font-bold mt-2">
             <Award className="w-3.5 h-3.5" />
-            <span>82% de empleo</span>
+            <span>
+              {mejorCongestionamiento?.indicador_social?.valor}% de empleo
+            </span>
           </div>
         </div>
 
@@ -202,17 +199,19 @@ function EmpleabilidadPage() {
               Región Crítica
             </p>
             <h3 className="text-2xl font-bold text-slate-800 tracking-tight mt-1.5">
-              Suroeste
+              {peorCongestionamiento?.municipio}
             </h3>
           </div>
           <div className="flex items-center gap-1 text-[10px] text-red-600 font-bold mt-2">
             <AlertTriangle className="w-3.5 h-3.5" />
-            <span>49% de empleo</span>
+            <span>
+              {peorCongestionamiento?.indicador_social?.valor}% de empleo
+            </span>
           </div>
         </div>
 
         {/* Card 4: Participación Laboral */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
+        {/* <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
           <div>
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
               Participación Laboral
@@ -225,12 +224,12 @@ function EmpleabilidadPage() {
             <ArrowUpRight className="w-3.5 h-3.5" />
             <span>+1.1%</span>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Tabs Switcher Navigation */}
       <div className="bg-slate-100/60 p-1 rounded-xl flex items-center gap-1 w-fit border border-slate-200/50">
-        <button
+        {/* <button
           onClick={() => setActiveTab("evolucion")}
           className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
             activeTab === "evolucion"
@@ -239,7 +238,7 @@ function EmpleabilidadPage() {
           }`}
         >
           Evolución Temporal
-        </button>
+        </button> */}
         <button
           onClick={() => setActiveTab("comparacion")}
           className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
@@ -250,7 +249,7 @@ function EmpleabilidadPage() {
         >
           Comparación Regional
         </button>
-        <button
+        {/* <button
           onClick={() => setActiveTab("brecha")}
           className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
             activeTab === "brecha"
@@ -259,12 +258,12 @@ function EmpleabilidadPage() {
           }`}
         >
           Brecha de Género
-        </button>
+        </button> */}
       </div>
 
       {/* Interactive Chart Container */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-xs transition-shadow">
-        {activeTab === "evolucion" && (
+        {/* {activeTab === "evolucion" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-800">
@@ -331,7 +330,7 @@ function EmpleabilidadPage() {
               </AreaChart>
             </ChartContainer>
           </div>
-        )}
+        )} */}
 
         {activeTab === "comparacion" && (
           <div className="space-y-4">
@@ -362,7 +361,7 @@ function EmpleabilidadPage() {
                   axisLine={false}
                   tickMargin={8}
                   tick={{ fontSize: 9, fill: "#64748b" }}
-                  domain={[0, 100]}
+                  domain={[0, 120]}
                 />
                 <ChartTooltip
                   content={<ChartTooltipContent formatter={tooltipFormatter} />}
@@ -387,7 +386,7 @@ function EmpleabilidadPage() {
           </div>
         )}
 
-        {activeTab === "brecha" && (
+        {/* {activeTab === "brecha" && (
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h3 className="text-sm font-bold text-slate-800">
@@ -443,7 +442,7 @@ function EmpleabilidadPage() {
               </BarChart>
             </ChartContainer>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Bottom Ranking List Section */}
@@ -453,16 +452,16 @@ function EmpleabilidadPage() {
         </h3>
 
         <div className="divide-y divide-slate-100">
-          {rankingData.map((item) => {
-            const colors = getRankBarColors(item.rate);
+          {empleo?.data?.brechas?.map((item, index) => {
+            const colors = getRankBarColors(item.congestionamento_medio);
             return (
               <div
-                key={item.rank}
+                key={item.congestionamento_medio}
                 className="flex items-center gap-4 py-3 text-xs font-semibold"
               >
                 {/* Position Badge */}
                 <div className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] shrink-0">
-                  {item.rank}
+                  {index + 1}
                 </div>
 
                 {/* Region details */}
@@ -470,7 +469,7 @@ function EmpleabilidadPage() {
                   <div className="flex items-center gap-2 max-w-[200px] truncate">
                     <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span className="text-slate-700 truncate">
-                      {item.region}
+                      {item.cluster}
                     </span>
                   </div>
 
@@ -478,17 +477,17 @@ function EmpleabilidadPage() {
                   <div className="flex-1 max-w-md mx-0 sm:mx-8 bg-slate-100 rounded-full h-1.5 overflow-hidden shrink-0">
                     <div
                       className={`h-full rounded-full ${colors.bar}`}
-                      style={{ width: `${item.rate}%` }}
+                      style={{ width: `${item.congestionamento_medio * 100}%` }}
                     />
                   </div>
 
                   {/* Value and population details */}
                   <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0">
                     <span className={`w-10 text-right ${colors.text}`}>
-                      {item.rate}%
+                      {item.congestionamento_medio * 100}%
                     </span>
                     <span className="text-slate-400 font-medium text-[11px] w-20 text-right">
-                      {item.population}
+                      {item.n_usuarios} hab.
                     </span>
                   </div>
                 </div>
