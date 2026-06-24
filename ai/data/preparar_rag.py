@@ -21,6 +21,7 @@ def recortar_a_tokens(texto, max_tokens=500):
 
 def main():
     if not os.path.exists(PATH_DATASET):
+        print(f"❌ Error: No se encontró el archivo en {PATH_DATASET}")
         return
 
     columnas_necesarias = [
@@ -85,8 +86,16 @@ def main():
         if all(cant >= N_MUESTRAS_POR_GRUPO for cant in conteos_por_grupo.values()):
             break
 
+    print(f"💾 Guardando fragmentos optimizados en el dataset final...")
+
     with open(PATH_SALIDA, "w", encoding="utf-8") as f:
-        json.dump(chunks_procesados, f, ensure_ascii=False, indent=2)
+        json.dump(chunks_procesados, f, indent=2, ensure_ascii=False)
+
+    print("\n✅ ¡Proceso completado con éxito!")
+    print(f"📁 Archivo generado: {PATH_SALIDA}")
+    print(f"📝 Total de chunks procesados y listos para el RAG: {len(chunks_procesados)}")
 
 if __name__ == "__main__":
+    print("\n🚀 Iniciando procesamiento del dataset de 3 GB...")
+    print("📊 Leyendo bloques y filtrando registros para las regiones seleccionadas...")
     main()
