@@ -1,8 +1,8 @@
-// import {
-//   ChartContainer,
-//   ChartTooltip,
-//   ChartTooltipContent,
-// } from "@/components/ui/chart";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import {
   AlertCircle,
   // ArrowRight,
@@ -15,17 +15,17 @@ import {
   User,
   Users,
 } from "lucide-react";
-// import {
-//   Bar,
-//   BarChart,
-//   CartesianGrid,
-//   PolarAngleAxis,
-//   PolarGrid,
-//   Radar,
-//   RadarChart,
-//   XAxis,
-//   YAxis,
-// } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  // PolarAngleAxis,
+  // PolarGrid,
+  // Radar,
+  // RadarChart,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { useMentoriasBrechas } from "../hooks/useMentorias";
 
 // data del backend
@@ -67,23 +67,28 @@ export default function MentoriasPage() {
     0,
   );
 
-  // const barChartConfig = {
-  //   mentores: {
-  //     label: "Mentores",
-  //     color: "#7f22fe ",
-  //   },
-  // };
+  const barChartConfig = {
+    mentorizados: {
+      label: "Mentores",
+      color: "#7f22fe ",
+    },
+  };
+
+  const barChartData = data?.brechas?.map((brecha) => ({
+    region: brecha.cluster,
+    mentorizados: brecha.indicador_social.valor,
+  }));
 
   // const barChartData = [
-  //   { region: "Noroeste", mentores: 8 },
-  //   { region: "Norte", mentores: 14 },
-  //   { region: "Noreste", mentores: 22 },
-  //   { region: "Occidente", mentores: 11 },
-  //   { region: "Centro", mentores: 48 },
-  //   { region: "Oriente", mentores: 24 },
-  //   { region: "Suroeste", mentores: 4 },
-  //   { region: "Sur", mentores: 7 },
-  //   { region: "Sureste", mentores: 11 },
+  //   { region: "Noroeste", mentorizados: 8 },
+  //   { region: "Norte", mentorizados: 14 },
+  //   { region: "Noreste", mentorizados: 22 },
+  //   { region: "Occidente", mentorizados: 11 },
+  //   { region: "Centro", mentorizados: 48 },
+  //   { region: "Oriente", mentorizados: 24 },
+  //   { region: "Suroeste", mentorizados: 4 },
+  //   { region: "Sur", mentorizados: 7 },
+  //   { region: "Sureste", mentorizados: 11 },
   // ];
 
   // const chartConfig = {
@@ -254,11 +259,11 @@ export default function MentoriasPage() {
         </div>
       </div>
       {/*  */}
-      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
           <div className="border-b border-slate-100 pb-3">
             <h3 className="text-sm font-bold text-slate-800">
-              Mentores por Región
+              Mentorizados por Región
             </h3>
           </div>
           <div className="flex-1 mt-4">
@@ -283,11 +288,11 @@ export default function MentoriasPage() {
                   axisLine={false}
                   tickMargin={8}
                   tick={{ fontSize: 9, fill: "#64748b" }}
-                  domain={[0, 60]}
+                  domain={[0, 10]}
                 />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Bar
-                  dataKey="mentores"
+                  dataKey="mentorizados"
                   fill="var(--color-mentores)"
                   radius={[2, 2, 0, 0]}
                   barSize={25}
@@ -296,7 +301,7 @@ export default function MentoriasPage() {
             </ChartContainer>
           </div>
         </div>
-        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
+        {/* <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
           <div className="border-b border-slate-100 pb-3">
             <h3 className="text-sm font-bold text-slate-800">
               Evaluación de Desempeño Nacional
@@ -321,8 +326,8 @@ export default function MentoriasPage() {
               </RadarChart>
             </ChartContainer>
           </div>
-        </div>
-      </div> */}
+        </div> */}
+      </div>
       {/*  */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-100 p-4">
