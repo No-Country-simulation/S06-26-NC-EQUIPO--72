@@ -8,10 +8,19 @@ class AIService:
         """
         Procesa una consulta del usuario con datos mockeados
         """
+        # Verifica si la consulta está vacía o solo tiene espacios
+        if not request.consulta or request.consulta.strip() == "":
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "error": "CONSULTA_IRRELEVANTE",
+                    "mensaje": "La consulta no puede resolverse con los datos disponibles."
+                }
+            )
+
         # Verifica si la consulta es irrelevante
         consulta_lower = request.consulta.lower()
         if "boca" in consulta_lower or "clima" in consulta_lower or "comida" in consulta_lower:
-            # Raise with exact response format from contract
             raise HTTPException(
                 status_code=422,
                 detail={
