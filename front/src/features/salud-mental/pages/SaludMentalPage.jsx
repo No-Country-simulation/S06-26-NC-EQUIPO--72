@@ -107,13 +107,13 @@ export default function SaludMentalPage() {
     },
   };
 
-  const barChartData = regiones.map((region) => ({
+  const barChartData = regiones?.map((region) => ({
     region: region.cluster,
     demanda: region.congestionamento_medio * 100,
     acceso: region.indicador_social?.valor,
   }));
 
-  const priorityRegionCards = regiones.map((region) => ({
+  const priorityRegionCards = regiones?.map((region) => ({
     region: region.cluster,
     status: region.severidad_brecha,
     mentalHealthIndex: region.indicador_social.valor,
@@ -149,10 +149,10 @@ export default function SaludMentalPage() {
             <Brain className="w-8 h-8 text-rose-300" />
             <div className="flex flex-col items-baseline gap-1">
               <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                {totalIndice.toFixed(2)}
+                {totalIndice?.toFixed(2)}
               </span>
               <span className="text-xs text-slate-400 font-medium">
-                Objetivo: {totalIndice.toFixed(2) * 2}
+                Objetivo: {totalIndice?.toFixed(2) * 2}
               </span>
             </div>
           </div>
@@ -442,7 +442,7 @@ export default function SaludMentalPage() {
           Regiones de Atención Prioritaria
         </h2>
         <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {priorityRegionCards.map((region) => (
+          {priorityRegionCards?.map((region) => (
             <PriorityRegionCard key={region.region} {...region} />
           ))}
         </section>
