@@ -24,10 +24,9 @@ public class RegionServiceImpl implements RegionService {
     @Override
     public RegionResponseDTO obtenerRegiones() {
 
-        List<Antenna> antenas = antenaRepository.findAll();
+        List<RegionResponseDTO.RegionRecord> listaRecords = antenaRepository.obtenerDetallePorMunicipio();
 
-        List<RegionResponseDTO.RegionRecord> listaRecords = regionesMapper.toRegionRecordList(antenas);
-
-        return new RegionResponseDTO(listaRecords);
+       
+       return new RegionResponseDTO(listaRecords);
     }
 }
