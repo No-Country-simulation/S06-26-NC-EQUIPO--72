@@ -7,9 +7,9 @@ import {
 } from "@/components/ui/chart";
 import {
   Brain,
-  Building2,
+  // Building2,
   Heart,
-  Info,
+  // Info,
   SquareCheckBig,
   TriangleAlert,
 } from "lucide-react";
@@ -17,74 +17,84 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
-  Line,
-  LineChart,
-  Scatter,
-  ScatterChart,
+  // Cell,
+  // Line,
+  // LineChart,
+  // Scatter,
+  // ScatterChart,
   XAxis,
   YAxis,
 } from "recharts";
 import { PriorityRegionCard } from "../components/PriorityRegionCard";
+import { useSaludMental } from "../hooks/useSaludMental";
+
+// --- Seccion: Correlación Conectividad x Salud Mental ---
+// const scatterChartConfig = {
+//   saludMental: {
+//     label: "Índice de Salud Mental",
+//     color: "#16a34a",
+//   },
+// };
+// const scatterData = [
+//   { region: "Noroeste", conectividad: 38, saludMental: 2.9 },
+//   { region: "Norte", conectividad: 45, saludMental: 3.2 },
+//   { region: "Noreste", conectividad: 51, saludMental: 3.8 },
+//   { region: "Occidente", conectividad: 55, saludMental: 3.5 },
+//   { region: "Oriente", conectividad: 62, saludMental: 4.8 },
+//   { region: "Centro", conectividad: 67, saludMental: 4.1 },
+//   { region: "Sur", conectividad: 75, saludMental: 2.3 },
+//   { region: "Sureste", conectividad: 82, saludMental: 2.7 },
+//   { region: "Suroeste", conectividad: 89, saludMental: 3.5 },
+// ];
+
+// const getScatterColor = (value) => {
+//   if (value < 3) return "#dc2626"; // crítico
+//   if (value <= 3.5) return "#f59e0b"; // medio
+//   return "#16a34a"; // óptimo
+// };
+
+// --- Sección: Indicadores de Riesgo ---
+// const riskLineConfig = {
+//   ansiedad: {
+//     label: "Ansiedad",
+//     color: "#dc2626",
+//   },
+//   depresion: {
+//     label: "Depresión",
+//     color: "#f59e0b",
+//   },
+//   burnout: {
+//     label: "Burnout",
+//     color: "#9333ea",
+//   },
+// };
+
+// const riskLineData = [
+//   { mes: "Ene", ansiedad: 38, depresion: 36, burnout: 37 },
+//   { mes: "Feb", ansiedad: 36, depresion: 34, burnout: 35 },
+//   { mes: "Mar", ansiedad: 35, depresion: 33, burnout: 34 },
+//   { mes: "Abr", ansiedad: 34, depresion: 32, burnout: 33 },
+//   { mes: "May", ansiedad: 33, depresion: 31, burnout: 32 },
+//   { mes: "Jun", ansiedad: 32, depresion: 30, burnout: 31 },
+//   { mes: "Jul", ansiedad: 34, depresion: 32, burnout: 33 },
+//   { mes: "Ago", ansiedad: 31, depresion: 29, burnout: 30 },
+//   { mes: "Sep", ansiedad: 30, depresion: 28, burnout: 29 },
+//   { mes: "Oct", ansiedad: 29, depresion: 27, burnout: 28 },
+//   { mes: "Nov", ansiedad: 28, depresion: 26, burnout: 27 },
+//   { mes: "Dic", ansiedad: 27, depresion: 25, burnout: 26 },
+// ];
+
+//
 
 export default function SaludMentalPage() {
-  // --- Seccion: Correlación Conectividad x Salud Mental ---
-  const scatterChartConfig = {
-    saludMental: {
-      label: "Índice de Salud Mental",
-      color: "#16a34a",
-    },
-  };
-  const scatterData = [
-    { region: "Noroeste", conectividad: 38, saludMental: 2.9 },
-    { region: "Norte", conectividad: 45, saludMental: 3.2 },
-    { region: "Noreste", conectividad: 51, saludMental: 3.8 },
-    { region: "Occidente", conectividad: 55, saludMental: 3.5 },
-    { region: "Oriente", conectividad: 62, saludMental: 4.8 },
-    { region: "Centro", conectividad: 67, saludMental: 4.1 },
-    { region: "Sur", conectividad: 75, saludMental: 2.3 },
-    { region: "Sureste", conectividad: 82, saludMental: 2.7 },
-    { region: "Suroeste", conectividad: 89, saludMental: 3.5 },
-  ];
+  const saludMental = useSaludMental();
+  const regiones = saludMental?.data?.brechas;
 
-  const getScatterColor = (value) => {
-    if (value < 3) return "#dc2626"; // crítico
-    if (value <= 3.5) return "#f59e0b"; // medio
-    return "#16a34a"; // óptimo
-  };
-
-  // --- Sección: Indicadores de Riesgo ---
-  const riskLineConfig = {
-    ansiedad: {
-      label: "Ansiedad",
-      color: "#dc2626",
-    },
-    depresion: {
-      label: "Depresión",
-      color: "#f59e0b",
-    },
-    burnout: {
-      label: "Burnout",
-      color: "#9333ea",
-    },
-  };
-
-  const riskLineData = [
-    { mes: "Ene", ansiedad: 38, depresion: 36, burnout: 37 },
-    { mes: "Feb", ansiedad: 36, depresion: 34, burnout: 35 },
-    { mes: "Mar", ansiedad: 35, depresion: 33, burnout: 34 },
-    { mes: "Abr", ansiedad: 34, depresion: 32, burnout: 33 },
-    { mes: "May", ansiedad: 33, depresion: 31, burnout: 32 },
-    { mes: "Jun", ansiedad: 32, depresion: 30, burnout: 31 },
-    { mes: "Jul", ansiedad: 34, depresion: 32, burnout: 33 },
-    { mes: "Ago", ansiedad: 31, depresion: 29, burnout: 30 },
-    { mes: "Sep", ansiedad: 30, depresion: 28, burnout: 29 },
-    { mes: "Oct", ansiedad: 29, depresion: 27, burnout: 28 },
-    { mes: "Nov", ansiedad: 28, depresion: 26, burnout: 27 },
-    { mes: "Dic", ansiedad: 27, depresion: 25, burnout: 26 },
-  ];
-
-  //
+  const mejorRegion = saludMental?.data?.brechas?.reduce((mejor, actual) =>
+    actual.congestionamento_medio < mejor.congestionamento_medio
+      ? actual
+      : mejor,
+  );
 
   const barChartConfig = {
     acceso: {
@@ -97,56 +107,22 @@ export default function SaludMentalPage() {
     },
   };
 
-  // Mock Data
-  const barChartData = [
-    { region: "Noroeste", demanda: 85, acceso: 22 },
-    { region: "Norte", demanda: 85, acceso: 38 },
-    { region: "Noreste", demanda: 85, acceso: 55 },
-    { region: "Occidente", demanda: 85, acceso: 38 },
-    { region: "Centro", demanda: 85, acceso: 78 },
-    { region: "Oriente", demanda: 85, acceso: 78 },
-    { region: "Suroeste", demanda: 85, acceso: 22 },
-    { region: "Sur", demanda: 85, acceso: 22 },
-    { region: "Sureste", demanda: 85, acceso: 38 },
-  ];
+  const barChartData = regiones?.map((region) => ({
+    region: region.cluster,
+    demanda: region.congestionamento_medio * 100,
+    acceso: region.indicador_social?.valor,
+  }));
 
-  const priorityRegions = [
-    {
-      region: "Noroeste",
-      status: "CRITICO",
-      mentalHealthIndex: 2.9,
-      connectivity: 38,
-      comments: "Intervención psicosocial urgente requerida.",
-    },
-    {
-      region: "Norte",
-      status: "ALERTA",
-      mentalHealthIndex: 3.2,
-      connectivity: 45,
-      comments: "Monitoreo intensivo y refuerzo de servicios.",
-    },
-    {
-      region: "Suroeste",
-      status: "CRITICO",
-      mentalHealthIndex: 2.3,
-      connectivity: 27,
-      comments: "Intervención psicosocial urgente requerida.",
-    },
-    {
-      region: "Sur",
-      status: "CRITICO",
-      mentalHealthIndex: 2.6,
-      connectivity: 33,
-      comments: "Intervención psicosocial urgente requerida.",
-    },
-    {
-      region: "Sureste",
-      status: "ALERTA",
-      mentalHealthIndex: 3.1,
-      connectivity: 44,
-      comments: "Monitoreo intensivo y refuerzo de servicios.",
-    },
-  ];
+  const priorityRegionCards = regiones?.map((region) => ({
+    region: region.cluster,
+    status: region.severidad_brecha,
+    mentalHealthIndex: region.indicador_social.valor,
+  }));
+
+  const totalIndice = regiones?.reduce(
+    (x, acm) => x + acm.indicador_social?.valor,
+    0,
+  );
 
   return (
     <div className="space-y-6">
@@ -173,10 +149,10 @@ export default function SaludMentalPage() {
             <Brain className="w-8 h-8 text-rose-300" />
             <div className="flex flex-col items-baseline gap-1">
               <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                3.3/5
+                {totalIndice?.toFixed(2)}
               </span>
               <span className="text-xs text-slate-400 font-medium">
-                Objetivo: 4.0/5
+                Objetivo: {totalIndice?.toFixed(2) * 2}
               </span>
             </div>
           </div>
@@ -186,13 +162,13 @@ export default function SaludMentalPage() {
         </div>
         <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
           <div className="flex items-center gap-4">
-            <SquareCheckBig className="w-8 h-8 text-green-600" />
+            <SquareCheckBig className="shrink-0 w-8 h-8 text-green-600" />
             <div className="flex flex-col items-baseline gap-1">
-              <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                Centro
+              <span className="text-lg font-bold text-slate-800 tracking-tight">
+                {mejorRegion?.cluster}
               </span>
               <span className="text-xs text-slate-400 font-medium">
-                4.5/5 — Óptimo
+                {mejorRegion?.indicador_social?.valor} — Óptimo
               </span>
             </div>
           </div>
@@ -203,7 +179,7 @@ export default function SaludMentalPage() {
             <TriangleAlert className="w-8 h-8 text-yellow-400" />
             <div className="flex flex-col items-baseline gap-1">
               <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                3
+                {regiones?.length}
               </span>
               <span className="text-xs text-slate-400 font-medium">
                 &lt; 3.0/5
@@ -214,7 +190,7 @@ export default function SaludMentalPage() {
             Regiones críticas
           </p>
         </div>
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
+        {/* <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
           <div className="flex items-center gap-4">
             <Building2 className="w-8 h-8 text-blue-600" />
             <div className="flex flex-col items-baseline gap-1">
@@ -229,10 +205,10 @@ export default function SaludMentalPage() {
           <p className="text-xs text-slate-500 font-medium">
             Acceso a servicios
           </p>
-        </div>
+        </div> */}
       </div>
       {/* Nueva sección: Correlación (scatter) + Indicadores de Riesgo (líneas) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
           <div className="border-b border-slate-100 pb-3">
             <h3 className="text-sm font-bold text-slate-800">
@@ -405,7 +381,7 @@ export default function SaludMentalPage() {
             </ChartContainer>
           </div>
         </div>
-      </div>
+      </div> */}
       {/*  */}
       {/* Visualizations Grid */}
       <div className="grid grid-cols-1 gap-6">
@@ -466,7 +442,7 @@ export default function SaludMentalPage() {
           Regiones de Atención Prioritaria
         </h2>
         <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {priorityRegions.map((region) => (
+          {priorityRegionCards?.map((region) => (
             <PriorityRegionCard key={region.region} {...region} />
           ))}
         </section>

@@ -19,7 +19,6 @@ import java.util.Arrays;
 
 @RestController
 @RequestMapping("/brechas")
-@CrossOrigin(origins = "*")
 @Tag(name = "Brechas", description = "Consulta analítica de brechas territoriales por servicio y municipio")
 public class BrechaController {
 
