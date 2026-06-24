@@ -100,6 +100,7 @@ services:
     volumes:
       - ./ai:/app
       - /app/__pycache__
+      - ./ai/data:/app/data
     env_file:
       - ./ai/.env  # Usa el .env del directorio ai/
     depends_on:
