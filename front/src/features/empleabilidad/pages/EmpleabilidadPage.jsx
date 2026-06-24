@@ -95,7 +95,7 @@ const tooltipFormatter = (value, name, item) => {
 // Bottom Section: Ranking de Empleabilidad
 
 function EmpleabilidadPage() {
-  const [activeTab, setActiveTab] = useState("evolucion");
+  const [activeTab, setActiveTab] = useState("comparacion");
 
   const empleo = useEmpleabilidad();
   const brechaEmpleo = empleo?.data?.brechas?.[0];
