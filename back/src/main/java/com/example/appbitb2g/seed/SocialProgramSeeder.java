@@ -103,7 +103,7 @@ public class SocialProgramSeeder {
                 .nombre("Experiencia en Educacion Ambiental")
                 .tipo("EXPERIENCIA")
                 .descripcion("Talleres de educacion ambiental en escuelas")
-                .municipio("Sao Jose").cluster("SAO_JOSE_ROCADO")
+                .municipio("Sao Jose").cluster("SAO_JOSE_ROÇADO")
                 .organizacion("ONG EcoAcao").liderReferente("Joao Fernandes")
                 .replicable(1).impactoEstimado("MEDIO")
                 .urlReferencia("https://ecoacao.org.br/educacion-ambiental")
@@ -217,7 +217,59 @@ public class SocialProgramSeeder {
                 .organizacion("Agencia de Contenidos Creativos").liderReferente("Gustavo Santos")
                 .replicable(1).impactoEstimado("MEDIO")
                 .urlReferencia("https://accreativos.com.br/mentoria-contenido")
-                .fechaInicio(LocalDate.of(2024,6,15)).fechaFin(null).activo(true).build()
+                .fechaInicio(LocalDate.of(2024,6,15)).fechaFin(null).activo(true).build(),
+
+            // Programas sociales para Palhoca
+            SocialProgram.builder()
+                .nombre("Curso de Agricultura Urbana")
+                .tipo("FORMACION")
+                .descripcion("Aprender a cultivar alimentos en espacios pequeños")
+                .municipio("Palhoca").cluster("PALHOCA_CENTRO")
+                .organizacion("Associacao de Agricultura Urbana de Palhoca").liderReferente("Marcia Silva")
+                .replicable(1).impactoEstimado("MEDIO")
+                .urlReferencia("https://aupalhoca.org.br/curso-agricultura")
+                .fechaInicio(LocalDate.of(2024,4,1)).fechaFin(LocalDate.of(2024,11,30)).activo(true).build(),
+
+            SocialProgram.builder()
+                .nombre("Experiencia en Reciclaje")
+                .tipo("EXPERIENCIA")
+                .descripcion("Voluntariado en puntos de reciclaje de la ciudad")
+                .municipio("Palhoca").cluster("PALHOCA_PEDRA_BRANCA")
+                .organizacion("Cooperativa de Reciclaje de Palhoca").liderReferente("Carlos Pereira")
+                .replicable(0).impactoEstimado("BAJO")
+                .urlReferencia("https://crpalhoca.org.br/voluntariado")
+                .fechaInicio(LocalDate.of(2024,5,1)).fechaFin(LocalDate.of(2024,12,31)).activo(true).build(),
+
+            SocialProgram.builder()
+                .nombre("Mentoria en Emprendimiento Local")
+                .tipo("MENTORIA")
+                .descripcion("Ayudar a pequeños empresarios a crecer")
+                .municipio("Palhoca").cluster("SAO_JOSE_BARREIROS")
+                .organizacion("Sebrae Palhoca").liderReferente("Ana Costa")
+                .replicable(1).impactoEstimado("ALTO")
+                .urlReferencia("https://sebrae.com.br/palhoca/mentoria")
+                .fechaInicio(LocalDate.of(2024,3,1)).fechaFin(null).activo(true).build(),
+
+            // Programas sociales para Biguacu
+            SocialProgram.builder()
+                .nombre("Curso de Mantenimiento de Motocicletas")
+                .tipo("FORMACION")
+                .descripcion("Aprender a reparar y mantener motos")
+                .municipio("Biguacu").cluster("BIGUACU_BR101_NORTE")
+                .organizacion("Escuela Tecnica de Biguacu").liderReferente(null)
+                .replicable(1).impactoEstimado("ALTO")
+                .urlReferencia("https://etbiguacu.com.br/curso-motos")
+                .fechaInicio(LocalDate.of(2024,2,15)).fechaFin(LocalDate.of(2024,9,15)).activo(true).build(),
+
+            SocialProgram.builder()
+                .nombre("Experiencia en Deporte Comunitario")
+                .tipo("EXPERIENCIA")
+                .descripcion("Organizar partidos de fútbol para niños y jóvenes")
+                .municipio("Biguacu").cluster("BIGUACU_BR101_NORTE")
+                .organizacion("Fundacion Deporte y Vida Biguacu").liderReferente("Roberto Lima")
+                .replicable(1).impactoEstimado("MEDIO")
+                .urlReferencia("https://fdvbiguacu.org.br/futbol-comunitario")
+                .fechaInicio(LocalDate.of(2024,4,15)).fechaFin(LocalDate.of(2024,12,15)).activo(true).build()
         ));
     }
 }

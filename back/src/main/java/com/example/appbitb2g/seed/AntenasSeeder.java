@@ -12,7 +12,7 @@ import com.example.appbitb2g.repository.AntenaRepository;
 import com.example.appbitb2g.repository.SocialProgramRepository;
 
 @Component
-@Profile("dev")
+@Profile("dev-mock-csv")
 public class AntenasSeeder {
     @Autowired
     private AntenaRepository repo;

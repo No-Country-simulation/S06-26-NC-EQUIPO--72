@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-@Profile("dev")
+@Profile("dev-mock-csv")
 public class FluxoViasSeeder {
 
     @Autowired

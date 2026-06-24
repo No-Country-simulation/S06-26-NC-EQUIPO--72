@@ -31,6 +31,10 @@ services:
       - "${DB_PORT}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER}", "-p${DB_PASSWORD}"]
+      timeout: 5s
+      retries: 10
     networks:
       - app-network
 
@@ -100,10 +104,14 @@ services:
     volumes:
       - ./ai:/app
       - /app/__pycache__
+      - ./ai/data:/app/data
     env_file:
       - ./ai/.env  # Usa el .env del directorio ai/
     depends_on:
-      - backend
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_started
     networks:
       - app-network
 

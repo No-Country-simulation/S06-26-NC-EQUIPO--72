@@ -10,8 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Component
-@Profile("dev")
-
+@Profile("dev-mock-csv")
 public class AggregateMobilitySeeder {
 
     @Autowired
