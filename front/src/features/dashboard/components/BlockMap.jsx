@@ -32,7 +32,7 @@ const tabButtonClass = (isActive) =>
       : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
   }`;
 
-export const BlockMap = () => {
+export const BlockMap = ({ onClusterSelect }) => {
   const [activeMapTab, setActiveMapTab] = useState("EMPLEO");
   const [tooltip, setTooltip] = useState({
     visible: false,
@@ -107,7 +107,10 @@ export const BlockMap = () => {
               Mapa de Inclusión Social
             </h3>
           </div>
-          <button className="text-xs text-blue-600 hover:text-blue-700 font-semibold">
+          <button 
+            onClick={() => onClusterSelect?.(regionTextCenter[0]?.cluster || "Norte")}
+            className="text-xs text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+          >
             Ver detalle →
           </button>
         </div>
@@ -136,7 +139,7 @@ export const BlockMap = () => {
               <g
                 key={region.cluster}
                 className="cursor-pointer"
-                onClick={() => console.log(`ver detalles de ${region.cluster}`)}
+                onClick={() => onClusterSelect?.(region.cluster)}
                 onMouseEnter={(e) => handleMouseEnter(region, e)}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={() =>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import MainLayout from "./app/layouts/MainLayout";
 import DashboardPage from "./features/dashboard/pages/DashboardPage";
+import ClusterDetailPage from "./features/dashboard/pages/ClusterDetailPage";
 import FormacionesPage from "./features/formaciones/pages/FormacionesPage";
 import ExperienciasPage from "./features/experiencias/pages/ExperienciasPage";
 import SaludMentalPage from "./features/salud-mental/pages/SaludMentalPage";
@@ -12,11 +13,28 @@ import ConfiguracionPage from "./features/configuracion/pages/ConfiguracionPage"
 
 function App() {
   const [currentTab, setCurrentTab] = useState("inicio");
+  const [selectedCluster, setSelectedCluster] = useState(null);
+
+  const handleClusterSelect = (clusterName) => {
+    setSelectedCluster(clusterName);
+    setCurrentTab("cluster-detail");
+  };
 
   return (
     <MainLayout currentTab={currentTab} onTabChange={setCurrentTab}>
       {currentTab === "inicio" ? (
-        <DashboardPage onTabChange={setCurrentTab} />
+        <DashboardPage 
+          onTabChange={setCurrentTab} 
+          onClusterSelect={handleClusterSelect} 
+        />
+      ) : currentTab === "cluster-detail" ? (
+        <ClusterDetailPage 
+          clusterName={selectedCluster} 
+          onBack={() => {
+            setCurrentTab("inicio");
+            setSelectedCluster(null);
+          }} 
+        />
       ) : currentTab === "formaciones" ? (
         <FormacionesPage />
       ) : currentTab === "experiencias" ? (
