@@ -23,7 +23,7 @@ ai/
 ├── data/             # Carpeta para datasets CSV (ignorada por Git)
 ├── data_resultado/   # Resultados de análisis
 ├── main.py           # Punto de entrada FastAPI
-├── check_csv_columns.py  # Script para ver columnas de los CSV
+├── check_csv.py  # Script para ver columnas y filas de los CSV
 └── corregir_tensor_od.py  # Script para corregir valores nulos en tensor_od.csv
 ```
 
