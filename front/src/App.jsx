@@ -16,7 +16,7 @@ function App() {
   return (
     <MainLayout currentTab={currentTab} onTabChange={setCurrentTab}>
       {currentTab === "inicio" ? (
-        <DashboardPage />
+        <DashboardPage onTabChange={setCurrentTab} />
       ) : currentTab === "formaciones" ? (
         <FormacionesPage />
       ) : currentTab === "experiencias" ? (
