@@ -51,5 +51,4 @@ public class TerritorialIndicators {
     private LocalDateTime createdAt; // TIMESTAMP DEFAULT NOW()
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
 }
