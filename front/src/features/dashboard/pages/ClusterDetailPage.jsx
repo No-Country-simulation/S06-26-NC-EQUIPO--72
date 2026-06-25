@@ -12,6 +12,8 @@ import {
   BookOpen,
   ArrowUpRight,
   Sparkles,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import {
   LineChart,
@@ -27,273 +29,204 @@ import {
   PolarRadiusAxis,
   Radar,
 } from "recharts";
+import { useMapData, usePrograms, useMapsIndicators } from "../hooks/useMaps";
 
-// Deterministic mockup data by region
-const REGION_MOCKS = {
-  NORTE: {
-    name: "Norte",
-    population: "2.1M",
-    courses: 18,
-    mentorings: 14,
-    experiences: 7,
-    alerts: 2,
-    metrics: {
-      employment: { value: "62%", change: "+1.8%" },
-      connectivity: { value: "45%", change: "+3.2%" },
-      mentalHealth: { value: "3.2/5", change: "+0.1" },
-      digitalInclusion: { value: "38%", change: "+0.9%" },
-    },
-    radarData: [
-      { subject: "Empleo", A: 62, fullMark: 100 },
-      { subject: "Conectividad", A: 45, fullMark: 100 },
-      { subject: "Salud Mental", A: 64, fullMark: 100 }, // 3.2/5 is 64%
-      { subject: "Inclusión", A: 38, fullMark: 100 },
-      { subject: "Formación", A: 75, fullMark: 100 },
-      { subject: "Mentoría", A: 70, fullMark: 100 },
-    ],
-  },
-  SUR: {
-    name: "Sur",
-    population: "1.8M",
-    courses: 12,
-    mentorings: 8,
-    experiences: 5,
-    alerts: 1,
-    metrics: {
-      employment: { value: "54%", change: "+0.5%" },
-      connectivity: { value: "50%", change: "+1.1%" },
-      mentalHealth: { value: "3.8/5", change: "-0.2" },
-      digitalInclusion: { value: "44%", change: "+1.5%" },
-    },
-    radarData: [
-      { subject: "Empleo", A: 54, fullMark: 100 },
-      { subject: "Conectividad", A: 50, fullMark: 100 },
-      { subject: "Salud Mental", A: 76, fullMark: 100 },
-      { subject: "Inclusión", A: 44, fullMark: 100 },
-      { subject: "Formación", A: 50, fullMark: 100 },
-      { subject: "Mentoría", A: 40, fullMark: 100 },
-    ],
-  },
-  ORIENTE: {
-    name: "Oriente",
-    population: "2.4M",
-    courses: 22,
-    mentorings: 16,
-    experiences: 10,
-    alerts: 0,
-    metrics: {
-      employment: { value: "74%", change: "+2.1%" },
-      connectivity: { value: "78%", change: "+4.0%" },
-      mentalHealth: { value: "4.1/5", change: "+0.3" },
-      digitalInclusion: { value: "68%", change: "+2.4%" },
-    },
-    radarData: [
-      { subject: "Empleo", A: 74, fullMark: 100 },
-      { subject: "Conectividad", A: 78, fullMark: 100 },
-      { subject: "Salud Mental", A: 82, fullMark: 100 },
-      { subject: "Inclusión", A: 68, fullMark: 100 },
-      { subject: "Formación", A: 90, fullMark: 100 },
-      { subject: "Mentoría", A: 85, fullMark: 100 },
-    ],
-  },
-  OCCIDENTE: {
-    name: "Occidente",
-    population: "1.9M",
-    courses: 15,
-    mentorings: 11,
-    experiences: 6,
-    alerts: 3,
-    metrics: {
-      employment: { value: "65%", change: "+1.2%" },
-      connectivity: { value: "52%", change: "+2.5%" },
-      mentalHealth: { value: "3.5/5", change: "+0.0" },
-      digitalInclusion: { value: "49%", change: "+1.1%" },
-    },
-    radarData: [
-      { subject: "Empleo", A: 65, fullMark: 100 },
-      { subject: "Conectividad", A: 52, fullMark: 100 },
-      { subject: "Salud Mental", A: 70, fullMark: 100 },
-      { subject: "Inclusión", A: 49, fullMark: 100 },
-      { subject: "Formación", A: 65, fullMark: 100 },
-      { subject: "Mentoría", A: 55, fullMark: 100 },
-    ],
-  },
-  NORESTE: {
-    name: "Noreste",
-    population: "1.5M",
-    courses: 10,
-    mentorings: 7,
-    experiences: 4,
-    alerts: 4,
-    metrics: {
-      employment: { value: "71%", change: "+1.5%" },
-      connectivity: { value: "60%", change: "+1.8%" },
-      mentalHealth: { value: "3.6/5", change: "+0.2" },
-      digitalInclusion: { value: "55%", change: "+1.3%" },
-    },
-    radarData: [
-      { subject: "Empleo", A: 71, fullMark: 100 },
-      { subject: "Conectividad", A: 60, fullMark: 100 },
-      { subject: "Salud Mental", A: 72, fullMark: 100 },
-      { subject: "Inclusión", A: 55, fullMark: 100 },
-      { subject: "Formación", A: 45, fullMark: 100 },
-      { subject: "Mentoría", A: 38, fullMark: 100 },
-    ],
-  },
-  NOROESTE: {
-    name: "Noroeste",
-    population: "1.2M",
-    courses: 8,
-    mentorings: 5,
-    experiences: 3,
-    alerts: 1,
-    metrics: {
-      employment: { value: "58%", change: "+0.8%" },
-      connectivity: { value: "48%", change: "+1.2%" },
-      mentalHealth: { value: "3.0/5", change: "-0.1" },
-      digitalInclusion: { value: "41%", change: "+0.7%" },
-    },
-    radarData: [
-      { subject: "Empleo", A: 58, fullMark: 100 },
-      { subject: "Conectividad", A: 48, fullMark: 100 },
-      { subject: "Salud Mental", A: 60, fullMark: 100 },
-      { subject: "Inclusión", A: 41, fullMark: 100 },
-      { subject: "Formación", A: 35, fullMark: 100 },
-      { subject: "Mentoría", A: 30, fullMark: 100 },
-    ],
-  },
-  SURESTE: {
-    name: "Sureste",
-    population: "2.0M",
-    courses: 16,
-    mentorings: 12,
-    experiences: 8,
-    alerts: 2,
-    metrics: {
-      employment: { value: "61%", change: "+1.1%" },
-      connectivity: { value: "58%", change: "+2.0%" },
-      mentalHealth: { value: "3.4/5", change: "+0.1" },
-      digitalInclusion: { value: "50%", change: "+1.0%" },
-    },
-    radarData: [
-      { subject: "Empleo", A: 61, fullMark: 100 },
-      { subject: "Conectividad", A: 58, fullMark: 100 },
-      { subject: "Salud Mental", A: 68, fullMark: 100 },
-      { subject: "Inclusión", A: 50, fullMark: 100 },
-      { subject: "Formación", A: 70, fullMark: 100 },
-      { subject: "Mentoría", A: 62, fillMark: 100 },
-    ],
-  },
-  SUROESTE: {
-    name: "Suroeste",
-    population: "1.6M",
-    courses: 11,
-    mentorings: 9,
-    experiences: 5,
-    alerts: 3,
-    metrics: {
-      employment: { value: "49%", change: "+0.4%" },
-      connectivity: { value: "42%", change: "+0.9%" },
-      mentalHealth: { value: "2.8/5", change: "-0.3" },
-      digitalInclusion: { value: "35%", change: "+0.5%" },
-    },
-    radarData: [
-      { subject: "Empleo", A: 49, fullMark: 100 },
-      { subject: "Conectividad", A: 42, fullMark: 100 },
-      { subject: "Salud Mental", A: 56, fullMark: 100 },
-      { subject: "Inclusión", A: 35, fullMark: 100 },
-      { subject: "Formación", A: 48, fullMark: 100 },
-      { subject: "Mentoría", A: 42, fullMark: 100 },
-    ],
-  },
-  CENTRO: {
-    name: "Centro",
-    population: "3.2M",
-    courses: 30,
-    mentorings: 25,
-    experiences: 15,
-    alerts: 1,
-    metrics: {
-      employment: { value: "80%", change: "+2.5%" },
-      connectivity: { value: "85%", change: "+3.8%" },
-      mentalHealth: { value: "4.3/5", change: "+0.4" },
-      digitalInclusion: { value: "78%", change: "+3.0%" },
-    },
-    radarData: [
-      { subject: "Empleo", A: 80, fullMark: 100 },
-      { subject: "Conectividad", A: 85, fullMark: 100 },
-      { subject: "Salud Mental", A: 86, fullMark: 100 },
-      { subject: "Inclusión", A: 78, fullMark: 100 },
-      { subject: "Formación", A: 95, fullMark: 100 },
-      { subject: "Mentoría", A: 90, fullMark: 100 },
-    ],
-  },
-};
+function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
+  // Fetch data desde backend
+  const { data: mapData, isLoading: loadingMap, error: errorMap } = useMapData();
+  const { data: empleoData } = useMapsIndicators("EMPLEO");
+  const { data: educacionData } = useMapsIndicators("EDUCACION");
+  const { data: saludData } = useMapsIndicators("SALUD_MENTAL");
+  const { data: programsData } = usePrograms({ cluster: clusterName });
 
-// All regions reference list for sorted comparison chart
-const ALL_REGIONS_BASE = [
-  { id: "ORIENTE", name: "Oriente", employmentVal: 74 },
-  { id: "NORESTE", name: "Noreste", employmentVal: 71 },
-  { id: "OCCIDENTE", name: "Occidente", employmentVal: 65 },
-  { id: "NORTE", name: "Norte", employmentVal: 62 },
-  { id: "SURESTE", name: "Sureste", employmentVal: 61 },
-  { id: "NOROESTE", name: "Noroeste", employmentVal: 58 },
-  { id: "SUR", name: "Sur", employmentVal: 54 },
-  { id: "SUROESTE", name: "Suroeste", employmentVal: 49 },
-  { id: "CENTRO", name: "Centro", employmentVal: 80 },
-];
+  // Mapeo de tabs a títulos y datos
+  const tabConfig = {
+    EMPLEO: {
+      title: "Empleo vs. Otras Regiones",
+      dataSource: empleoData,
+      getValue: (reg) => 100 - parseFloat(reg.indicadores?.[0]?.valor || 0),
+      displaySuffix: "%",
+    },
+    EDUCACION: {
+      title: "Educación vs. Otras Regiones",
+      dataSource: educacionData,
+      getValue: (reg) => {
+        const val = parseFloat(reg.indicadores?.[0]?.valor || 0);
+        return val < 2 ? val * 100 : val;
+      },
+      displaySuffix: "%",
+    },
+    SALUD_MENTAL: {
+      title: "Salud Mental vs. Otras Regiones",
+      dataSource: saludData,
+      getValue: (reg) => {
+        const val = parseFloat(reg.indicadores?.[0]?.valor || 0);
+        return Math.min(5, Math.max(0, (val / 15) * 4.8));
+      },
+      displaySuffix: "/5",
+    },
+  };
 
-function ClusterDetailPage({ clusterName, onBack }) {
-  // Normalize key to uppercase (e.g., "Norte" -> "NORTE")
-  const key = useMemo(() => {
-    if (!clusterName) return "NORTE";
-    const upper = clusterName.toUpperCase();
-    return REGION_MOCKS[upper] ? upper : "NORTE";
-  }, [clusterName]);
+  const currentTabConfig = tabConfig[activeTab] || tabConfig.EMPLEO;
 
-  const data = useMemo(() => REGION_MOCKS[key], [key]);
+  // Buscar la región seleccionada en los datos disponibles
+  const selectedRegion = useMemo(() => {
+    if (!clusterName) return null;
 
-  // Generate dynamic comparison list where the active region is placed in order and highlighted
-  const comparisonList = useMemo(() => {
-    const parsedEmployment = parseInt(data.metrics.employment.value);
-    const updatedBase = ALL_REGIONS_BASE.map((item) => {
-      if (item.id === key) {
-        return { ...item, employmentVal: parsedEmployment };
+    // Primero buscar en mapData (endpoint /mapa)
+    let found = mapData?.regiones?.find((r) => 
+      r.cluster.toUpperCase() === clusterName.toUpperCase()
+    );
+
+    // Si no está en mapData, buscar en los datos de indicadores que SÍ lo tienen
+    if (!found) {
+      const allIndicatorRegions = [
+        ...(empleoData?.regiones || []),
+        ...(educacionData?.regiones || []),
+        ...(saludData?.regiones || []),
+      ];
+      
+      found = allIndicatorRegions.find((r) => 
+        r.cluster.toUpperCase() === clusterName.toUpperCase()
+      );
+    }
+
+    return found;
+  }, [mapData, empleoData, educacionData, saludData, clusterName]);
+
+  // Obtener indicadores para esta región
+  const regionIndicators = useMemo(() => {
+    const indicators = {};
+    
+    if (empleoData?.regiones) {
+      const reg = empleoData.regiones.find(
+        (r) => r.cluster.toUpperCase() === clusterName?.toUpperCase()
+      );
+      if (reg?.indicadores?.[0]) {
+        indicators.empleo = 100 - parseFloat(reg.indicadores[0].valor);
       }
-      return item;
-    });
-    // Sort descending
-    return updatedBase.sort((a, b) => b.employmentVal - a.employmentVal);
-  }, [data, key]);
+    }
 
-  // Generate dynamic double line chart data based on region metrics
-  const lineChartData = useMemo(() => {
-    const parsedEmp = parseInt(data.metrics.employment.value);
-    const parsedConn = parseInt(data.metrics.connectivity.value);
-    const months = [
-      { mes: "Ene", empOffset: -8, connOffset: -7 },
-      { mes: "Feb", empOffset: -6, connOffset: -5 },
-      { mes: "Mar", empOffset: -5, connOffset: -4 },
-      { mes: "Abr", empOffset: -6, connOffset: -3 },
-      { mes: "May", empOffset: -4, connOffset: -3 },
-      { mes: "Jun", empOffset: -3, connOffset: -2 },
-      { mes: "Jul", empOffset: -4, connOffset: -1 },
-      { mes: "Ago", empOffset: -2, connOffset: 0 },
-      { mes: "Sep", empOffset: -1, connOffset: -1 },
-      { mes: "Oct", empOffset: -2, connOffset: -2 },
-      { mes: "Nov", empOffset: -1, connOffset: -1 },
-      { mes: "Dic", empOffset: 0, connOffset: 0 },
+    if (educacionData?.regiones) {
+      const reg = educacionData.regiones.find(
+        (r) => r.cluster.toUpperCase() === clusterName?.toUpperCase()
+      );
+      if (reg?.indicadores?.[0]) {
+        const val = parseFloat(reg.indicadores[0].valor);
+        indicators.inclusion = val < 2 ? val * 100 : val;
+      }
+    }
+
+    if (saludData?.regiones) {
+      const reg = saludData.regiones.find(
+        (r) => r.cluster.toUpperCase() === clusterName?.toUpperCase()
+      );
+      if (reg?.indicadores?.[0]) {
+        indicators.saludMental = parseFloat(reg.indicadores[0].valor);
+      }
+    }
+
+    return indicators;
+  }, [empleoData, educacionData, saludData, clusterName]);
+
+  // Contar programas por tipo
+  const programCounts = useMemo(() => {
+    const programs = programsData?.programs || [];
+    return {
+      courses: programs.filter((p) => p.tipo === "FORMACION").length,
+      mentorings: programs.filter((p) => p.tipo === "MENTORIA").length,
+      experiences: programs.filter((p) => p.tipo === "EXPERIENCIA").length,
+    };
+  }, [programsData]);
+
+  // Obtener todas las regiones para el gráfico de comparación (dinámico según activeTab)
+  const allRegionsForComparison = useMemo(() => {
+    if (!currentTabConfig.dataSource?.regiones) return [];
+    return currentTabConfig.dataSource.regiones.map((r) => {
+      const value = currentTabConfig.getValue(r);
+      return {
+        id: r.cluster,
+        name: r.cluster,
+        value: Math.max(0, Math.min(100, Math.round(value))),
+      };
+    }).sort((a, b) => b.value - a.value);
+  }, [currentTabConfig]);
+
+  // Generar datos del gráfico radar (solo con datos reales disponibles)
+  const radarData = useMemo(() => {
+    const empleo = regionIndicators.empleo || 0;
+    const conectividad = selectedRegion?.congestionamento_medio 
+      ? Math.round(100 - selectedRegion.congestionamento_medio * 100) 
+      : 0;
+    const inclusion = regionIndicators.inclusion || 0;
+    const saludMentalPercent = regionIndicators.saludMental 
+      ? Math.max(0, Math.min(100, Math.round((regionIndicators.saludMental / 15) * 100))) 
+      : 0;
+
+    const data = [
+      { subject: "Empleo", A: Math.round(empleo), fullMark: 100 },
+      { subject: "Conectividad", A: conectividad, fullMark: 100 },
+      { subject: "Salud Mental", A: saludMentalPercent, fullMark: 100 },
     ];
-    return months.map((m) => ({
-      mes: m.mes,
-      Empleo: Math.max(0, parsedEmp + m.empOffset),
-      Conectividad: Math.max(0, parsedConn + m.connOffset),
-    }));
-  }, [data]);
+    
+    if (inclusion > 0) {
+      data.push({ subject: "Inclusión", A: Math.round(inclusion), fullMark: 100 });
+    }
+    
+    return data;
+  }, [regionIndicators, selectedRegion]);
+
+  // Estados de carga y error
+  if (loadingMap) {
+    return (
+      <div className="flex items-center justify-center h-full py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (errorMap || !selectedRegion) {
+    return (
+      <div className="flex items-center justify-center h-full py-20">
+        <div className="text-center">
+          <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
+          <p className="text-red-600 font-medium">
+            {errorMap ? "Error al cargar los datos de la región" : "Región no encontrada"}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Preparar valores para mostrar
+  const displayName = selectedRegion.cluster;
+  const populationValue = selectedRegion.n_usuarios 
+    ? selectedRegion.n_usuarios >= 1000000 
+      ? `${(selectedRegion.n_usuarios / 1000000).toFixed(1)}M` 
+      : `${(selectedRegion.n_usuarios / 1000).toFixed(1)}K`
+    : "0";
+  
+  const empleoValue = regionIndicators.empleo 
+    ? `${regionIndicators.empleo.toFixed(0)}%` 
+    : "60%";
+  
+  const conectividadValue = selectedRegion.congestionamento_medio 
+    ? `${Math.round(100 - selectedRegion.congestionamento_medio * 100)}%` 
+    : "50%";
+  
+  const saludMentalValue = regionIndicators.saludMental 
+    ? `${Math.min(5, Math.max(0, (regionIndicators.saludMental / 15) * 4.8)).toFixed(1)}/5` 
+    : "3.0/5";
+  
+  const inclusionValue = regionIndicators.inclusion 
+    ? `${regionIndicators.inclusion.toFixed(0)}%` 
+    : "50%";
+
+  const hasAlerts = selectedRegion.congestionamento_medio && selectedRegion.congestionamento_medio > 0.7;
 
   return (
     <div className="space-y-6">
-      {/* Header and Back navigation */}
+      {/* Encabezado y navegación de regreso */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
@@ -305,11 +238,11 @@ function ClusterDetailPage({ clusterName, onBack }) {
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-xl font-bold text-slate-800 leading-tight">
-                Región {data.name}
+                {displayName}
               </h2>
-              {data.alerts > 0 ? (
+              {hasAlerts ? (
                 <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-red-50 text-red-700 border-red-200 animate-pulse">
-                  {data.alerts} {data.alerts === 1 ? "alerta" : "alertas"}
+                  1 alerta
                 </span>
               ) : (
                 <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-green-50 text-green-700 border-green-200">
@@ -318,28 +251,24 @@ function ClusterDetailPage({ clusterName, onBack }) {
               )}
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              {data.population} habitantes • {data.courses} programas de formación • Actualizado: 10 dic 2024
+              {populationValue} usuarios • {programCounts.courses + programCounts.mentorings + programCounts.experiences} programas • Actualizado: {selectedRegion.fecha || new Date().toLocaleDateString()}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Metric Cards Grid */}
+      {/* Grid de Tarjetas de Métricas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Tasa de Empleo */}
+        {/* Tarjeta 1: Tasa de Empleo */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between hover:shadow-xs transition-shadow">
           <div className="flex items-center justify-between">
             <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center">
               <Briefcase className="w-4.5 h-4.5 text-amber-600" />
             </div>
-            <div className="flex items-center gap-1 text-[11px] text-green-600 font-bold">
-              <ArrowUpRight className="w-3.5 h-3.5" />
-              <span>{data.metrics.employment.change}</span>
-            </div>
           </div>
           <div className="mt-4">
             <h4 className="text-2xl font-bold text-slate-800 tracking-tight">
-              {data.metrics.employment.value}
+              {empleoValue}
             </h4>
             <p className="text-[11px] text-slate-500 mt-1 font-semibold">
               Tasa de Empleo
@@ -347,20 +276,16 @@ function ClusterDetailPage({ clusterName, onBack }) {
           </div>
         </div>
 
-        {/* Card 2: Conectividad */}
+        {/* Tarjeta 2: Conectividad */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between hover:shadow-xs transition-shadow">
           <div className="flex items-center justify-between">
             <div className="w-9 h-9 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center">
               <Wifi className="w-4.5 h-4.5 text-orange-600" />
             </div>
-            <div className="flex items-center gap-1 text-[11px] text-green-600 font-bold">
-              <ArrowUpRight className="w-3.5 h-3.5" />
-              <span>{data.metrics.connectivity.change}</span>
-            </div>
           </div>
           <div className="mt-4">
             <h4 className="text-2xl font-bold text-slate-800 tracking-tight">
-              {data.metrics.connectivity.value}
+              {conectividadValue}
             </h4>
             <p className="text-[11px] text-slate-500 mt-1 font-semibold">
               Conectividad
@@ -368,20 +293,16 @@ function ClusterDetailPage({ clusterName, onBack }) {
           </div>
         </div>
 
-        {/* Card 3: Salud Mental */}
+        {/* Tarjeta 3: Salud Mental */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between hover:shadow-xs transition-shadow">
           <div className="flex items-center justify-between">
             <div className="w-9 h-9 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center">
               <Activity className="w-4.5 h-4.5 text-red-600" />
             </div>
-            <div className="flex items-center gap-1 text-[11px] text-green-600 font-bold">
-              <ArrowUpRight className="w-3.5 h-3.5" />
-              <span>{data.metrics.mentalHealth.change}</span>
-            </div>
           </div>
           <div className="mt-4">
             <h4 className="text-2xl font-bold text-slate-800 tracking-tight">
-              {data.metrics.mentalHealth.value}
+              {saludMentalValue}
             </h4>
             <p className="text-[11px] text-slate-500 mt-1 font-semibold">
               Salud Mental
@@ -389,20 +310,16 @@ function ClusterDetailPage({ clusterName, onBack }) {
           </div>
         </div>
 
-        {/* Card 4: Inclusión Digital */}
+        {/* Tarjeta 4: Inclusión Digital */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between hover:shadow-xs transition-shadow">
           <div className="flex items-center justify-between">
             <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center">
               <TrendingUp className="w-4.5 h-4.5 text-blue-600" />
             </div>
-            <div className="flex items-center gap-1 text-[11px] text-green-600 font-bold">
-              <ArrowUpRight className="w-3.5 h-3.5" />
-              <span>{data.metrics.digitalInclusion.change}</span>
-            </div>
           </div>
           <div className="mt-4">
             <h4 className="text-2xl font-bold text-slate-800 tracking-tight">
-              {data.metrics.digitalInclusion.value}
+              {inclusionValue}
             </h4>
             <p className="text-[11px] text-slate-500 mt-1 font-semibold">
               Inclusión Digital
@@ -411,77 +328,14 @@ function ClusterDetailPage({ clusterName, onBack }) {
         </div>
       </div>
 
-      {/* Main Grid: charts and assistant */}
+      {/* Grid Principal: gráficos y asistente */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left column: Charts (Grid span 2) */}
+        {/* Columna izquierda: Gráficos (ocupa 2 espacios) */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Historical Trend line chart */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between hover:shadow-sm transition-shadow">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-bold text-slate-800">
-                Tendencia Histórica — {data.name}
-              </h3>
-              <span className="text-[10px] font-bold bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200 text-slate-500">
-                12 meses
-              </span>
-            </div>
-            <div className="h-[240px] mt-4 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={lineChartData}
-                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                >
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="mes"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tick={{ fontSize: 9, fill: "#64748b" }}
-                  />
-                  <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tick={{ fontSize: 9, fill: "#64748b" }}
-                    domain={[0, 100]}
-                  />
-                  <Tooltip
-                    contentStyle={{ fontSize: 11, borderRadius: 8, borderColor: "#cbd5e1" }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="Empleo"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="Conectividad"
-                    stroke="#0d9488"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-            {/* Custom chart legend */}
-            <div className="flex items-center justify-center gap-4 text-[10px] text-slate-500 font-bold mt-2">
-              <div className="flex items-center gap-1">
-                <span className="w-2.5 h-1 bg-blue-500 inline-block rounded-full"></span>
-                <span>Empleo</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="w-2.5 h-1 bg-teal-600 inline-block rounded-full"></span>
-                <span>Conectividad</span>
-              </div>
-            </div>
-          </div>
 
-          {/* Sub grid: radar indicators & employment compared */}
+          {/* Subgrid: radar de indicadores y comparación de empleo */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Radar Indicators profile */}
+            {/* Perfil de Indicadores en Radar */}
             <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between hover:shadow-sm transition-shadow">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="text-sm font-bold text-slate-800">
@@ -490,12 +344,12 @@ function ClusterDetailPage({ clusterName, onBack }) {
               </div>
               <div className="h-[200px] mt-4 flex items-center justify-center w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data.radarData}>
+                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                     <PolarGrid />
                     <PolarAngleAxis dataKey="subject" tick={{ fontSize: 9, fill: "#475569" }} />
                     <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 8 }} />
                     <Radar
-                      name={data.name}
+                      name={displayName}
                       dataKey="A"
                       stroke="#2563eb"
                       fill="#3b82f6"
@@ -506,16 +360,16 @@ function ClusterDetailPage({ clusterName, onBack }) {
               </div>
             </div>
 
-            {/* Employment compared to other regions list */}
+            {/* Indicador comparado con otras regiones (dinámico) */}
             <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                 <h3 className="text-sm font-bold text-slate-800">
-                  Empleo vs. Otras Regiones
+                  {currentTabConfig.title}
                 </h3>
               </div>
               <div className="flex-1 space-y-2.5 overflow-y-auto max-h-[200px] pr-1">
-                {comparisonList.map((item, idx) => {
-                  const isCurrent = item.id === key;
+                {allRegionsForComparison.map((item, idx) => {
+                  const isCurrent = item.id.toUpperCase() === clusterName?.toUpperCase();
                   return (
                     <div key={item.id} className="space-y-1">
                       <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
@@ -526,13 +380,13 @@ function ClusterDetailPage({ clusterName, onBack }) {
                           </span>
                         </span>
                         <span className={isCurrent ? "text-blue-600 font-extrabold" : "text-slate-800"}>
-                          {item.employmentVal}%
+                          {item.value}{currentTabConfig.displaySuffix}
                         </span>
                       </div>
                       <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${isCurrent ? "bg-blue-600" : "bg-slate-300"}`}
-                          style={{ width: `${item.employmentVal}%` }}
+                          style={{ width: `${item.value}%` }}
                         ></div>
                       </div>
                     </div>
@@ -542,16 +396,16 @@ function ClusterDetailPage({ clusterName, onBack }) {
             </div>
           </div>
 
-          {/* Program summaries row */}
+          {/* Fila de resumen de programas */}
           <div className="space-y-3">
             <h3 className="text-sm font-bold text-slate-800">
-              Resumen de Programas — {data.name}
+              Resumen de Programas — {displayName}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* Card Formaciones */}
+              {/* Tarjeta Formaciones */}
               <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between">
                 <div>
-                  <h4 className="text-2xl font-bold text-slate-850">{data.courses}</h4>
+                  <h4 className="text-2xl font-bold text-slate-850">{programCounts.courses}</h4>
                   <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Programas de Formación</p>
                 </div>
                 <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center">
@@ -559,10 +413,10 @@ function ClusterDetailPage({ clusterName, onBack }) {
                 </div>
               </div>
 
-              {/* Card Mentorías */}
+              {/* Tarjeta Mentorías */}
               <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between">
                 <div>
-                  <h4 className="text-2xl font-bold text-slate-850">{data.mentorings}</h4>
+                  <h4 className="text-2xl font-bold text-slate-850">{programCounts.mentorings}</h4>
                   <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Mentorías Activas</p>
                 </div>
                 <div className="w-9 h-9 rounded-xl bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center">
@@ -570,10 +424,10 @@ function ClusterDetailPage({ clusterName, onBack }) {
                 </div>
               </div>
 
-              {/* Card Experiencias */}
+              {/* Tarjeta Experiencias */}
               <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between">
                 <div>
-                  <h4 className="text-2xl font-bold text-slate-850">{data.experiences}</h4>
+                  <h4 className="text-2xl font-bold text-slate-850">{programCounts.experiences}</h4>
                   <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Experiencias</p>
                 </div>
                 <div className="w-9 h-9 rounded-xl bg-yellow-50 border border-yellow-100 text-yellow-600 flex items-center justify-center">
@@ -584,7 +438,7 @@ function ClusterDetailPage({ clusterName, onBack }) {
           </div>
         </div>
 
-        {/* Right column: Non-functional Visual‑Only AI Assistant */}
+        {/* Columna derecha: Asistente IA visual no funcional */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -602,7 +456,7 @@ function ClusterDetailPage({ clusterName, onBack }) {
               </span>
             </div>
 
-            {/* AI Welcome Message with Bot Avatar inside a blue circle */}
+            {/* Mensaje de bienvenida del asistente con avatar */}
             <div className="mt-4 flex gap-3 items-start bg-slate-50 rounded-xl p-3 border border-slate-100">
               <div className="w-8 h-8 rounded-full bg-[#2563eb] text-white flex items-center justify-center shrink-0">
                 <Bot className="w-4.5 h-4.5" />
@@ -615,7 +469,7 @@ function ClusterDetailPage({ clusterName, onBack }) {
               </p>
             </div>
 
-            {/* Static suggestions matching main panel style but non-functional */}
+            {/* Sugerencias estáticas */}
             <div className="mt-4 space-y-2">
               <button className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2.5 rounded-lg font-medium shadow-sm transition-colors cursor-pointer leading-tight">
                 ¿Qué regiones tienen alto desempleo y baja conectividad?
@@ -632,7 +486,7 @@ function ClusterDetailPage({ clusterName, onBack }) {
             </div>
           </div>
 
-          {/* AI Chat Input - Static, non-functional */}
+          {/* Entrada de chat del asistente - estática y no funcional */}
           <div className="mt-6 relative">
             <input
               type="text"

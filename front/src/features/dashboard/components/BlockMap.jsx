@@ -32,8 +32,7 @@ const tabButtonClass = (isActive) =>
       : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
   }`;
 
-export const BlockMap = ({ onClusterSelect }) => {
-  const [activeMapTab, setActiveMapTab] = useState("EMPLEO");
+export const BlockMap = ({ onClusterSelect, activeMapTab, onActiveMapTabChange }) => {
   const [tooltip, setTooltip] = useState({
     visible: false,
     x: 0,
@@ -108,11 +107,11 @@ export const BlockMap = ({ onClusterSelect }) => {
             </h3>
           </div>
           <button 
-            onClick={() => onClusterSelect?.(regionTextCenter[0]?.cluster || "Norte")}
-            className="text-xs text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
-          >
-            Ver detalle →
-          </button>
+          onClick={() => onClusterSelect?.(regionTextCenter[0]?.cluster || "Norte")}
+          className="text-xs text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+        >
+          Ver detalle →
+        </button>
         </div>
         {/* Tabs */}
         <div className="flex flex-wrap items-center gap-2 mt-4">
@@ -120,7 +119,7 @@ export const BlockMap = ({ onClusterSelect }) => {
           {tabs.map(({ key, label }) => (
             <button
               key={key}
-              onClick={() => setActiveMapTab(key)}
+              onClick={() => onActiveMapTabChange(key)}
               className={tabButtonClass(activeMapTab === key)}
             >
               {label}
@@ -137,15 +136,15 @@ export const BlockMap = ({ onClusterSelect }) => {
           >
             {regionTextCenter.map((region) => (
               <g
-                key={region.cluster}
-                className="cursor-pointer"
-                onClick={() => onClusterSelect?.(region.cluster)}
-                onMouseEnter={(e) => handleMouseEnter(region, e)}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={() =>
-                  setTooltip({ visible: false, x: 0, y: 0, region: null })
-                }
-              >
+              key={region.cluster}
+              className="cursor-pointer"
+              onClick={() => onClusterSelect?.(region.cluster)}
+              onMouseEnter={(e) => handleMouseEnter(region, e)}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={() =>
+                setTooltip({ visible: false, x: 0, y: 0, region: null })
+              }
+            >
                 <polygon
                   points={region.points}
                   fill={getStatusFromCongestion(region.congestionamento_medio)}

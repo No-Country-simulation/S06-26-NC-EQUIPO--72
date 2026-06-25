@@ -14,6 +14,7 @@ import ConfiguracionPage from "./features/configuracion/pages/ConfiguracionPage"
 function App() {
   const [currentTab, setCurrentTab] = useState("inicio");
   const [selectedCluster, setSelectedCluster] = useState(null);
+  const [activeMapTab, setActiveMapTab] = useState("EMPLEO");
 
   const handleClusterSelect = (clusterName) => {
     setSelectedCluster(clusterName);
@@ -25,7 +26,9 @@ function App() {
       {currentTab === "inicio" ? (
         <DashboardPage 
           onTabChange={setCurrentTab} 
-          onClusterSelect={handleClusterSelect} 
+          onClusterSelect={handleClusterSelect}
+          activeMapTab={activeMapTab}
+          onActiveMapTabChange={setActiveMapTab}
         />
       ) : currentTab === "cluster-detail" ? (
         <ClusterDetailPage 
@@ -33,7 +36,8 @@ function App() {
           onBack={() => {
             setCurrentTab("inicio");
             setSelectedCluster(null);
-          }} 
+          }}
+          activeTab={activeMapTab}
         />
       ) : currentTab === "formaciones" ? (
         <FormacionesPage />

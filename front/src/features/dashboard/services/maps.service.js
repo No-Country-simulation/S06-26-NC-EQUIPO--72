@@ -12,6 +12,38 @@ class MapsService {
     }
     return result;
   }
+
+  async getMapData(params = {}) {
+    const searchParams = new URLSearchParams(params);
+    const response = await fetch(
+      `${this.API}mapa?${searchParams.toString()}`,
+    );
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error("Error al obtener datos del mapa", result.message);
+    }
+    return result;
+  }
+
+  async getPrograms(params = {}) {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, value);
+      }
+    });
+    
+    const response = await fetch(
+      `${this.API}programas?${searchParams.toString()}`,
+    );
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error("Error al obtener programas", result.message);
+    }
+    return result;
+  }
 }
 
 export default new MapsService();
