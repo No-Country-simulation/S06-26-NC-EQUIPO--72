@@ -2,12 +2,12 @@ FROM eclipse-temurin:21-jdk-jammy
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 COPY .mvn .mvn
 COPY mvnw pom.xml ./
 
 RUN chmod +x mvnw
-
-# Descarga el maven-wrapper.jar si no fue commiteado
 RUN ./mvnw --version || true
 
 ENV MAVEN_OPTS="-Dmaven.repo.local=/root/.m2/repository"

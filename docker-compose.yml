@@ -53,14 +53,12 @@ services:
     restart: always
     ports:
       - "8080:8080"
-
     volumes:
       - ./back:/app
       - /app/target
-      - ~/.m2:/root/.m2 
+      - ~/.m2:/root/.m2
     env_file:
       - .env
-
     environment:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
       - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/${DB_NAME}?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
@@ -71,9 +69,16 @@ services:
       - LOGGING_LEVEL_ORG_HIBERNATE_ORM_RESULTS_BASIC=TRACE
       - AI_SERVICE_URL=${AI_SERVICE_URL}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 180s
     networks:
-      - app-network
+    - app-network
 
 
 
@@ -118,7 +123,7 @@ services:
       db:
         condition: service_healthy
       backend:
-        condition: service_started
+        condition: service_healthy
     networks:
       - app-network
 
