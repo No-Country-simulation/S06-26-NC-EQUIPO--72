@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/regiones")
-@CrossOrigin(origins = "*")
 @Tag(name = "Regiones", description = "Listado de regiones y clústeres disponibles para el mapa")
 public class RegionController {
 
