@@ -8,17 +8,3 @@ export function useMapsIndicators(category) {
     enabled: !!category,
   });
 }
-
-export function useMapData(params = {}) {
-  return useQuery({
-    queryKey: ["map-data", params],
-    queryFn: () => MapsService.getMapData(params),
-  });
-}
-
-export function usePrograms(params = {}) {
-  return useQuery({
-    queryKey: ["programs", params],
-    queryFn: () => MapsService.getPrograms(params),
-  });
-}

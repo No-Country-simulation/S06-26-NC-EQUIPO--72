@@ -11,7 +11,7 @@ import com.example.appbitb2g.model.Concentracao;
 import com.example.appbitb2g.repository.ConcentracaoRepository;
 
 @Component
-@Profile("dev")
+@Profile("dev-mock-csv")
 public class ConcentracaoSeeder {
     @Autowired private ConcentracaoRepository repo;
     public void seed() {

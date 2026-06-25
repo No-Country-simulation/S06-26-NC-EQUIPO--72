@@ -24,6 +24,7 @@ services:
     image: mysql:8.0
     container_name: Appbitb2g_Mysql
     restart: always
+    command: --default-authentication-plugin=mysql_native_password --local-infile=1
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
@@ -31,6 +32,10 @@ services:
       - "${DB_PORT}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER}", "-p${DB_PASSWORD}"]
+      timeout: 5s
+      retries: 10
     networks:
       - app-network
 
@@ -104,7 +109,10 @@ services:
     env_file:
       - ./ai/.env  # Usa el .env del directorio ai/
     depends_on:
-      - backend
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_started
     networks:
       - app-network
 

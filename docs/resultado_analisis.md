@@ -251,15 +251,9 @@ Esto descarta que el cluster esté mal definido en el dataset.
 
 Falla de encoding o lookup durante la generación de `tensor_od.csv` por parte de Vísent, posiblemente relacionada con el carácter especial **ç**, ya que es el único cluster que lo contiene.
 
-## Solución validada
+## Acción requerida
 
-Durante el pipeline de ingestión de `flujo_od`:
-
-* realizar un JOIN contra `antenas.cluster`
-* recuperar municipio, latitud y longitud reales de `SAO_JOSE_ROÇADO`
-* ignorar los valores `NULL` y `0.0` presentes en el CSV
-
-Esta solución no depende de una corrección del dataset original.
+- [x] Corregir los valores nulos en tensor_od.csv usando antenas_flp.csv
 
 ---
 
@@ -312,17 +306,4 @@ drop_pct_avg = drop_pct
 
 ```
 
-## flujo_od
 
-```text
-Para cluster_origem o cluster_destino = SAO_JOSE_ROÇADO:
-
-JOIN contra antenas
-
-Recuperar:
-- municipio
-- lat
-- lon
-
-en lugar de insertar los valores NULL / 0.0 del CSV.
-```

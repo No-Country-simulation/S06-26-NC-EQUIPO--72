@@ -26,6 +26,7 @@ import lombok.AllArgsConstructor;
 
 @RestController
 @RequestMapping("/programas")
+@CrossOrigin(origins = "*")
 @AllArgsConstructor
 @Tag(name = "Programas sociales", description = "Gestión y consulta de programas sociales de la aplicación")
 public class SocialProgramController {
