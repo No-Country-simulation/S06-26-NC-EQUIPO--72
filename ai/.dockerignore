@@ -19,8 +19,9 @@ ENV/
 dist/
 build/
 
-# Data
+# Data (viene por volumen, no se copia en imagen)
 data/
+data_resultado/
 
 # IDE
 .idea/
@@ -47,8 +48,10 @@ Thumbs.db
 # Docker
 Dockerfile*
 .dockerignore
-data/
-__pycache__/
-*.pyc
-.env
+
+# Misc
 *.md
+analisis*.py
+corregir_*.py
+check_csv.py
+README_DATASET.md
