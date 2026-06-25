@@ -1,3 +1,52 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.pytest_cache/
+.pytest_cache/
+.mypy_cache/
+.pydantic_cache/
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Build
+*.egg-info/
+dist/
+build/
+
+# Data
+data/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.*
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile*
+.dockerignore
 data/
 __pycache__/
 *.pyc
