@@ -63,7 +63,7 @@ function MainLayout({ children, currentTab, onTabChange }) {
               <SidebarMenu className="space-y-1">
                 {menuItems.map((item) => {
                   const Icon = item.icon
-                  const isActive = currentTab === item.id
+                  const isActive = currentTab === item.id || (item.id === "inicio" && currentTab === "cluster-detail")
                   return (
                     <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton

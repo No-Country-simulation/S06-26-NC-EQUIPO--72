@@ -39,7 +39,7 @@ import {
 import { BlockMap } from "../components/BlockMap";
 import { useMapsIndicators } from "../hooks/useMaps";
 
-function DashboardPage({ onTabChange }) {
+function DashboardPage({ onTabChange, onClusterSelect }) {
   const {
     data: rawEmpleo,
     isLoading: loadingEmpleo,
@@ -474,7 +474,7 @@ function DashboardPage({ onTabChange }) {
       {/* Map and AI Assistant Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Card: Mapa de Inclusión Social */}
-        <BlockMap />
+        <BlockMap onClusterSelect={onClusterSelect} />
 
         {/* Right Card: Asistente IA */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between">
