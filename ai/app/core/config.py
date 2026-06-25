@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     qdrant_url: str | None = None
     qdrant_collection: str | None = None
     
-    # Configuración de BD MySQL
+    # Variables de BD MySQL
     db_host: str = "db"
     db_port: int = 3306
     db_name: str = "app_bit_b_2g_db"
