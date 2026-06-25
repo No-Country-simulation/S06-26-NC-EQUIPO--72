@@ -20,11 +20,6 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Maven
-.mvn/
-mvnw
-mvnw.cmd
-
 # Git
 .git/
 .gitignore
