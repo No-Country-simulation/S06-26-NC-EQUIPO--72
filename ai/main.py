@@ -1,4 +1,5 @@
 import threading
+import traceback
 from fastapi import FastAPI
 from app.api.routes import router
 from app.core.config import settings
@@ -24,17 +25,18 @@ etl_status = {
 }
 
 def run_etl_background():
-    """Ejecuta el ETL en background y actualiza el estado"""
     global etl_status
     etl_status["running"] = True
     etl_status["completed"] = False
     etl_status["error"] = None
     
     try:
-        run_pipeline(use_fast_load=True)
+        run_pipeline()
         etl_status["completed"] = True
     except Exception as e:
         etl_status["error"] = str(e)
+        print(f"[ETL] Error en background: {e}", flush=True)
+        traceback.print_exc()
     finally:
         etl_status["running"] = False
 
@@ -43,7 +45,7 @@ async def startup_event():
     """Evento de inicio: inicia el ETL en background"""
     thread = threading.Thread(target=run_etl_background, daemon=True)
     thread.start()
-    print("ETL iniciado en background - el servicio está listo para recibir peticiones!")
+    print("ETL iniciado en background - el servicio está listo para recibir peticiones", flush=True)
 
 @app.get("/health")
 def health():

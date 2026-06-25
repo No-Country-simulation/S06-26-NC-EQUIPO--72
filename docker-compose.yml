@@ -24,7 +24,13 @@ services:
     image: mysql:8.0
     container_name: Appbitb2g_Mysql
     restart: always
-    command: --default-authentication-plugin=mysql_native_password --local-infile=1
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --local-infile=1
+      --innodb-redo-log-capacity=4294967296
+      --innodb-log-buffer-size=256M
+      --innodb-flush-log-at-trx-commit=2
+      --innodb-buffer-pool-size=1G
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
