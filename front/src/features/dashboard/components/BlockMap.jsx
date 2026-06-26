@@ -1,183 +1,15 @@
 import { useState, useMemo } from "react";
 import { generarMapaOrganico } from "../utils/organicMap";
-
-// ENDPOINT: /mapa/indicadores
-// {
-//   "regiones": [
-//     {
-//       "cluster": "SAO_JOSE_KOBRASOL",
-//       "municipio": "São José",
-//       "lat": -27.5935,
-//       "lon": -48.6358,
-//       "n_usuarios": 12400,
-//       "congestionamento_medio": 0.72,
-//       "indicadores": [
-//         {
-//           "categoria": "SALUD_MENTAL",
-//           "indicador": "taxa_internacao_psiquiatrica",
-//           "valor": 14.2,
-//           "unidad": "porcentaje",
-//           "fonte": "DATASUS",
-//           "fecha_referencia": "2025-12-01"
-//         }
-//       ]
-//     }
-//   ]
-// }
-
-const regiones = [
-  {
-    cluster: "AEROPORTO_HLZ",
-    municipio: "Florianopolis",
-    congestionamento_medio: 0.6,
-    n_usuarios: 12400,
-    indicadores: [
-      {
-        categoria: "SALUD_MENTAL",
-        indicador: "taxa_internacao_psiquiatrica",
-        valor: 14.2,
-        unidad: "porcentaje",
-        fonte: "DATASUS",
-        fecha_referencia: "2025-12-01",
-      },
-    ],
-  },
-  {
-    cluster: "CAMPECHE",
-    municipio: "Florianopolis",
-    congestionamento_medio: 0.6,
-    n_usuarios: 12300,
-    indicadores: [
-      {
-        categoria: "SALUD_MENTAL",
-        indicador: "taxa_internacao_psiquiatrica",
-        valor: 14.2,
-        unidad: "porcentaje",
-        fonte: "DATASUS",
-        fecha_referencia: "2025-12-01",
-      },
-    ],
-  },
-  {
-    cluster: "CANASVIEIRAS",
-    municipio: "Florianopolis",
-    congestionamento_medio: 0.7,
-    n_usuarios: 12200,
-    indicadores: [
-      {
-        categoria: "SALUD_MENTAL",
-        indicador: "taxa_internacao_psiquiatrica",
-        valor: 14.2,
-        unidad: "porcentaje",
-        fonte: "DATASUS",
-        fecha_referencia: "2025-12-01",
-      },
-    ],
-  },
-  {
-    cluster: "CBD_BEIRAMAR",
-    municipio: "Florianopolis",
-    congestionamento_medio: 0.65,
-    n_usuarios: 12100,
-    indicadores: [
-      {
-        categoria: "SALUD_MENTAL",
-        indicador: "taxa_internacao_psiquiatrica",
-        valor: 14.2,
-        unidad: "porcentaje",
-        fonte: "DATASUS",
-        fecha_referencia: "2025-12-01",
-      },
-    ],
-  },
-  {
-    cluster: "CENTRO_HISTORICO",
-    municipio: "Florianopolis",
-    congestionamento_medio: 0.82,
-    n_usuarios: 13000,
-    indicadores: [
-      {
-        categoria: "SALUD_MENTAL",
-        indicador: "taxa_internacao_psiquiatrica",
-        valor: 14.2,
-        unidad: "porcentaje",
-        fonte: "DATASUS",
-        fecha_referencia: "2025-12-01",
-      },
-    ],
-  },
-  {
-    cluster: "COQUEIROS",
-    municipio: "Florianopolis",
-    congestionamento_medio: 0.52,
-    n_usuarios: 13100,
-    indicadores: [
-      {
-        categoria: "SALUD_MENTAL",
-        indicador: "taxa_internacao_psiquiatrica",
-        valor: 14.2,
-        unidad: "porcentaje",
-        fonte: "DATASUS",
-        fecha_referencia: "2025-12-01",
-      },
-    ],
-  },
-  {
-    cluster: "ESTREITO_CAPOEIRAS",
-    municipio: "Florianopolis",
-    congestionamento_medio: 0.35,
-    n_usuarios: 13200,
-    indicadores: [
-      {
-        categoria: "SALUD_MENTAL",
-        indicador: "taxa_internacao_psiquiatrica",
-        valor: 14.2,
-        unidad: "porcentaje",
-        fonte: "DATASUS",
-        fecha_referencia: "2025-12-01",
-      },
-    ],
-  },
-  {
-    cluster: "INGLESES",
-    municipio: "Florianopolis",
-    congestionamento_medio: 0.62,
-    n_usuarios: 13200,
-    indicadores: [
-      {
-        categoria: "SALUD_MENTAL",
-        indicador: "taxa_internacao_psiquiatrica",
-        valor: 14.2,
-        unidad: "porcentaje",
-        fonte: "DATASUS",
-        fecha_referencia: "2025-12-01",
-      },
-    ],
-  },
-  {
-    cluster: "JURERE",
-    municipio: "Florianopolis",
-    congestionamento_medio: 0.2,
-    n_usuarios: 13000,
-    indicadores: [
-      {
-        categoria: "SALUD_MENTAL",
-        indicador: "taxa_internacao_psiquiatrica",
-        valor: 14.2,
-        unidad: "porcentaje",
-        fonte: "DATASUS",
-        fecha_referencia: "2025-12-01",
-      },
-    ],
-  },
-];
+import { useMapsIndicators } from "../hooks/useMaps";
+import { ChartColumn, Layers } from "lucide-react";
 
 const tabs = [
-  { key: "empleo", label: "Tasa de Empleo" },
-  { key: "conectividad", label: "Conectividad" },
-  { key: "salud", label: "Salud Mental" },
-  { key: "digital", label: "Inclusión Digital" },
+  { key: "EMPLEO", label: "Tasa de Empleo" },
+  { key: "EDUCACION", label: "Educacion" },
+  { key: "SALUD_MENTAL", label: "Salud Mental" },
 ];
+
+const labelByKey = new Map(tabs.map((t) => [t.key, t.label]));
 
 const fillColors = {
   critico: "#f87171",
@@ -185,17 +17,6 @@ const fillColors = {
   bueno: "#86efac",
   optimo: "#93c5fd",
 };
-
-const regionesCompletas = generarMapaOrganico(regiones);
-
-const regionTextCenter = regionesCompletas.map((region) => {
-  const coords = region.points.split(" ").map((p) => p.split(",").map(Number));
-  const centerPositionX =
-    coords.reduce((sum, [x]) => sum + x, 0) / coords.length;
-  const centerPositionY =
-    coords.reduce((sum, [, y]) => sum + y, 0) / coords.length;
-  return { ...region, centerPositionX, centerPositionY };
-});
 
 const getStatusFromCongestion = (value) => {
   if (value >= 0.75) return fillColors.optimo;
@@ -211,13 +32,26 @@ const tabButtonClass = (isActive) =>
       : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
   }`;
 
-export const BlockMap = () => {
-  const [activeMapTab, setActiveMapTab] = useState("empleo");
+export const BlockMap = ({ onClusterSelect, activeMapTab, onActiveMapTabChange }) => {
   const [tooltip, setTooltip] = useState({
     visible: false,
     x: 0,
     y: 0,
     region: null,
+  });
+
+  const regiones = useMapsIndicators(activeMapTab);
+  const regionesCompletas = generarMapaOrganico(regiones.data?.regiones);
+
+  const regionTextCenter = regionesCompletas.map((region) => {
+    const coords = region.points
+      .split(" ")
+      .map((p) => p.split(",").map(Number));
+    const centerPositionX =
+      coords.reduce((sum, [x]) => sum + x, 0) / coords.length;
+    const centerPositionY =
+      coords.reduce((sum, [, y]) => sum + y, 0) / coords.length;
+    return { ...region, centerPositionX, centerPositionY };
   });
 
   const viewBoxWidth = useMemo(() => {
@@ -266,19 +100,26 @@ export const BlockMap = () => {
     <div className="bg-white border border-slate-200 rounded-xl p-5 lg:col-span-2 flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h3 className="text-sm font-bold text-slate-800">
-            Mapa de Inclusión Social
-          </h3>
-          <button className="text-xs text-blue-600 hover:text-blue-700 font-semibold">
-            Ver detalle →
-          </button>
+          <div className="flex items-center gap-2">
+            <ChartColumn height={18} width={18} className="text-blue-600" />
+            <h3 className="text-sm font-bold text-slate-800">
+              Mapa de Inclusión Social
+            </h3>
+          </div>
+          <button 
+          onClick={() => onClusterSelect?.(regionTextCenter[0]?.cluster || "Norte")}
+          className="text-xs text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+        >
+          Ver detalle →
+        </button>
         </div>
         {/* Tabs */}
-        <div className="flex flex-wrap gap-1 mt-4">
+        <div className="flex flex-wrap items-center gap-2 mt-4">
+          <Layers height={18} width={18} className="mr-2" />
           {tabs.map(({ key, label }) => (
             <button
               key={key}
-              onClick={() => setActiveMapTab(key)}
+              onClick={() => onActiveMapTabChange(key)}
               className={tabButtonClass(activeMapTab === key)}
             >
               {label}
@@ -295,15 +136,15 @@ export const BlockMap = () => {
           >
             {regionTextCenter.map((region) => (
               <g
-                key={region.cluster}
-                className="cursor-pointer"
-                onClick={() => console.log(`ver detalles de ${region.cluster}`)}
-                onMouseEnter={(e) => handleMouseEnter(region, e)}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={() =>
-                  setTooltip({ visible: false, x: 0, y: 0, region: null })
-                }
-              >
+              key={region.cluster}
+              className="cursor-pointer"
+              onClick={() => onClusterSelect?.(region.cluster)}
+              onMouseEnter={(e) => handleMouseEnter(region, e)}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={() =>
+                setTooltip({ visible: false, x: 0, y: 0, region: null })
+              }
+            >
                 <polygon
                   points={region.points}
                   fill={getStatusFromCongestion(region.congestionamento_medio)}
@@ -356,16 +197,10 @@ export const BlockMap = () => {
                   {(tooltip.region.n_usuarios / 10000).toFixed(1)}M hab.
                 </span>
               </div>
-
               <div className="mt-3">
-                <p className="text-sm text-slate-400">Empleo</p>
-
-                <p className="text-sm font-bold text-blue-600">
-                  {(tooltip.region.congestionamento_medio * 100).toFixed(0)}%
+                <p className="text-sm text-slate-400 lowercase">
+                  {labelByKey.get(tooltip.region.indicadores[0].categoria)}
                 </p>
-              </div>
-              <div className="mt-3">
-                <p className="text-sm text-slate-400">Salud M.</p>
 
                 <p className="text-sm font-bold text-blue-600">
                   {tooltip.region.indicadores[0].valor.toFixed(1)}%

@@ -1,14 +1,14 @@
 FROM eclipse-temurin:21-jdk-jammy
 
-# Instalar inotify-tools para monitorear cambios de archivos automáticamente
-RUN apt-get update && apt-get install -y inotify-tools && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
+
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 COPY .mvn .mvn
 COPY mvnw pom.xml ./
 
 RUN chmod +x mvnw
+RUN ./mvnw --version || true
 
 ENV MAVEN_OPTS="-Dmaven.repo.local=/root/.m2/repository"
 
@@ -16,9 +16,7 @@ RUN ./mvnw dependency:go-offline
 
 EXPOSE 8080
 
-# Script para monitorear cambios y recompilar automáticamente
 COPY watch-and-compile.sh /usr/local/bin/watch-and-compile.sh
 RUN chmod +x /usr/local/bin/watch-and-compile.sh
 
-# Iniciar tanto el monitoreo como la aplicación
 CMD ["bash", "-c", "watch-and-compile.sh & ./mvnw spring-boot:run"]

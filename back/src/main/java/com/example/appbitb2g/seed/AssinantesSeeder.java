@@ -14,8 +14,7 @@ import com.example.appbitb2g.repository.AssinantesRepository;
 import lombok.AllArgsConstructor;
 
 @Component
-@Profile("dev")
-
+@Profile("dev-mock-csv")
 public class AssinantesSeeder {
     @Autowired private AssinantesRepository repo;
 

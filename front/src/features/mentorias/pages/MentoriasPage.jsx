@@ -5,9 +5,10 @@ import {
 } from "@/components/ui/chart";
 import {
   AlertCircle,
-  ArrowRight,
+  // ArrowRight,
   ChevronRight,
-  GraduationCap,
+  // GraduationCap,
+  Loader2,
   MapPin,
   SquareCheckBig,
   Star,
@@ -18,100 +19,177 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  PolarAngleAxis,
-  PolarGrid,
-  Radar,
-  RadarChart,
+  // PolarAngleAxis,
+  // PolarGrid,
+  // Radar,
+  // RadarChart,
   XAxis,
   YAxis,
 } from "recharts";
+import { useMentoriasBrechas } from "../hooks/useMentorias";
+
+// data del backend
+// {
+//   "brechas": [
+//     {
+//       "cluster": "SAO_JOSE_BARREIROS",
+//       "municipio": "São José",
+//       "n_usuarios": 9400,
+//       "congestionamento_medio": 0.31,
+//       "rat_type_predominante": "LTE",
+//       "indicador_social": {
+//         "categoria": "EMPLEO",
+//         "indicador": "taxa_desemprego_municipal",
+//         "valor": 8.3,
+//         "unidad": "porcentaje"
+//       },
+//       "programas_activos": 1,
+//       "severidad_brecha": "MEDIA"
+//     }
+//   ],
+//   "criterio": {
+//     "servicio": "MENTORIA",
+//     "logica": "congestionamento_medio > 0.6 AND programas_activos = 0",
+//     "umbral_congestionamento": 0.6
+//   }
+// }
 
 export default function MentoriasPage() {
+  const { data, isLoading, error } = useMentoriasBrechas();
+
+  const allPerson = data?.brechas?.reduce(
+    (acc, item) => acc + item.n_usuarios,
+    0,
+  );
+
+  const programsActive = data?.brechas?.reduce(
+    (acc, item) => acc + item.programas_activos,
+    0,
+  );
+
   const barChartConfig = {
-    mentores: {
+    mentorizados: {
       label: "Mentores",
       color: "#7f22fe ",
     },
   };
 
-  const barChartData = [
-    { region: "Noroeste", mentores: 8 },
-    { region: "Norte", mentores: 14 },
-    { region: "Noreste", mentores: 22 },
-    { region: "Occidente", mentores: 11 },
-    { region: "Centro", mentores: 48 },
-    { region: "Oriente", mentores: 24 },
-    { region: "Suroeste", mentores: 4 },
-    { region: "Sur", mentores: 7 },
-    { region: "Sureste", mentores: 11 },
-  ];
+  const barChartData = data?.brechas?.map((brecha) => ({
+    region: brecha.cluster,
+    mentorizados: brecha.indicador_social.valor,
+  }));
 
-  const chartConfig = {
-    evaluation: {
-      label: "Evaluation",
-      color: "#7f22fe",
-    },
-  };
+  // const barChartData = [
+  //   { region: "Noroeste", mentorizados: 8 },
+  //   { region: "Norte", mentorizados: 14 },
+  //   { region: "Noreste", mentorizados: 22 },
+  //   { region: "Occidente", mentorizados: 11 },
+  //   { region: "Centro", mentorizados: 48 },
+  //   { region: "Oriente", mentorizados: 24 },
+  //   { region: "Suroeste", mentorizados: 4 },
+  //   { region: "Sur", mentorizados: 7 },
+  //   { region: "Sureste", mentorizados: 11 },
+  // ];
 
-  const chartData = [
-    { indicators: "Cobertura", evaluation: 72 },
-    { indicators: "Diversidad", evaluation: 62 },
-    { indicators: "Impacto", evaluation: 76 },
-    { indicators: "Satisfacción", evaluation: 88 },
-    { indicators: "Retención", evaluation: 68 },
-    { indicators: "Efectividad", evaluation: 84 },
-  ];
+  // const chartConfig = {
+  //   evaluation: {
+  //     label: "Evaluation",
+  //     color: "#7f22fe",
+  //   },
+  // };
 
-  const programs = [
-    {
-      name: "Red de Líderes Comunitarios",
-      region: "Centro",
-      mentors: 145,
-      mentees: 890,
-      status: "Activo",
-      effectiveness: 4.6,
-    },
-    {
-      name: "Mentoría Empresarial Juvenil",
-      region: "Noreste",
-      mentors: 78,
-      mentees: 412,
-      status: "Activo",
-      effectiveness: 4.2,
-    },
-    {
-      name: "Programa Mujeres Emprendedoras",
-      region: "Oriente",
-      mentors: 62,
-      mentees: 348,
-      status: "Activo",
-      effectiveness: 4.4,
-    },
-    {
-      name: "Mentoría Tecnológica Rural",
-      region: "Sureste",
-      mentors: 18,
-      mentees: 94,
-      status: "Crítico",
-      effectiveness: 3.1,
-    },
-    {
-      name: "Red de Mentores Académicos",
-      region: "Norte",
-      mentors: 54,
-      mentees: 287,
-      status: "Alerta",
-      effectiveness: 3.8,
-    },
-    {
-      name: "Desarrollo de Capacidades Locales",
-      region: "Sur",
-      mentors: 23,
-      mentees: 118,
-      status: "Alerta",
-      effectiveness: 3.3,
-    },
-  ];
+  // const chartData = [
+  //   { indicators: "Cobertura", evaluation: 72 },
+  //   { indicators: "Diversidad", evaluation: 62 },
+  //   { indicators: "Impacto", evaluation: 76 },
+  //   { indicators: "Satisfacción", evaluation: 88 },
+  //   { indicators: "Retención", evaluation: 68 },
+  //   { indicators: "Efectividad", evaluation: 84 },
+  // ];
+
+  const programs = data?.brechas?.map((brecha) => ({
+    name: brecha.cluster,
+    region: brecha.municipio,
+    mentees: brecha.programas_activos,
+    status: brecha.severidad_brecha,
+    effectiveness: brecha.indicador_social?.valor,
+  }));
+
+  // const programs = [
+  //   {
+  //     name: "Red de Líderes Comunitarios",
+  //     region: "Centro",
+  //     mentors: 145,
+  //     mentees: 890,
+  //     status: "Activo",
+  //     effectiveness: 4.6,
+  //   },
+  //   {
+  //     name: "Mentoría Empresarial Juvenil",
+  //     region: "Noreste",
+  //     mentors: 78,
+  //     mentees: 412,
+  //     status: "Activo",
+  //     effectiveness: 4.2,
+  //   },
+  //   {
+  //     name: "Programa Mujeres Emprendedoras",
+  //     region: "Oriente",
+  //     mentors: 62,
+  //     mentees: 348,
+  //     status: "Activo",
+  //     effectiveness: 4.4,
+  //   },
+  //   {
+  //     name: "Mentoría Tecnológica Rural",
+  //     region: "Sureste",
+  //     mentors: 18,
+  //     mentees: 94,
+  //     status: "Crítico",
+  //     effectiveness: 3.1,
+  //   },
+  //   {
+  //     name: "Red de Mentores Académicos",
+  //     region: "Norte",
+  //     mentors: 54,
+  //     mentees: 287,
+  //     status: "Alerta",
+  //     effectiveness: 3.8,
+  //   },
+  //   {
+  //     name: "Desarrollo de Capacidades Locales",
+  //     region: "Sur",
+  //     mentors: 23,
+  //     mentees: 118,
+  //     status: "Alerta",
+  //     effectiveness: 3.3,
+  //   },
+  // ];
+
+  // Renderizado en estado de carga (Loader Centrado Premium)
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        <p className="text-xs text-slate-500 font-bold tracking-wider animate-pulse">
+          Cargando indicadores de mentorías...
+        </p>
+      </div>
+    );
+  }
+
+  // Renderizado en caso de error de conexión o carga
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center max-w-lg mx-auto mt-10">
+        <AlertCircle className="w-10 h-10 text-red-600 mx-auto mb-3" />
+        <h4 className="text-sm font-bold text-red-800">
+          Error al conectar con el servidor
+        </h4>
+        <p className="text-xs text-red-600 mt-1">{error?.message}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -129,7 +207,7 @@ export default function MentoriasPage() {
       </div>
       {/*  */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
+        {/* <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
           <div className="flex items-center gap-4">
             <GraduationCap className="w-8 h-8 text-gray-600" />
             <div className="flex flex-col items-baseline gap-1">
@@ -139,13 +217,13 @@ export default function MentoriasPage() {
             </div>
           </div>
           <p className="text-xs text-slate-500 font-medium">Mentores Activos</p>
-        </div>
+        </div> */}
         <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
           <div className="flex items-center gap-4">
             <User className="w-8 h-8 text-gray-600" />
             <div className="flex flex-col items-baseline gap-1">
               <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                2149
+                {allPerson}
               </span>
             </div>
           </div>
@@ -153,7 +231,7 @@ export default function MentoriasPage() {
             Acceso a servicios
           </p>
         </div>
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
+        {/* <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
           <div className="flex items-center gap-4">
             <Star className="w-8 h-8 text-yellow-400" />
             <div className="flex flex-col items-baseline gap-1">
@@ -165,13 +243,13 @@ export default function MentoriasPage() {
           <p className="text-xs text-slate-500 font-medium">
             Efectividad Media
           </p>
-        </div>
+        </div> */}
         <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
           <div className="flex items-center gap-4">
             <SquareCheckBig className="w-8 h-8 text-green-600" />
             <div className="flex flex-col items-baseline gap-1">
               <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                3/6
+                {programsActive}
               </span>
             </div>
           </div>
@@ -185,7 +263,7 @@ export default function MentoriasPage() {
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
           <div className="border-b border-slate-100 pb-3">
             <h3 className="text-sm font-bold text-slate-800">
-              Mentores por Región
+              Mentorizados por Región
             </h3>
           </div>
           <div className="flex-1 mt-4">
@@ -210,11 +288,11 @@ export default function MentoriasPage() {
                   axisLine={false}
                   tickMargin={8}
                   tick={{ fontSize: 9, fill: "#64748b" }}
-                  domain={[0, 60]}
+                  domain={[0, 10]}
                 />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Bar
-                  dataKey="mentores"
+                  dataKey="mentorizados"
                   fill="var(--color-mentores)"
                   radius={[2, 2, 0, 0]}
                   barSize={25}
@@ -223,7 +301,7 @@ export default function MentoriasPage() {
             </ChartContainer>
           </div>
         </div>
-        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
+        {/* <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
           <div className="border-b border-slate-100 pb-3">
             <h3 className="text-sm font-bold text-slate-800">
               Evaluación de Desempeño Nacional
@@ -248,7 +326,7 @@ export default function MentoriasPage() {
               </RadarChart>
             </ChartContainer>
           </div>
-        </div>
+        </div> */}
       </div>
       {/*  */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
@@ -283,8 +361,7 @@ export default function MentoriasPage() {
 
                           <span className="flex items-center gap-1">
                             <Users className="w-3 h-3" />
-                            {program.mentors} mentores · {program.mentees}{" "}
-                            mentorizados
+                            {program.mentees} mentorizados
                           </span>
                         </div>
                       </div>
@@ -294,9 +371,9 @@ export default function MentoriasPage() {
                     <section className="flex items-center gap-3">
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          program.status === "Activo"
+                          program.status === "ALTA"
                             ? "bg-green-100 text-green-700"
-                            : program.status === "Alerta"
+                            : program.status === "MEDIA"
                               ? "bg-amber-100 text-amber-700"
                               : "bg-red-100 text-red-700"
                         }`}
@@ -325,7 +402,7 @@ export default function MentoriasPage() {
         </div>
       </div>
       {/*  */}
-      <div className="bg-white border border-red-100 rounded-2xl p-5">
+      {/* <div className="bg-white border border-red-100 rounded-2xl p-5">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
             <AlertCircle className="w-5 h-5 text-red-500" />
@@ -345,7 +422,7 @@ export default function MentoriasPage() {
             </button>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

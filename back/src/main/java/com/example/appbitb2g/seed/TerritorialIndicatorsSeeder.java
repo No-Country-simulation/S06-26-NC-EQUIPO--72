@@ -90,7 +90,49 @@ public class TerritorialIndicatorsSeeder {
             build("Sao Jose","SAO_JOSE_KOBRASOL","EDUCACION","evasao_escolar",13.8765,"%","MOCK-EDU-019",ref),
             build("Sao Jose","SAO_JOSE_KOBRASOL","EDUCACION","taxa_conclusao_ensino_medio",76.1234,"%","MOCK-EDU-020",ref),
             build("Sao Jose","SAO_JOSE_KOBRASOL","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.3456,"por 1000 hab","MOCK-SM-019",ref),
-            build("Sao Jose","SAO_JOSE_KOBRASOL","SALUD_MENTAL","cobertura_atencao_basica",41.2345,"%","MOCK-SM-020",ref)
+            build("Sao Jose","SAO_JOSE_KOBRASOL","SALUD_MENTAL","cobertura_atencao_basica",41.2345,"%","MOCK-SM-020",ref),
+
+            build("Sao Jose","SAO_JOSE_CENTRO","EMPLEO","taxa_emprego_formal",64.1234,"%","MOCK-EMP-021",ref),
+            build("Sao Jose","SAO_JOSE_CENTRO","EMPLEO","taxa_desemprego",8.7654,"%","MOCK-EMP-022",ref),
+            build("Sao Jose","SAO_JOSE_CENTRO","EDUCACION","evasao_escolar",12.3456,"%","MOCK-EDU-021",ref),
+            build("Sao Jose","SAO_JOSE_CENTRO","EDUCACION","taxa_conclusao_ensino_medio",77.6543,"%","MOCK-EDU-022",ref),
+            build("Sao Jose","SAO_JOSE_CENTRO","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.2345,"por 1000 hab","MOCK-SM-021",ref),
+            build("Sao Jose","SAO_JOSE_CENTRO","SALUD_MENTAL","cobertura_atencao_basica",43.4567,"%","MOCK-SM-022",ref),
+
+            build("Sao Jose","SAO_JOSE_ROÇADO","EMPLEO","taxa_emprego_formal",61.2345,"%","MOCK-EMP-023",ref),
+            build("Sao Jose","SAO_JOSE_ROÇADO","EMPLEO","taxa_desemprego",9.8765,"%","MOCK-EMP-024",ref),
+            build("Sao Jose","SAO_JOSE_ROÇADO","EDUCACION","evasao_escolar",14.1234,"%","MOCK-EDU-023",ref),
+            build("Sao Jose","SAO_JOSE_ROÇADO","EDUCACION","taxa_conclusao_ensino_medio",74.9876,"%","MOCK-EDU-024",ref),
+            build("Sao Jose","SAO_JOSE_ROÇADO","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.4567,"por 1000 hab","MOCK-SM-023",ref),
+            build("Sao Jose","SAO_JOSE_ROÇADO","SALUD_MENTAL","cobertura_atencao_basica",40.1234,"%","MOCK-SM-024",ref),
+
+            build("Palhoca","PALHOCA_CENTRO","EMPLEO","taxa_emprego_formal",58.1234,"%","MOCK-EMP-025",ref),
+            build("Palhoca","PALHOCA_CENTRO","EMPLEO","taxa_desemprego",11.2345,"%","MOCK-EMP-026",ref),
+            build("Palhoca","PALHOCA_CENTRO","EDUCACION","evasao_escolar",16.3456,"%","MOCK-EDU-025",ref),
+            build("Palhoca","PALHOCA_CENTRO","EDUCACION","taxa_conclusao_ensino_medio",71.4567,"%","MOCK-EDU-026",ref),
+            build("Palhoca","PALHOCA_CENTRO","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.7654,"por 1000 hab","MOCK-SM-025",ref),
+            build("Palhoca","PALHOCA_CENTRO","SALUD_MENTAL","cobertura_atencao_basica",38.5678,"%","MOCK-SM-026",ref),
+
+            build("Palhoca","PALHOCA_PEDRA_BRANCA","EMPLEO","taxa_emprego_formal",57.6543,"%","MOCK-EMP-027",ref),
+            build("Palhoca","PALHOCA_PEDRA_BRANCA","EMPLEO","taxa_desemprego",11.7654,"%","MOCK-EMP-028",ref),
+            build("Palhoca","PALHOCA_PEDRA_BRANCA","EDUCACION","evasao_escolar",16.7890,"%","MOCK-EDU-027",ref),
+            build("Palhoca","PALHOCA_PEDRA_BRANCA","EDUCACION","taxa_conclusao_ensino_medio",70.9876,"%","MOCK-EDU-028",ref),
+            build("Palhoca","PALHOCA_PEDRA_BRANCA","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.8901,"por 1000 hab","MOCK-SM-027",ref),
+            build("Palhoca","PALHOCA_PEDRA_BRANCA","SALUD_MENTAL","cobertura_atencao_basica",37.8901,"%","MOCK-SM-028",ref),
+
+            build("Palhoca","SAO_JOSE_BARREIROS","EMPLEO","taxa_emprego_formal",59.2345,"%","MOCK-EMP-029",ref),
+            build("Palhoca","SAO_JOSE_BARREIROS","EMPLEO","taxa_desemprego",10.5678,"%","MOCK-EMP-030",ref),
+            build("Palhoca","SAO_JOSE_BARREIROS","EDUCACION","evasao_escolar",15.4321,"%","MOCK-EDU-029",ref),
+            build("Palhoca","SAO_JOSE_BARREIROS","EDUCACION","taxa_conclusao_ensino_medio",72.3456,"%","MOCK-EDU-030",ref),
+            build("Palhoca","SAO_JOSE_BARREIROS","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.5678,"por 1000 hab","MOCK-SM-029",ref),
+            build("Palhoca","SAO_JOSE_BARREIROS","SALUD_MENTAL","cobertura_atencao_basica",39.6789,"%","MOCK-SM-030",ref),
+
+            build("Biguacu","BIGUACU_BR101_NORTE","EMPLEO","taxa_emprego_formal",56.9876,"%","MOCK-EMP-031",ref),
+            build("Biguacu","BIGUACU_BR101_NORTE","EMPLEO","taxa_desemprego",12.1234,"%","MOCK-EMP-032",ref),
+            build("Biguacu","BIGUACU_BR101_NORTE","EDUCACION","evasao_escolar",17.2345,"%","MOCK-EDU-031",ref),
+            build("Biguacu","BIGUACU_BR101_NORTE","EDUCACION","taxa_conclusao_ensino_medio",70.1234,"%","MOCK-EDU-032",ref),
+            build("Biguacu","BIGUACU_BR101_NORTE","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.9876,"por 1000 hab","MOCK-SM-031",ref),
+            build("Biguacu","BIGUACU_BR101_NORTE","SALUD_MENTAL","cobertura_atencao_basica",36.9876,"%","MOCK-SM-032",ref)
         ));
     }
 
