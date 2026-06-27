@@ -1,12 +1,13 @@
 
 from fastapi import HTTPException
 from app.models.schemas import ConsultaRequest, ConsultaResponse
+from app.agent.graph import agent
 
 
 class AIService:
     async def process_query(self, request: ConsultaRequest) -> ConsultaResponse:
         """
-        Procesa una consulta del usuario con datos mockeados
+        Procesa una consulta del usuario
         """
         # Verifica si la consulta está vacía o solo tiene espacios
         if not request.consulta or request.consulta.strip() == "":
@@ -18,9 +19,31 @@ class AIService:
                 }
             )
 
-        # Verifica si la consulta es irrelevante
-        consulta_lower = request.consulta.lower()
-        if "boca" in consulta_lower or "clima" in consulta_lower or "comida" in consulta_lower:
+        try:
+            # Ejecuta el agente
+            state = await agent.ainvoke({
+                "consulta": request.consulta,
+                "idioma": request.idioma,
+                "filtros": {}
+            })
+
+            # Obtiene los datos del estado del agente
+            datos = []
+            if state.get("tool_results", {}).get("datos"):
+                datos = state["tool_results"]["datos"]
+            elif state.get("tool_results", {}).get("brechas"):
+                datos = state["tool_results"]["brechas"]
+
+            # Construye la respuesta
+            return ConsultaResponse(
+                respuesta_ia=state.get("respuesta_ia", ""),
+                datos=datos,
+                fuentes=state.get("fuentes", []),
+                visualizacion_sugerida=state.get("visualizacion_sugerida", "tabla_datos"),
+                idioma=request.idioma
+            )
+        except Exception as e:
+            # Si hay un error, devuelve CONSULTA_IRRELEVANTE
             raise HTTPException(
                 status_code=422,
                 detail={
@@ -28,30 +51,3 @@ class AIService:
                     "mensaje": "La consulta no puede resolverse con los datos disponibles."
                 }
             )
-
-        # Datos mockeados basados en el contrato (ejemplo 1: formaciones)
-        respuesta_ia = "En la región FPOLIS_NORTE hay 8.200 personas en horario laboral con cobertura WCDMA precaria y ningún programa de formación activo. Es la zona de mayor brecha para jóvenes de income D."
-        datos = [
-            {
-                "cluster": "FPOLIS_NORTE",
-                "municipio": "Florianópolis",
-                "n_usuarios": 8200,
-                "congestionamento_medio": 0.81,
-                "programas_activos": 0,
-                "severidad_brecha": "ALTA"
-            }
-        ]
-        fuentes = [
-            {"nombre": "Vísent CDRView v2", "codigo_origem": "tensor_concentracao", "fecha_referencia": "2026-03-10"},
-            {"nombre": "DATASUS", "codigo_origem": "SIH-SUS", "fecha_referencia": "2025-12-01"}
-        ]
-        visualizacion_sugerida = "mapa_brechas"
-        
-        return ConsultaResponse(
-            respuesta_ia=respuesta_ia,
-            datos=datos,
-            fuentes=fuentes,
-            visualizacion_sugerida=visualizacion_sugerida,
-            idioma=request.idioma
-        )
-

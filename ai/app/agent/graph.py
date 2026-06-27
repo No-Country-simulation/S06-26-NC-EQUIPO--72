@@ -1,3 +1,4 @@
+
 import json
 from typing import TypedDict
 from langgraph.graph import StateGraph, END
@@ -18,18 +19,27 @@ class AgentState(TypedDict):
     visualizacion_sugerida: str
     fuentes: list
 
-# Modelo
-def get_model():
+# Modelo Light (Planner y Formatter)
+def get_light_model():
     return ChatOpenAI(
-        api_key=settings.openrouter_api_key,
-        base_url=settings.openrouter_base_url,
-        model=settings.openrouter_model,
+        api_key=settings.groq_api_key_light.get_secret_value(),
+        base_url=settings.groq_base_url,
+        model=settings.groq_model_light,
         temperature=0
     )
 
-# Nodo 1 — Planner
+# Modelo Primary (Tool Calling y SQL)
+def get_primary_model():
+    return ChatOpenAI(
+        api_key=settings.groq_api_key_primary.get_secret_value(),
+        base_url=settings.groq_base_url,
+        model=settings.groq_model_primary,
+        temperature=0
+    )
+
+# Nodo 1 - Planner (usa modelo light)
 async def planner(state: AgentState) -> AgentState:
-    model = get_model()
+    model = get_light_model()
     response = await model.ainvoke([
         SystemMessage(content=PLANNER_PROMPT),
         HumanMessage(content=state["consulta"])
@@ -48,7 +58,7 @@ async def planner(state: AgentState) -> AgentState:
     return { **state, "plan": plan }
 
 
-# Nodo 2 — Tool Caller
+# Nodo 2 - Tool Caller
 async def tool_caller(state: AgentState) -> AgentState:
     herramientas = state["plan"].get("herramientas", [])
     servicio = state["plan"].get("servicio")
@@ -76,9 +86,9 @@ async def tool_caller(state: AgentState) -> AgentState:
     return { **state, "tool_results": results, "fuentes": fuentes }
 
 
-# Nodo 3 — Formatter
+# Nodo 3 - Formatter (usa modelo light)
 async def formatter(state: AgentState) -> AgentState:
-    model = get_model()
+    model = get_light_model()
 
     context = f"""
 Consulta original: {state["consulta"]}
