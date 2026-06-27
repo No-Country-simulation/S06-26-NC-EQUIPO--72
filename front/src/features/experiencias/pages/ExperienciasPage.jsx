@@ -378,7 +378,7 @@ function ExperienciasPage() {
       </div>
 
       {loadingExperiencias || loadingBrechas ? (
-        <ExperienciasSkeletons />
+        <IndicatorsSkeleton />
       ) : errorExperiencias || errorBrechas ? (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center flex items-center justify-center gap-2 text-xs text-red-600 font-semibold shadow-xs">
           <AlertCircle className="w-4 h-4 text-red-500" />
