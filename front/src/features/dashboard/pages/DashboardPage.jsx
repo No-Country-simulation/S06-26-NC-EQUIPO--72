@@ -14,7 +14,6 @@ import {
   Heart,
   Briefcase as JobIcon,
   Bot,
-  Loader2,
   AlertCircle,
 } from "lucide-react";
 import {
@@ -39,7 +38,12 @@ import {
 import { BlockMap } from "../components/BlockMap";
 import { useMapsIndicators } from "../hooks/useMaps";
 
-function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMapTabChange }) {
+function DashboardPage({
+  onTabChange,
+  onClusterSelect,
+  activeMapTab,
+  onActiveMapTabChange,
+}) {
   const {
     data: rawEmpleo,
     isLoading: loadingEmpleo,
@@ -65,10 +69,17 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
       const cleanName = r.cluster
         ? r.cluster.charAt(0).toUpperCase() + r.cluster.slice(1).toLowerCase()
         : "Sin nombre";
-      const valDesempleo = r.indicadores?.[0]?.valor ? parseFloat(r.indicadores[0].valor) : 0;
+      const valDesempleo = r.indicadores?.[0]?.valor
+        ? parseFloat(r.indicadores[0].valor)
+        : 0;
       const empleo = Math.max(0, Math.min(100, Math.round(100 - valDesempleo)));
-      const valCongestion = r.congestionamento_medio ? parseFloat(r.congestionamento_medio) : 0;
-      const conectividad = Math.max(0, Math.min(100, Math.round(100 - valCongestion * 100)));
+      const valCongestion = r.congestionamento_medio
+        ? parseFloat(r.congestionamento_medio)
+        : 0;
+      const conectividad = Math.max(
+        0,
+        Math.min(100, Math.round(100 - valCongestion * 100)),
+      );
       return {
         region: cleanName,
         empleo,
@@ -99,15 +110,19 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
 
     if (regionesEmpleo.length) {
       const sumDesempleo = regionesEmpleo.reduce(
-        (sum, r) => sum + (r.indicadores?.[0]?.valor ? parseFloat(r.indicadores[0].valor) : 0),
-        0
+        (sum, r) =>
+          sum +
+          (r.indicadores?.[0]?.valor ? parseFloat(r.indicadores[0].valor) : 0),
+        0,
       );
       const avgDesempleo = sumDesempleo / regionesEmpleo.length;
       avgEmpleo = Math.round(100 - avgDesempleo);
 
       const sumCongestion = regionesEmpleo.reduce(
-        (sum, r) => sum + (r.congestionamento_medio ? parseFloat(r.congestionamento_medio) : 0),
-        0
+        (sum, r) =>
+          sum +
+          (r.congestionamento_medio ? parseFloat(r.congestionamento_medio) : 0),
+        0,
       );
       const avgCongestion = sumCongestion / regionesEmpleo.length;
       avgConectividad = Math.round(100 - avgCongestion * 100);
@@ -115,8 +130,10 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
 
     if (regionesEducacion.length) {
       const sumIdhm = regionesEducacion.reduce(
-        (sum, r) => sum + (r.indicadores?.[0]?.valor ? parseFloat(r.indicadores[0].valor) : 0),
-        0
+        (sum, r) =>
+          sum +
+          (r.indicadores?.[0]?.valor ? parseFloat(r.indicadores[0].valor) : 0),
+        0,
       );
       const avgIdhm = sumIdhm / regionesEducacion.length;
       const pctIdhm = avgIdhm < 2 ? avgIdhm * 100 : avgIdhm;
@@ -178,7 +195,9 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
     let countCritico = 0;
 
     regionesEmpleo.forEach((r) => {
-      const congestion = r.congestionamento_medio ? parseFloat(r.congestionamento_medio) * 100 : 0;
+      const congestion = r.congestionamento_medio
+        ? parseFloat(r.congestionamento_medio) * 100
+        : 0;
       if (congestion < 35) {
         countOptimo++;
       } else if (congestion <= 65) {
@@ -221,7 +240,9 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
     if (regionesSalud.length === 0) return [];
 
     const list = regionesSalud.map((r) => {
-      const rate = r.indicadores?.[0]?.valor ? parseFloat(r.indicadores[0].valor) : 0;
+      const rate = r.indicadores?.[0]?.valor
+        ? parseFloat(r.indicadores[0].valor)
+        : 0;
       return {
         original: r,
         cluster: r.cluster,
@@ -238,7 +259,7 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
     return top4.map((item) => {
       const score = Math.min(5, Math.max(0, (item.rate / globalMax) * 4.8));
       const percentValue = Math.round((score / 5) * 100);
-      
+
       let color = "bg-green-500";
       if (score >= 4.0) {
         color = "bg-red-500";
@@ -247,7 +268,8 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
       }
 
       const cleanName = item.cluster
-        ? item.cluster.charAt(0).toUpperCase() + item.cluster.slice(1).toLowerCase()
+        ? item.cluster.charAt(0).toUpperCase() +
+          item.cluster.slice(1).toLowerCase()
         : "Sin nombre";
 
       return {
@@ -269,39 +291,57 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
     const regionesEducacion = rawEducacion.regiones || [];
     const regionesSalud = rawSaludMental.regiones || [];
 
-    //  Tasa de Empleo 
+    //  Tasa de Empleo
     const avgDesempleo = regionesEmpleo.length
       ? regionesEmpleo.reduce(
-          (sum, r) => sum + (r.indicadores?.[0]?.valor ? parseFloat(r.indicadores[0].valor) : 0),
-          0
+          (sum, r) =>
+            sum +
+            (r.indicadores?.[0]?.valor
+              ? parseFloat(r.indicadores[0].valor)
+              : 0),
+          0,
         ) / regionesEmpleo.length
       : 8.3;
     const tasaEmpleoVal = (100 - avgDesempleo).toFixed(1) + "%";
 
-    // Congestión de Red Promedio 
+    // Congestión de Red Promedio
     const avgCongestion = regionesEmpleo.length
       ? (regionesEmpleo.reduce(
-          (sum, r) => sum + (r.congestionamento_medio ? parseFloat(r.congestionamento_medio) : 0),
-          0
-        ) / regionesEmpleo.length) * 100
+          (sum, r) =>
+            sum +
+            (r.congestionamento_medio
+              ? parseFloat(r.congestionamento_medio)
+              : 0),
+          0,
+        ) /
+          regionesEmpleo.length) *
+        100
       : 54.2;
     const congestionVal = avgCongestion.toFixed(1) + "%";
 
-    // Índice de Educación IDHM 
+    // Índice de Educación IDHM
     const avgIdhmVal = regionesEducacion.length
       ? regionesEducacion.reduce(
-          (sum, r) => sum + (r.indicadores?.[0]?.valor ? parseFloat(r.indicadores[0].valor) : 0),
-          0
+          (sum, r) =>
+            sum +
+            (r.indicadores?.[0]?.valor
+              ? parseFloat(r.indicadores[0].valor)
+              : 0),
+          0,
         ) / regionesEducacion.length
       : 0.847;
     const pctIdhm = avgIdhmVal < 2 ? avgIdhmVal * 100 : avgIdhmVal;
     const educacionVal = pctIdhm.toFixed(1) + "%";
 
-    //  Internación Psiquiátrica 
+    //  Internación Psiquiátrica
     const avgSalud = regionesSalud.length
       ? regionesSalud.reduce(
-          (sum, r) => sum + (r.indicadores?.[0]?.valor ? parseFloat(r.indicadores[0].valor) : 0),
-          0
+          (sum, r) =>
+            sum +
+            (r.indicadores?.[0]?.valor
+              ? parseFloat(r.indicadores[0].valor)
+              : 0),
+          0,
         ) / regionesSalud.length
       : 14.3;
     const saludVal = avgSalud.toFixed(1) + "%";
@@ -309,7 +349,7 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
     // Usuarios de Red Totales
     const totalUsuarios = regionesEmpleo.reduce(
       (sum, r) => sum + (r.n_usuarios ? parseInt(r.n_usuarios) : 0),
-      0
+      0,
     );
     const usuariosVal =
       totalUsuarios >= 1000
@@ -416,7 +456,9 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
       ) : error ? (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center flex items-center justify-center gap-2 text-xs text-red-600 font-semibold shadow-xs">
           <AlertCircle className="w-4 h-4 text-red-500" />
-          <span>Error al sincronizar indicadores del panel con el servidor</span>
+          <span>
+            Error al sincronizar indicadores del panel con el servidor
+          </span>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -470,11 +512,10 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
         </div>
       )}
 
-
       {/* Map and AI Assistant Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Card: Mapa de Inclusión Social */}
-        <BlockMap 
+        <BlockMap
           onClusterSelect={onClusterSelect}
           activeMapTab={activeMapTab}
           onActiveMapTabChange={onActiveMapTabChange}

@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
 import { generarMapaOrganico } from "../utils/organicMap";
 import { useMapsIndicators } from "../hooks/useMaps";
-import { ChartColumn, Layers } from "lucide-react";
+import { AlertCircle, ChartColumn, Layers } from "lucide-react";
+import { BlockMapSkeleton } from "../skeletons/BlockMapSkeleton";
 
 const tabs = [
   { key: "EMPLEO", label: "Tasa de Empleo" },
@@ -32,7 +33,11 @@ const tabButtonClass = (isActive) =>
       : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
   }`;
 
-export const BlockMap = ({ onClusterSelect, activeMapTab, onActiveMapTabChange }) => {
+export const BlockMap = ({
+  onClusterSelect,
+  activeMapTab,
+  onActiveMapTabChange,
+}) => {
   const [tooltip, setTooltip] = useState({
     visible: false,
     x: 0,
@@ -96,6 +101,21 @@ export const BlockMap = ({ onClusterSelect, activeMapTab, onActiveMapTabChange }
     }));
   };
 
+  if (regiones.isLoading) {
+    return <BlockMapSkeleton />;
+  }
+
+  if (regiones.error) {
+    return (
+      <div className="bg-white border border-slate-200 rounded-xl p-5 lg:col-span-2 flex flex-col justify-between">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center flex items-center justify-center gap-2 text-xs text-red-600 font-semibold shadow-xs">
+          <AlertCircle className="w-4 h-4 text-red-500" />
+          <span>Error al sincronizar indicadores del mapa con el servidor</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5 lg:col-span-2 flex flex-col justify-between">
       <div>
@@ -106,12 +126,14 @@ export const BlockMap = ({ onClusterSelect, activeMapTab, onActiveMapTabChange }
               Mapa de Inclusión Social
             </h3>
           </div>
-          <button 
-          onClick={() => onClusterSelect?.(regionTextCenter[0]?.cluster || "Norte")}
-          className="text-xs text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
-        >
-          Ver detalle →
-        </button>
+          <button
+            onClick={() =>
+              onClusterSelect?.(regionTextCenter[0]?.cluster || "Norte")
+            }
+            className="text-xs text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
+          >
+            Ver detalle →
+          </button>
         </div>
         {/* Tabs */}
         <div className="flex flex-wrap items-center gap-2 mt-4">
@@ -136,15 +158,15 @@ export const BlockMap = ({ onClusterSelect, activeMapTab, onActiveMapTabChange }
           >
             {regionTextCenter.map((region) => (
               <g
-              key={region.cluster}
-              className="cursor-pointer"
-              onClick={() => onClusterSelect?.(region.cluster)}
-              onMouseEnter={(e) => handleMouseEnter(region, e)}
-              onMouseMove={handleMouseMove}
-              onMouseLeave={() =>
-                setTooltip({ visible: false, x: 0, y: 0, region: null })
-              }
-            >
+                key={region.cluster}
+                className="cursor-pointer"
+                onClick={() => onClusterSelect?.(region.cluster)}
+                onMouseEnter={(e) => handleMouseEnter(region, e)}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={() =>
+                  setTooltip({ visible: false, x: 0, y: 0, region: null })
+                }
+              >
                 <polygon
                   points={region.points}
                   fill={getStatusFromCongestion(region.congestionamento_medio)}

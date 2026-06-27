@@ -12,7 +12,6 @@ import {
   CheckCircle,
   AlertCircle,
   XCircle,
-  Loader2,
 } from "lucide-react";
 import {
   BarChart,
@@ -40,6 +39,10 @@ import {
 
 // Importamos el formulario de creación de nuevo programa
 import NuevoProgramaForm from "../components/NuevoProgramaForm";
+import {
+  BarChartSkeleton,
+  ProgramListSkeleton,
+} from "../skeletons/FormacionesPageSkeleton";
 
 // Lista de clústeres oficiales para el municipio de Florianópolis
 const FLORI_CLUSTERS = [
@@ -403,33 +406,6 @@ function FormacionesPage() {
     }
   };
 
-  // Renderizado en estado de carga (Loader Centrado Premium)
-  if (loadingPrograms || loadingBrechas) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-        <p className="text-xs text-slate-500 font-bold tracking-wider animate-pulse">
-          Cargando indicadores de formación...
-        </p>
-      </div>
-    );
-  }
-
-  // Renderizado en caso de error de conexión o carga
-  if (errorPrograms || errorBrechas) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center max-w-lg mx-auto mt-10">
-        <AlertCircle className="w-10 h-10 text-red-600 mx-auto mb-3" />
-        <h4 className="text-sm font-bold text-red-800">
-          Error al conectar con el servidor
-        </h4>
-        <p className="text-xs text-red-600 mt-1">
-          {errorPrograms?.message || errorBrechas?.message}
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Cabecera de la página */}
@@ -455,205 +431,239 @@ function FormacionesPage() {
       </div>
 
       {/* Fila de Tarjetas de Indicadores Superiores (KPIs) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Tarjeta 1: Programas Activos */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div className="flex items-center justify-between">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center border border-emerald-100 text-emerald-600">
-              <BookOpen className="w-4 h-4" />
+      {loadingPrograms || loadingBrechas ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="bg-white border border-slate-200 rounded-xl p-4 h-[135px] flex flex-col justify-between animate-pulse"
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-8 h-8 rounded-lg bg-slate-100" />
+                <div className="w-12 h-4 rounded-full bg-slate-105" />
+              </div>
+              <div className="space-y-2 mt-4">
+                <div className="h-6 w-16 bg-slate-100 rounded" />
+                <div className="h-3 w-24 bg-slate-100 rounded" />
+              </div>
             </div>
-          </div>
-          <div className="mt-3">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                {kpis.activosCount}
-              </span>
-              <span className="text-[10px] text-slate-400 font-bold uppercase">
-                {kpis.activosText}
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 mt-1 font-semibold">
-              Programas Activos
-            </p>
-          </div>
+          ))}
         </div>
+      ) : errorPrograms || errorBrechas ? (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center flex items-center justify-center gap-2 text-xs text-red-600 font-semibold shadow-xs">
+          <AlertCircle className="w-4 h-4 text-red-500" />
+          <span>
+            Error al sincronizar indicadores del panel de formaciones con el
+            servidor
+          </span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Tarjeta 1: Programas Activos */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center border border-emerald-100 text-emerald-600">
+                <BookOpen className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-bold text-slate-800 tracking-tight">
+                  {kpis.activosCount}
+                </span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase">
+                  {kpis.activosText}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 font-semibold">
+                Programas Activos
+              </p>
+            </div>
+          </div>
 
-        {/* Tarjeta 2: Beneficiarios Totales */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div className="flex items-center justify-between">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center border border-blue-100 text-blue-600">
-              <Users className="w-4 h-4" />
+          {/* Tarjeta 2: Beneficiarios Totales */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center border border-blue-100 text-blue-600">
+                <Users className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-bold text-slate-800 tracking-tight">
+                  {kpis.beneficiarios}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 font-semibold">
+                Beneficiarios Totales
+              </p>
             </div>
           </div>
-          <div className="mt-3">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                {kpis.beneficiarios}
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 mt-1 font-semibold">
-              Beneficiarios Totales
-            </p>
-          </div>
-        </div>
 
-        {/* Tarjeta 3: Cobertura Media */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div className="flex items-center justify-between">
-            <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center border border-teal-100 text-teal-600">
-              <Activity className="w-4 h-4" />
+          {/* Tarjeta 3: Cobertura Media */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center border border-teal-100 text-teal-600">
+                <Activity className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-bold text-slate-800 tracking-tight">
+                  {kpis.cobertura}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 font-semibold">
+                Cobertura Media
+              </p>
             </div>
           </div>
-          <div className="mt-3">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                {kpis.cobertura}
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 mt-1 font-semibold">
-              Cobertura Media
-            </p>
-          </div>
-        </div>
 
-        {/* Tarjeta 4: Regiones con Brecha */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div className="flex items-center justify-between">
-            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center border border-amber-100 text-amber-600">
-              <AlertTriangle className="w-4 h-4" />
+          {/* Tarjeta 4: Regiones con Brecha */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
+            <div className="flex items-center justify-between">
+              <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center border border-amber-100 text-amber-600">
+                <AlertTriangle className="w-4 h-4" />
+              </div>
             </div>
-          </div>
-          <div className="mt-3">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                {kpis.regionesBrechaCount}
-              </span>
-              <span className="text-[10px] text-slate-400 font-bold uppercase">
-                {kpis.regionesBrechaText}
-              </span>
+            <div className="mt-3">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-bold text-slate-800 tracking-tight">
+                  {kpis.regionesBrechaCount}
+                </span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase">
+                  {kpis.regionesBrechaText}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 font-semibold">
+                Regiones con Brecha
+              </p>
             </div>
-            <p className="text-xs text-slate-500 mt-1 font-semibold">
-              Regiones con Brecha
-            </p>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Grid de Visualizaciones y Gráficos */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Gráfico de Barras: Cobertura y Programas por Clúster */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 lg:col-span-2 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-sm font-bold text-slate-800">
-              Programas y Cobertura por Región (Clúster)
-            </h3>
-          </div>
-          <div className="flex-1 mt-4">
-            <ChartContainer
-              config={barChartConfig}
-              className="h-[240px] w-full"
-            >
-              <BarChart
-                data={barChartData}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              >
-                <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="region"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  interval={0}
-                  tick={{
-                    fontSize: 7,
-                    fill: "#64748b",
-                    angle: -35,
-                    textAnchor: "end",
-                  }}
-                  height={50}
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={{ fontSize: 9, fill: "#64748b" }}
-                  domain={[0, 100]}
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar
-                  dataKey="programas"
-                  fill="var(--color-programas)"
-                  radius={[2, 2, 0, 0]}
-                  barSize={8}
-                />
-                <Bar
-                  dataKey="cobertura"
-                  fill="var(--color-cobertura)"
-                  radius={[2, 2, 0, 0]}
-                  barSize={8}
-                />
-                <ChartLegend content={<ChartLegendContent />} />
-              </BarChart>
-            </ChartContainer>
-          </div>
-        </div>
-
-        {/* Gráfico de Donut: Distribución de Categorías */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div>
+      {loadingPrograms || loadingBrechas ? (
+        <BarChartSkeleton />
+      ) : errorPrograms || errorBrechas ? (
+        <></>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Gráfico de Barras: Cobertura y Programas por Clúster */}
+          <div className="bg-white border border-slate-200 rounded-xl p-5 lg:col-span-2 flex flex-col justify-between hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-sm font-bold text-slate-800">
-                Por Categoría
+                Programas y Cobertura por Región (Clúster)
               </h3>
             </div>
-
-            <div className="flex flex-col items-center gap-6 mt-6">
+            <div className="flex-1 mt-4">
               <ChartContainer
-                config={pieChartConfig}
-                className="h-[125px] w-[125px] shrink-0"
+                config={barChartConfig}
+                className="h-[240px] w-full"
               >
-                <PieChart>
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent hideLabel />}
+                <BarChart
+                  data={barChartData}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="region"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    interval={0}
+                    tick={{
+                      fontSize: 7,
+                      fill: "#64748b",
+                      angle: -35,
+                      textAnchor: "end",
+                    }}
+                    height={50}
                   />
-                  <Pie
-                    data={pieChartData}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={32}
-                    outerRadius={48}
-                    strokeWidth={2}
-                    stroke="#ffffff"
-                  >
-                    {pieChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tick={{ fontSize: 9, fill: "#64748b" }}
+                    domain={[0, 100]}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar
+                    dataKey="programas"
+                    fill="var(--color-programas)"
+                    radius={[2, 2, 0, 0]}
+                    barSize={8}
+                  />
+                  <Bar
+                    dataKey="cobertura"
+                    fill="var(--color-cobertura)"
+                    radius={[2, 2, 0, 0]}
+                    barSize={8}
+                  />
+                  <ChartLegend content={<ChartLegendContent />} />
+                </BarChart>
               </ChartContainer>
+            </div>
+          </div>
 
-              <div className="w-full space-y-2 text-xs">
-                {pieChartData.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between font-semibold"
-                  >
-                    <div className="flex items-center gap-2 text-slate-600 truncate">
-                      <span
-                        className="w-2.5 h-2.5 rounded-[2px] shrink-0"
-                        style={{ backgroundColor: item.color }}
-                      ></span>
-                      <span className="truncate">{item.name}</span>
+          {/* Gráfico de Donut: Distribución de Categorías */}
+          <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between hover:shadow-sm transition-shadow">
+            <div>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-sm font-bold text-slate-800">
+                  Por Categoría
+                </h3>
+              </div>
+
+              <div className="flex flex-col items-center gap-6 mt-6">
+                <ChartContainer
+                  config={pieChartConfig}
+                  className="h-[125px] w-[125px] shrink-0"
+                >
+                  <PieChart>
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent hideLabel />}
+                    />
+                    <Pie
+                      data={pieChartData}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={32}
+                      outerRadius={48}
+                      strokeWidth={2}
+                      stroke="#ffffff"
+                    >
+                      {pieChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ChartContainer>
+
+                <div className="w-full space-y-2 text-xs">
+                  {pieChartData.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between font-semibold"
+                    >
+                      <div className="flex items-center gap-2 text-slate-600 truncate">
+                        <span
+                          className="w-2.5 h-2.5 rounded-[2px] shrink-0"
+                          style={{ backgroundColor: item.color }}
+                        ></span>
+                        <span className="truncate">{item.name}</span>
+                      </div>
+                      <span className="text-slate-800 ml-2">{item.value}%</span>
                     </div>
-                    <span className="text-slate-800 ml-2">{item.value}%</span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Listado Principal de Programas (Tabla) */}
       <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
@@ -708,98 +718,105 @@ function FormacionesPage() {
         </div>
 
         {/* Estructura de Tabla */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="border-b border-slate-100 text-slate-400 font-semibold h-10">
-                <th className="py-2 pr-4 pl-1">Programa</th>
-                <th className="py-2 px-4">Región (Clúster)</th>
-                <th className="py-2 px-4">Beneficiarios</th>
-                <th className="py-2 px-4">Cobertura</th>
-                <th className="py-2 px-4">Estado</th>
-                <th className="py-2 pl-4 pr-1 text-right"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPrograms.length > 0 ? (
-                filteredPrograms.map((program) => {
-                  const colors = getCoverageColors(program.cobertura);
-                  return (
-                    <tr
-                      key={program.id}
-                      className="border-b border-slate-100 hover:bg-slate-50/40 transition-colors h-14"
-                    >
-                      {/* Nombre del Programa */}
-                      <td className="py-3 pr-4 pl-1 font-bold text-slate-800 max-w-xs md:max-w-sm lg:max-w-md truncate">
-                        {program.nombre}
-                      </td>
+        {loadingPrograms ? (
+          <ProgramListSkeleton />
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-slate-100 text-slate-400 font-semibold h-10">
+                    <th className="py-2 pr-4 pl-1">Programa</th>
+                    <th className="py-2 px-4">Región (Clúster)</th>
+                    <th className="py-2 px-4">Beneficiarios</th>
+                    <th className="py-2 px-4">Cobertura</th>
+                    <th className="py-2 px-4">Estado</th>
+                    <th className="py-2 pl-4 pr-1 text-right"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPrograms.length > 0 ? (
+                    filteredPrograms.map((program) => {
+                      const colors = getCoverageColors(program.cobertura);
+                      return (
+                        <tr
+                          key={program.id}
+                          className="border-b border-slate-100 hover:bg-slate-50/40 transition-colors h-14"
+                        >
+                          {/* Nombre del Programa */}
+                          <td className="py-3 pr-4 pl-1 font-bold text-slate-800 max-w-xs md:max-w-sm lg:max-w-md truncate">
+                            {program.nombre}
+                          </td>
 
-                      {/* Región (Clúster) */}
-                      <td className="py-3 px-4 text-slate-600 font-medium">
-                        <span className="flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-slate-400 animate-pulse" />
-                          <span>{program.region}</span>
-                        </span>
-                      </td>
+                          {/* Región (Clúster) */}
+                          <td className="py-3 px-4 text-slate-600 font-medium">
+                            <span className="flex items-center gap-1.5">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400 animate-pulse" />
+                              <span>{program.region}</span>
+                            </span>
+                          </td>
 
-                      {/* Beneficiarios */}
-                      <td className="py-3 px-4 text-slate-600 font-medium">
-                        <span className="flex items-center gap-1.5">
-                          <Users className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{program.beneficiarios}</span>
-                        </span>
-                      </td>
+                          {/* Beneficiarios */}
+                          <td className="py-3 px-4 text-slate-600 font-medium">
+                            <span className="flex items-center gap-1.5">
+                              <Users className="w-3.5 h-3.5 text-slate-400" />
+                              <span>{program.beneficiarios}</span>
+                            </span>
+                          </td>
 
-                      {/* Cobertura */}
-                      <td className="py-3 px-4">
-                        <div className="flex flex-col gap-1">
-                          <span className={`font-bold ${colors.text}`}>
-                            {program.cobertura}%
-                          </span>
-                          <div className="w-24 bg-slate-100 rounded-full h-1 overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${colors.bar} transition-all duration-500`}
-                              style={{ width: `${program.cobertura}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      </td>
+                          {/* Cobertura */}
+                          <td className="py-3 px-4">
+                            <div className="flex flex-col gap-1">
+                              <span className={`font-bold ${colors.text}`}>
+                                {program.cobertura}%
+                              </span>
+                              <div className="w-24 bg-slate-100 rounded-full h-1 overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full ${colors.bar} transition-all duration-500`}
+                                  style={{ width: `${program.cobertura}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          </td>
 
-                      {/* Estado */}
-                      <td className="py-3 px-4">
-                        {getStatusBadge(program.estado)}
-                      </td>
+                          {/* Estado */}
+                          <td className="py-3 px-4">
+                            {getStatusBadge(program.estado)}
+                          </td>
 
-                      {/* Botón de detalle */}
-                      <td className="py-3 pl-4 pr-1 text-right">
-                        <button className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
+                          {/* Botón de detalle */}
+                          <td className="py-3 pl-4 pr-1 text-right">
+                            <button className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="py-8 text-center text-slate-400 font-medium"
+                      >
+                        No se encontraron programas con los filtros
+                        seleccionados.
                       </td>
                     </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td
-                    colSpan="6"
-                    className="py-8 text-center text-slate-400 font-medium"
-                  >
-                    No se encontraron programas con los filtros seleccionados.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-        {/* Footer del Listado */}
-        <div className="flex justify-between items-center pt-2 text-[11px] text-slate-400 font-semibold select-none">
-          <span>
-            Mostrando {filteredPrograms.length} de {programList.length}{" "}
-            programas de formación activos
-          </span>
-        </div>
+            {/* Footer del Listado */}
+            <div className="flex justify-between items-center pt-2 text-[11px] text-slate-400 font-semibold select-none">
+              <span>
+                Mostrando {filteredPrograms.length} de {programList.length}{" "}
+                programas de formación activos
+              </span>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Modal del Formulario de Creación */}
