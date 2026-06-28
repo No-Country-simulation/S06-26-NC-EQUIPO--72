@@ -563,7 +563,7 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
         />
 
         {/* Right Card: Asistente IA */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between min-h-[500px]">
+        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between min-h-[450px]">
           <div className="flex flex-col h-full w-full justify-between flex-1">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-shrink-0">
@@ -582,7 +582,7 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
             </div>
 
             {/* Chat Messages Log */}
-            <div ref={chatContainerRef} className="flex-1 overflow-y-auto my-4 space-y-4 pr-1 text-xs min-h-[180px] max-h-[300px] lg:max-h-[500px]">
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto my-4 space-y-4 pr-1 text-xs min-h-[180px] max-h-[300px]">
               {messages.map((msg, index) => (
                 <div
                   key={index}
