@@ -1,4 +1,3 @@
-# loaders_fast.py
 import os
 import time
 import traceback
@@ -23,14 +22,12 @@ def get_conn():
 
 
 def _fast_load(cursor, conn, file_path: str, sql: str, label: str) -> int:
-    """Ejecuta un LOAD DATA LOCAL INFILE y retorna rowcount."""
     cursor.execute(sql, (file_path,))
     conn.commit()
     return cursor.rowcount
 
 
 def _bulk_insert(conn, cursor, table: str, columns: list[str], rows: list[tuple]) -> int:
-    """executemany con placeholders — para cuando INFILE no aplica."""
     placeholders = ", ".join(["%s"] * len(columns))
     cols = ", ".join(columns)
     cursor.executemany(
@@ -109,11 +106,6 @@ def load_assinantes_fast():
 
 
 def load_mobilidade_agregada_fast():
-    """
-    Lee el CSV por chunks de 100k filas, escribe cada chunk en un archivo
-    temporal y lo carga con LOAD DATA LOCAL INFILE.
-    Ventajas: velocidad de INFILE + progreso visible + sin iterrows.
-    """
     path = os.path.join(DATA_DIR, "tensor_mobilidade.csv")
     if not os.path.exists(path):
         print("  [mobilidade] archivo no encontrado, saltando", flush=True)
@@ -189,6 +181,9 @@ def load_mobilidade_agregada_fast():
 
 
 def load_concentracao_fast():
+    # CSV: ecgi, cluster, municipio, day_date, periodo, n_usuarios, n_sessoes,
+    #      download_bytes, upload_bytes, dur_media_s, drop_pct_medio,
+    #      congestionamento_medio, chamadas_total, mensagens_total, lat, lon  (16 cols)
     path = os.path.join(DATA_DIR, "tensor_concentracao.csv")
     if not os.path.exists(path):
         print("  [concentracao] archivo no encontrado, saltando", flush=True)
@@ -205,18 +200,20 @@ def load_concentracao_fast():
             FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\\n'
             IGNORE 1 LINES
             (@ecgi, @cluster, @municipio, @day_date, @periodo,
-             @n_usuarios, @download_bytes, @congestionamento_medio)
+             @n_usuarios, @descarte1, @download_bytes, @descarte2,
+             @descarte3, @descarte4, @congestionamento_medio,
+             @descarte5, @descarte6, @descarte7, @descarte8)
             SET ecgi = CAST(@ecgi AS CHAR),
                 cluster = @cluster, municipio = @municipio,
-                day_date = NULLIF(@day_date, '0000-00-00'),
-                periodo = @periodo, n_usuarios = @n_usuarios,
+                day_date = NULLIF(@day_date, ''),
+                periodo = @periodo,
+                n_usuarios = @n_usuarios,
                 download_gb = @download_bytes / 1000000000,
                 congestionamento_medio = @congestionamento_medio,
                 rat_type_predominante = NULL
         """, "concentracao")
         print(f"[concentracao] {n:,} filas cargadas en {time.time()-t0:.1f}s", flush=True)
 
-        # Calcular rat_type_predominante desde mobilidade_agregada
         print("[concentracao] calculando rat_type_predominante...", flush=True)
         t1 = time.time()
         cur.execute("""
@@ -246,6 +243,9 @@ def load_concentracao_fast():
 
 
 def load_flujo_od_fast():
+    # CSV: cluster_origem, municipio_origem, lat_origem, lon_origem,
+    #      cluster_destino, municipio_destino, lat_destino, lon_destino,
+    #      mesmo_cluster, n_usuarios, n_viagens, dist_media_km, periodo_predominante  (13 cols)
     path = os.path.join(DATA_DIR, "tensor_od.csv")
     if not os.path.exists(path):
         print("  [flujo_od] archivo no encontrado, saltando", flush=True)
@@ -261,9 +261,9 @@ def load_flujo_od_fast():
             INTO TABLE flujo_od
             FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\\n'
             IGNORE 1 LINES
-            (@cluster_origem, @municipio_origem, @cluster_destino,
-             @municipio_destino, @n_usuarios, @n_viagens,
-             @dist_media_km, @mesmo_cluster)
+            (@cluster_origem, @municipio_origem, @descarte1, @descarte2,
+             @cluster_destino, @municipio_destino, @descarte3, @descarte4,
+             @mesmo_cluster, @n_usuarios, @n_viagens, @dist_media_km, @descarte5)
             SET cluster_origem = @cluster_origem,
                 municipio_origem = @municipio_origem,
                 cluster_destino = @cluster_destino,
@@ -280,6 +280,9 @@ def load_flujo_od_fast():
 
 
 def load_fluxo_vias_fast():
+    # CSV: ecgi_origem, lat_origem, lon_origem, cluster_origem, municipio_origem,
+    #      ecgi_destino, lat_destino, lon_destino, cluster_destino, municipio_destino,
+    #      n_usuarios, n_transicoes, dist_km, periodo_predominante, pct_do_cluster_origem  (15 cols)
     path = os.path.join(DATA_DIR, "tensor_fluxo_vias.csv")
     if not os.path.exists(path):
         print("  [fluxo_vias] archivo no encontrado, saltando", flush=True)
@@ -295,7 +298,8 @@ def load_fluxo_vias_fast():
             INTO TABLE fluxo_vias
             FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\\n'
             IGNORE 1 LINES
-            (@ecgi_origem, @cluster_origem, @ecgi_destino, @cluster_destino,
+            (@ecgi_origem, @descarte1, @descarte2, @cluster_origem, @municipio_origem,
+             @ecgi_destino, @descarte3, @descarte4, @cluster_destino, @municipio_destino,
              @n_usuarios, @n_transicoes, @dist_km,
              @periodo_predominante, @pct_do_cluster_origem)
             SET ecgi_origem = CAST(@ecgi_origem AS CHAR),
