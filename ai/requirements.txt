@@ -65,3 +65,6 @@ xxhash==3.7.0
 zstandard==0.25.0
 sqlalchemy==2.0.36
 mysql-connector-python==9.1.0
+qdrant-client
+google-generativeai
+aiomysql

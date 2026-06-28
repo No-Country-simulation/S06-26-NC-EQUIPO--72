@@ -1,7 +1,11 @@
 
+import logging
 from fastapi import HTTPException
 from app.models.schemas import ConsultaRequest, ConsultaResponse
 from app.agent.graph import agent
+
+logger = logging.getLogger(__name__)
+
 
 
 class AIService:
@@ -10,12 +14,12 @@ class AIService:
         Procesa una consulta del usuario
         """
         # Verifica si la consulta está vacía o solo tiene espacios
-        if not request.consulta or request.consulta.strip() == "":
+        if not request.consulta or not request.consulta.strip():
             raise HTTPException(
                 status_code=422,
                 detail={
-                    "error": "CONSULTA_IRRELEVANTE",
-                    "mensaje": "La consulta no puede resolverse con los datos disponibles."
+                    "error": "CONSULTA_VACIA",
+                    "mensaje": "La consulta no puede estar vacía.",
                 }
             )
 
@@ -24,30 +28,29 @@ class AIService:
             state = await agent.ainvoke({
                 "consulta": request.consulta,
                 "idioma": request.idioma,
-                "filtros": {}
+                "filtros": {},
             })
+            # Extrae los datos de la respuesta
+            tool_results = state.get("tool_results", {})
+            datos = tool_results if isinstance(tool_results, list) else []
 
-            # Obtiene los datos del estado del agente
-            datos = []
-            if state.get("tool_results", {}).get("datos"):
-                datos = state["tool_results"]["datos"]
-            elif state.get("tool_results", {}).get("brechas"):
-                datos = state["tool_results"]["brechas"]
-
-            # Construye la respuesta
             return ConsultaResponse(
                 respuesta_ia=state.get("respuesta_ia", ""),
                 datos=datos,
                 fuentes=state.get("fuentes", []),
                 visualizacion_sugerida=state.get("visualizacion_sugerida", "tabla_datos"),
-                idioma=request.idioma
+                idioma=request.idioma,
             )
+
+        except HTTPException:
+            raise  # re-lanza HTTPExceptions sin modificar
+
         except Exception as e:
-            # Si hay un error, devuelve CONSULTA_IRRELEVANTE
+            logger.exception("Error inesperado procesando consulta: %s", request.consulta)
             raise HTTPException(
-                status_code=422,
+                status_code=500,
                 detail={
-                    "error": "CONSULTA_IRRELEVANTE",
-                    "mensaje": "La consulta no puede resolverse con los datos disponibles."
+                    "error": "ERROR_INTERNO",
+                    "mensaje": "Ocurrió un error procesando la consulta.",
                 }
             )

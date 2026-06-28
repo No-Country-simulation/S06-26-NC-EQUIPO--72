@@ -36,6 +36,9 @@ class Settings(BaseSettings):
         env_file=".env",
         case_sensitive=False,
     )
+    
+    schema_linker_threshold: float = 0.70
+
 
 
 settings = Settings()
