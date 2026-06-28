@@ -16,7 +16,7 @@ de los datos recibidos mediante Query Params o Request Bodies.
 
 ## 🚦Endpoints de la API y Contratos de Datos
 
-### 📘 Documentación Swagger
+### Documentación Swagger
 La API cuenta con documentación interactiva generada automáticamente con Swagger/OpenAPI. Una vez que el servicio esté corriendo (ya sea en local o en producción), puedes explorar los endpoints, ver los esquemas de datos y realizar peticiones de prueba desde tu navegador.
 
 - URL de Producción: https://s06-26-nc-equipo-72.onrender.com/api/swagger-ui/index.html
@@ -32,39 +32,41 @@ La API cuenta con documentación interactiva generada automáticamente con Swagg
   - Spring Boot
   - Docker
 
-## ☁️ Despliegue en Producción (Render + Aiven)
+## Despliegue en Producción
 
-El entorno de producción de este backend está configurado para desplegarse como un contenedor en la Plataforma como Servicio (PaaS) __Render__, conectándose a una base de datos MySQL gestionada por __Aiven__.
+Este servicio backend está preparado para ser desplegado en cualquier plataforma de tipo PaaS que acepte archivos de tipo __Dockerfile__.
+En este caso el servicio se encuentra desplegado en la plataforma __Render__ mediante el archivo `Dockerfile` que se encuentra en la raíz del proyecto.
 
-Si necesitas replicar este despliegue o configurar un entorno de staging, sigue estas instrucciones exactas:
+Si necesitas replicar este despliegue o configurar un entorno de staging, sigue estas instrucciones:
 
 ### 1. Configuración del Servicio en Render
 
 - Crea un nuevo Web Service en Render y conéctalo al repositorio de GitHub.
 - Llena los campos de configuración principales con los siguientes valores:
   - Branch: elegir la rama del repositorio remoto (`main`, `develop`, etc).
-  - Root Directory: `back` (⚠️ Crítico: Esto le indica a Render que solo debe leer la carpeta del backend y su `Dockerfile`).
-  - Runtime: Docker (⚠️ Crítico: No usar entornos nativos, seleccionar Docker).
+  - Root Directory: `back` (Crítico: Esto le indica a Render que solo debe leer la carpeta del backend y su `Dockerfile`).
+  - Runtime: Docker (Crítico: No usar entornos nativos, seleccionar Docker).
   - Instance Type: Free (o la capa requerida).
 
-Nota: Los campos de "Build Command" y "Start Command" serán ignorados o desaparecerán al elegir Docker, ya que el Dockerfile interno se encarga de empaquetar con Maven y arrancar el servidor.
+Nota: Los campos de "Build Command" y "Start Command" serán ignorados o desaparecerán al elegir Docker, ya que el Dockerfile interno se encarga de empaquetar con Maven y arrancar el servidor. Si se elige la capa gratuita que ofrece Render, el servicio desplegado sufrirá de un cold-start debido a que la plataforma suele poner en suspención los servicios desplegados de forma gratuita. El tiempo de inicialización del servicio luego de la suspensión automática suele rondar lo 4 o 5 min.
 
 ### 2. Variables de Entorno (Environment Variables)
-Para que el contenedor de Spring Boot logre comunicarse con la base de datos externa y el servicio de IA, debes agregar estrictamente las siguientes variables de entorno en el panel de Render (pestaña Environment).
+Para que el contenedor de Spring Boot logre comunicarse con la base de datos externa y el servicio de IA del cual depende, se deben agregar estrictamente las siguientes variables de entorno en el panel de Render (pestaña Environment).
 
 Spring Boot utilizará la característica de Relaxed Binding para sobrescribir los valores locales de application.properties.
 
 | **Nombre dela Variable (Key)** | **Valor Esperado (Value)** | **Descripción** | 
 | --- | --- | --- |
 | `AI_SERVICE_URL` | `url_ia_service` | URL del servicio de IA |
-| `SPRING_DATASOURCE_URL` | `jdbc:mysql://[HOST_AIVEN]:[PUERTO]/[DB_NAME]?ssl-mode=REQUIRED&serverTimezone=UTC` | La URL de conexión JDBC. Debe incluir ssl-mode=REQUIRED por seguridad y separar las credenciales. |
-| `SPRING_DATASOURCE_USERNAME` | Usuario de Aiven (normalmente `avnadmin`) | El usuario de la base de datos de producción. |
-| `SPRING_DATASOURCE_PASSWORD` | `********` | La contraseña asignada por Aiven. |
+| `SPRING_DATASOURCE_URL` | `jdbc:mysql://[DB_HOST]:[DB_PORT]/[DB_NAME]??sslMode=VERIFY_IDENTITY&serverTimezone=UTC` | La URL de conexión JDBC. Debe incluir `sslMode=VERIFY_IDENTITY` por seguridad y separar las credenciales. |
+| `SPRING_DATASOURCE_USERNAME` | `db_user_example` | El usuario de la base de datos de producción. |
+| `SPRING_DATASOURCE_PASSWORD` | `********` | La contraseña asignada por el proveedor de la base de datos. |
 <br>
 
-__Importante sobre el Puerto:__ No es necesario configurar una variable PORT manual. Render inyecta dinámicamente el puerto, y el Dockerfile del proyecto está preparado para leerlo y asignar Spring Boot al puerto correcto de forma automática.
+__Importante sobre el Puerto:__ No es necesario configurar una variable PORT manual. En este caso Render inyecta dinámicamente el puerto, y el Dockerfile del proyecto está preparado para leerlo y asignar Spring Boot al puerto correcto de forma automática.
 
-### 3. Base de Datos Externa (Aiven)
-La instancia de MySQL no corre dentro de Render por motivos de persistencia de disco. Las credenciales insertadas en el paso anterior deben obtenerse del panel de control de tu clúster de MySQL en Aiven Console o del entorno web de Aiven.
+### 3. Base de Datos Externa
+La instancia de MySQL no corre dentro de Render por motivos de persistencia de disco y cuota de espacio. Las credenciales insertadas en el paso anterior deben obtenerse del panel de control del clúster de MySQL del proveedor que se haya seleccionado.
+En nuestro caso se ha elegido __TiDB__ como proveedor de servicio para almacenar los datos en una instancia de MySQL.
 
-Para conectarte localmente a esta base de datos de producción (ej. usando DBeaver o MySQL Workbench), recuerda que debes configurar la conexión requiriendo SSL (Use SSL: Require).
+Para conectarte localmente a esta base de datos de producción (ej. usando DBeaver o MySQL Workbench), recuerda que se debe configurar la conexión requiriendo SSL (Use SSL: Require).
