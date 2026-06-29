@@ -5,6 +5,7 @@ import {
   MapPin,
   Award,
   AlertTriangle,
+  AlertCircle,
 } from "lucide-react";
 import {
   // AreaChart,
@@ -24,6 +25,10 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart";
 import { useEmpleabilidad } from "../hooks/useEmpleabilidad";
+import {
+  BarChartSkeleton,
+  RankingListSkeleton,
+} from "../skeletons/EmpleabilidadPageSkeleton";
 
 // Mock Data
 
@@ -157,61 +162,87 @@ function EmpleabilidadPage() {
       </div>
 
       {/* Average Metrics Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Tasa de Empleo Promedio */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-              Tasa de Empleo Promedio
-            </p>
-            <h3 className="text-2xl font-bold text-slate-800 tracking-tight mt-1.5">
-              {brechaEmpleo?.indicador_social?.valor.toFixed(1)}%
-            </h3>
-          </div>
-          <div className="flex items-center gap-1 text-[10px] text-green-600 font-bold mt-2">
-            <ArrowUpRight className="w-3.5 h-3.5" />
-            <span>+2.3%</span>
-          </div>
+      {empleo.isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="bg-white border border-slate-200 rounded-xl p-4 h-[135px] flex flex-col justify-between animate-pulse"
+            >
+              <div className="flex items-center justify-between">
+                <div className="w-8 h-8 rounded-lg bg-slate-100" />
+                <div className="w-12 h-4 rounded-full bg-slate-105" />
+              </div>
+              <div className="space-y-2 mt-4">
+                <div className="h-6 w-16 bg-slate-100 rounded" />
+                <div className="h-3 w-24 bg-slate-100 rounded" />
+              </div>
+            </div>
+          ))}
         </div>
-
-        {/* Card 2: Mejor Región */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-              Mejor Región
-            </p>
-            <h3 className="text-2xl font-bold text-slate-800 tracking-tight mt-1.5">
-              {mejorCongestionamiento?.municipio}
-            </h3>
-          </div>
-          <div className="flex items-center gap-1 text-[10px] text-green-600 font-bold mt-2">
-            <Award className="w-3.5 h-3.5" />
-            <span>
-              {mejorCongestionamiento?.indicador_social?.valor}% de empleo
-            </span>
-          </div>
+      ) : empleo.error ? (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center flex items-center justify-center gap-2 text-xs text-red-600 font-semibold shadow-xs">
+          <AlertCircle className="w-4 h-4 text-red-500" />
+          <span>
+            Error al sincronizar datos de empleabilidad con el servidor
+          </span>
         </div>
-
-        {/* Card 3: Región Crítica */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-              Región Crítica
-            </p>
-            <h3 className="text-2xl font-bold text-slate-800 tracking-tight mt-1.5">
-              {peorCongestionamiento?.municipio}
-            </h3>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: Tasa de Empleo Promedio */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                Tasa de Empleo Promedio
+              </p>
+              <h3 className="text-2xl font-bold text-slate-800 tracking-tight mt-1.5">
+                {brechaEmpleo?.indicador_social?.valor.toFixed(1)}%
+              </h3>
+            </div>
+            <div className="flex items-center gap-1 text-[10px] text-green-600 font-bold mt-2">
+              <ArrowUpRight className="w-3.5 h-3.5" />
+              <span>+2.3%</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1 text-[10px] text-red-600 font-bold mt-2">
-            <AlertTriangle className="w-3.5 h-3.5" />
-            <span>
-              {peorCongestionamiento?.indicador_social?.valor}% de empleo
-            </span>
-          </div>
-        </div>
 
-        {/* Card 4: Participación Laboral */}
-        {/* <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
+          {/* Card 2: Mejor Región */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                Mejor Región
+              </p>
+              <h3 className="text-2xl font-bold text-slate-800 tracking-tight mt-1.5">
+                {mejorCongestionamiento?.municipio}
+              </h3>
+            </div>
+            <div className="flex items-center gap-1 text-[10px] text-green-600 font-bold mt-2">
+              <Award className="w-3.5 h-3.5" />
+              <span>
+                {mejorCongestionamiento?.indicador_social?.valor}% de empleo
+              </span>
+            </div>
+          </div>
+
+          {/* Card 3: Región Crítica */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
+            <div>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                Región Crítica
+              </p>
+              <h3 className="text-2xl font-bold text-slate-800 tracking-tight mt-1.5">
+                {peorCongestionamiento?.municipio}
+              </h3>
+            </div>
+            <div className="flex items-center gap-1 text-[10px] text-red-600 font-bold mt-2">
+              <AlertTriangle className="w-3.5 h-3.5" />
+              <span>
+                {peorCongestionamiento?.indicador_social?.valor}% de empleo
+              </span>
+            </div>
+          </div>
+
+          {/* Card 4: Participación Laboral */}
+          {/* <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
           <div>
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
               Participación Laboral
@@ -225,7 +256,8 @@ function EmpleabilidadPage() {
             <span>+1.1%</span>
           </div>
         </div> */}
-      </div>
+        </div>
+      )}
 
       {/* Tabs Switcher Navigation */}
       <div className="bg-slate-100/60 p-1 rounded-xl flex items-center gap-1 w-fit border border-slate-200/50">
@@ -239,16 +271,18 @@ function EmpleabilidadPage() {
         >
           Evolución Temporal
         </button> */}
-        <button
-          onClick={() => setActiveTab("comparacion")}
-          className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
-            activeTab === "comparacion"
-              ? "bg-blue-600 text-white shadow-xs"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/40"
-          }`}
-        >
-          Comparación Regional
-        </button>
+        {!empleo.error && (
+          <button
+            onClick={() => setActiveTab("comparacion")}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
+              activeTab === "comparacion"
+                ? "bg-blue-600 text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/40"
+            }`}
+          >
+            Comparación Regional
+          </button>
+        )}
         {/* <button
           onClick={() => setActiveTab("brecha")}
           className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
@@ -262,8 +296,13 @@ function EmpleabilidadPage() {
       </div>
 
       {/* Interactive Chart Container */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-xs transition-shadow">
-        {/* {activeTab === "evolucion" && (
+      {empleo.isLoading ? (
+        <BarChartSkeleton />
+      ) : empleo.isError ? (
+        <></>
+      ) : (
+        <div className="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-xs transition-shadow">
+          {/* {activeTab === "evolucion" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-800">
@@ -332,61 +371,63 @@ function EmpleabilidadPage() {
           </div>
         )} */}
 
-        {activeTab === "comparacion" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-800">
-                Empleo Formal vs Informal por Región
-              </h3>
-            </div>
+          {activeTab === "comparacion" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-800">
+                  Empleo Formal vs Informal por Región
+                </h3>
+              </div>
 
-            <ChartContainer
-              config={comparisonConfig}
-              className="h-[280px] w-full"
-            >
-              <BarChart
-                data={comparisonData}
-                margin={{ top: 15, right: 10, left: -20, bottom: 0 }}
+              <ChartContainer
+                config={comparisonConfig}
+                className="h-[280px] w-full"
               >
-                <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="region"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={{ fontSize: 9, fill: "#64748b" }}
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={{ fontSize: 9, fill: "#64748b" }}
-                  domain={[0, 120]}
-                />
-                <ChartTooltip
-                  content={<ChartTooltipContent formatter={tooltipFormatter} />}
-                />
-                <Bar
-                  dataKey="formal"
-                  stackId="a"
-                  fill="var(--color-formal)"
-                  radius={[0, 0, 0, 0]}
-                  barSize={14}
-                />
-                <Bar
-                  dataKey="informal"
-                  stackId="a"
-                  fill="var(--color-informal)"
-                  radius={[2, 2, 0, 0]}
-                  barSize={14}
-                />
-                <ChartLegend content={<ChartLegendContent />} />
-              </BarChart>
-            </ChartContainer>
-          </div>
-        )}
+                <BarChart
+                  data={comparisonData}
+                  margin={{ top: 15, right: 10, left: -20, bottom: 0 }}
+                >
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="region"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tick={{ fontSize: 9, fill: "#64748b" }}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tick={{ fontSize: 9, fill: "#64748b" }}
+                    domain={[0, 120]}
+                  />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent formatter={tooltipFormatter} />
+                    }
+                  />
+                  <Bar
+                    dataKey="formal"
+                    stackId="a"
+                    fill="var(--color-formal)"
+                    radius={[0, 0, 0, 0]}
+                    barSize={14}
+                  />
+                  <Bar
+                    dataKey="informal"
+                    stackId="a"
+                    fill="var(--color-informal)"
+                    radius={[2, 2, 0, 0]}
+                    barSize={14}
+                  />
+                  <ChartLegend content={<ChartLegendContent />} />
+                </BarChart>
+              </ChartContainer>
+            </div>
+          )}
 
-        {/* {activeTab === "brecha" && (
+          {/* {activeTab === "brecha" && (
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h3 className="text-sm font-bold text-slate-800">
@@ -443,59 +484,68 @@ function EmpleabilidadPage() {
             </ChartContainer>
           </div>
         )} */}
-      </div>
+        </div>
+      )}
 
       {/* Bottom Ranking List Section */}
-      <div className="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-xs transition-shadow">
-        <h3 className="text-sm font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100">
-          Ranking de Empleabilidad por Región
-        </h3>
+      {empleo.isLoading ? (
+        <RankingListSkeleton />
+      ) : empleo.isError ? (
+        <></>
+      ) : (
+        <div className="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-xs transition-shadow">
+          <h3 className="text-sm font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100">
+            Ranking de Empleabilidad por Región
+          </h3>
 
-        <div className="divide-y divide-slate-100">
-          {empleo?.data?.brechas?.map((item, index) => {
-            const colors = getRankBarColors(item.congestionamento_medio);
-            return (
-              <div
-                key={item.congestionamento_medio}
-                className="flex items-center gap-4 py-3 text-xs font-semibold"
-              >
-                {/* Position Badge */}
-                <div className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] shrink-0">
-                  {index + 1}
+          <div className="divide-y divide-slate-100">
+            {empleo?.data?.brechas?.map((item, index) => {
+              const colors = getRankBarColors(item.congestionamento_medio);
+              return (
+                <div
+                  key={item.congestionamento_medio}
+                  className="flex items-center gap-4 py-3 text-xs font-semibold"
+                >
+                  {/* Position Badge */}
+                  <div className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] shrink-0">
+                    {index + 1}
+                  </div>
+
+                  {/* Region details */}
+                  <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 max-w-[200px] truncate">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span className="text-slate-700 truncate">
+                        {item.cluster}
+                      </span>
+                    </div>
+
+                    {/* Horizontal progress bar */}
+                    <div className="flex-1 max-w-md mx-0 sm:mx-8 bg-slate-100 rounded-full h-1.5 overflow-hidden shrink-0">
+                      <div
+                        className={`h-full rounded-full ${colors.bar}`}
+                        style={{
+                          width: `${item.congestionamento_medio * 100}%`,
+                        }}
+                      />
+                    </div>
+
+                    {/* Value and population details */}
+                    <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0">
+                      <span className={`w-10 text-right ${colors.text}`}>
+                        {item.congestionamento_medio * 100}%
+                      </span>
+                      <span className="text-slate-400 font-medium text-[11px] w-20 text-right">
+                        {item.n_usuarios} hab.
+                      </span>
+                    </div>
+                  </div>
                 </div>
-
-                {/* Region details */}
-                <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 max-w-[200px] truncate">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span className="text-slate-700 truncate">
-                      {item.cluster}
-                    </span>
-                  </div>
-
-                  {/* Horizontal progress bar */}
-                  <div className="flex-1 max-w-md mx-0 sm:mx-8 bg-slate-100 rounded-full h-1.5 overflow-hidden shrink-0">
-                    <div
-                      className={`h-full rounded-full ${colors.bar}`}
-                      style={{ width: `${item.congestionamento_medio * 100}%` }}
-                    />
-                  </div>
-
-                  {/* Value and population details */}
-                  <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0">
-                    <span className={`w-10 text-right ${colors.text}`}>
-                      {item.congestionamento_medio * 100}%
-                    </span>
-                    <span className="text-slate-400 font-medium text-[11px] w-20 text-right">
-                      {item.n_usuarios} hab.
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
