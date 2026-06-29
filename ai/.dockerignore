@@ -1,5 +1,57 @@
-data/
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.so
+*.pytest_cache/
+.pytest_cache/
+.mypy_cache/
+.pydantic_cache/
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Build
+*.egg-info/
+dist/
+build/
+
+# Data (viene por volumen, no se copia en imagen)
+data/
+data_resultado/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
 .env
+.env.*
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile*
+.dockerignore
+
+# Misc
 *.md
+analisis*.py
+corregir_*.py
+check_csv.py
+README_DATASET.md

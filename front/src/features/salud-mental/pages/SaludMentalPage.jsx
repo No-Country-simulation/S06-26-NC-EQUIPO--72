@@ -6,6 +6,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import {
+  AlertCircle,
   Brain,
   // Building2,
   Heart,
@@ -27,6 +28,11 @@ import {
 } from "recharts";
 import { PriorityRegionCard } from "../components/PriorityRegionCard";
 import { useSaludMental } from "../hooks/useSaludMental";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  BarChartDataSkeleton,
+  HealthIndicatorsCardSkeleton,
+} from "../skeletons/SaludMentalPageSkeleton";
 
 // --- Seccion: Correlación Conectividad x Salud Mental ---
 // const scatterChartConfig = {
@@ -136,61 +142,81 @@ export default function SaludMentalPage() {
             Bienestar psicosocial, acceso a servicios y brechas regionales
           </p>
         </div>
-        <div>
-          <span className="flex items-center gap-1.5 bg-yellow-100 border border-yellow-200  text-orange-500 font-medium text-sm px-4 py-2.5 rounded-lg">
-            <TriangleAlert className="w-4 h-4" />
-            <span>2 regiones en estado crítico</span>
+      </div>
+      {saludMental.isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 3 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <Skeleton className="w-8 h-8 rounded-lg" />
+              </div>
+
+              <div className="mt-3 space-y-2">
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-3 w-28" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : saludMental.isError ? (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center flex items-center justify-center gap-2 text-xs text-red-600 font-semibold shadow-xs">
+          <AlertCircle className="w-4 h-4 text-red-500" />
+          <span>
+            Error al sincronizar datos de salud mental con el servidor
           </span>
         </div>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
-          <div className="flex items-center gap-4">
-            <Brain className="w-8 h-8 text-rose-300" />
-            <div className="flex flex-col items-baseline gap-1">
-              <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                {totalIndice?.toFixed(2)}
-              </span>
-              <span className="text-xs text-slate-400 font-medium">
-                Objetivo: {totalIndice?.toFixed(2) * 2}
-              </span>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
+            <div className="flex items-center gap-4">
+              <Brain className="w-8 h-8 text-rose-300" />
+              <div className="flex flex-col items-baseline gap-1">
+                <span className="text-2xl font-bold text-slate-800 tracking-tight">
+                  {totalIndice?.toFixed(2)}
+                </span>
+                <span className="text-xs text-slate-400 font-medium">
+                  Objetivo: {totalIndice?.toFixed(2) * 2}
+                </span>
+              </div>
             </div>
+            <p className="text-xs text-slate-500 font-medium">
+              Índice Nacional Promedio
+            </p>
           </div>
-          <p className="text-xs text-slate-500 font-medium">
-            Índice Nacional Promedio
-          </p>
-        </div>
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
-          <div className="flex items-center gap-4">
-            <SquareCheckBig className="shrink-0 w-8 h-8 text-green-600" />
-            <div className="flex flex-col items-baseline gap-1">
-              <span className="text-lg font-bold text-slate-800 tracking-tight">
-                {mejorRegion?.cluster}
-              </span>
-              <span className="text-xs text-slate-400 font-medium">
-                {mejorRegion?.indicador_social?.valor} — Óptimo
-              </span>
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
+            <div className="flex items-center gap-4">
+              <SquareCheckBig className="shrink-0 w-8 h-8 text-green-600" />
+              <div className="flex flex-col items-baseline gap-1">
+                <span className="text-lg font-bold text-slate-800 tracking-tight">
+                  {mejorRegion?.cluster}
+                </span>
+                <span className="text-xs text-slate-400 font-medium">
+                  {mejorRegion?.indicador_social?.valor} — Óptimo
+                </span>
+              </div>
             </div>
+            <p className="text-xs text-slate-500 font-medium">Mejor región</p>
           </div>
-          <p className="text-xs text-slate-500 font-medium">Mejor región</p>
-        </div>
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
-          <div className="flex items-center gap-4">
-            <TriangleAlert className="w-8 h-8 text-yellow-400" />
-            <div className="flex flex-col items-baseline gap-1">
-              <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                {regiones?.length}
-              </span>
-              <span className="text-xs text-slate-400 font-medium">
-                &lt; 3.0/5
-              </span>
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
+            <div className="flex items-center gap-4">
+              <TriangleAlert className="w-8 h-8 text-yellow-400" />
+              <div className="flex flex-col items-baseline gap-1">
+                <span className="text-2xl font-bold text-slate-800 tracking-tight">
+                  {regiones?.length}
+                </span>
+                <span className="text-xs text-slate-400 font-medium">
+                  &lt; 3.0/5
+                </span>
+              </div>
             </div>
+            <p className="text-xs text-slate-500 font-medium">
+              Regiones críticas
+            </p>
           </div>
-          <p className="text-xs text-slate-500 font-medium">
-            Regiones críticas
-          </p>
-        </div>
-        {/* <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
+          {/* <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
           <div className="flex items-center gap-4">
             <Building2 className="w-8 h-8 text-blue-600" />
             <div className="flex flex-col items-baseline gap-1">
@@ -206,7 +232,9 @@ export default function SaludMentalPage() {
             Acceso a servicios
           </p>
         </div> */}
-      </div>
+        </div>
+      )}
+
       {/* Nueva sección: Correlación (scatter) + Indicadores de Riesgo (líneas) */}
       {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
@@ -384,69 +412,81 @@ export default function SaludMentalPage() {
       </div> */}
       {/*  */}
       {/* Visualizations Grid */}
-      <div className="grid grid-cols-1 gap-6">
-        <div className="bg-white border border-slate-200 rounded-xl p-5 lg:col-span-2 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-sm font-bold text-slate-800">
-              Brecha de Acceso a Servicios de Salud Mental
-            </h3>
-            <span className="flex items-center gap-1.5 bg-yellow-100 border border-yellow-200  text-orange-500 text-xs p-1 rounded-lg">
-              <span>Oferta vs Demanda</span>
-            </span>
-          </div>
-          <div className="flex-1 mt-4">
-            <ChartContainer
-              config={barChartConfig}
-              className="h-[240px] w-full"
-            >
-              <BarChart
-                data={barChartData}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+      {saludMental.isLoading ? (
+        <BarChartDataSkeleton />
+      ) : saludMental.isError ? (
+        <></>
+      ) : (
+        <div className="grid grid-cols-1 gap-6">
+          <div className="bg-white border border-slate-200 rounded-xl p-5 lg:col-span-2 flex flex-col justify-between hover:shadow-sm transition-shadow">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-bold text-slate-800">
+                Brecha de Acceso a Servicios de Salud Mental
+              </h3>
+              <span className="flex items-center gap-1.5 bg-yellow-100 border border-yellow-200  text-orange-500 text-xs p-1 rounded-lg">
+                <span>Oferta vs Demanda</span>
+              </span>
+            </div>
+            <div className="flex-1 mt-4">
+              <ChartContainer
+                config={barChartConfig}
+                className="h-[240px] w-full"
               >
-                <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="region"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={{ fontSize: 9, fill: "#64748b" }}
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={{ fontSize: 9, fill: "#64748b" }}
-                  domain={[0, 100]}
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar
-                  dataKey="demanda"
-                  fill="var(--color-demanda)"
-                  radius={[2, 2, 0, 0]}
-                  barSize={25}
-                />
-                <Bar
-                  dataKey="acceso"
-                  fill="var(--color-acceso)"
-                  radius={[2, 2, 0, 0]}
-                  barSize={25}
-                />
-                <ChartLegend content={<ChartLegendContent />} />
-              </BarChart>
-            </ChartContainer>
+                <BarChart
+                  data={barChartData}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="region"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tick={{ fontSize: 9, fill: "#64748b" }}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tick={{ fontSize: 9, fill: "#64748b" }}
+                    domain={[0, 100]}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar
+                    dataKey="demanda"
+                    fill="var(--color-demanda)"
+                    radius={[2, 2, 0, 0]}
+                    barSize={25}
+                  />
+                  <Bar
+                    dataKey="acceso"
+                    fill="var(--color-acceso)"
+                    radius={[2, 2, 0, 0]}
+                    barSize={25}
+                  />
+                  <ChartLegend content={<ChartLegendContent />} />
+                </BarChart>
+              </ChartContainer>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="grid grid-cols-1">
-        <h2 className="text-base font-semibold mb-3">
-          Regiones de Atención Prioritaria
-        </h2>
-        <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {priorityRegionCards?.map((region) => (
-            <PriorityRegionCard key={region.region} {...region} />
-          ))}
-        </section>
-      </div>
+      )}
+      {saludMental.isLoading ? (
+        <HealthIndicatorsCardSkeleton />
+      ) : saludMental.isError ? (
+        <></>
+      ) : (
+        <div className="grid grid-cols-1">
+          <h2 className="text-base font-semibold mb-3">
+            Regiones de Atención Prioritaria
+          </h2>
+          <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {priorityRegionCards?.map((region) => (
+              <PriorityRegionCard key={region.region} {...region} />
+            ))}
+          </section>
+        </div>
+      )}
     </div>
   );
 }

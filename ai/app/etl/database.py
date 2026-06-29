@@ -15,10 +15,10 @@ def wait_for_database(max_retries: int = 30, retry_interval: int = 2):
         try:
             with engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
-            print("DB lista")
+            print("DB lista", flush=True)
             return True
         except Exception as e:
-            print(f"DB no lista. Intentando conectar en {retry_interval} segundos... (Error: {str(e)})")
+            print(f"DB no lista. Intentando conectar en {retry_interval} segundos... (Error: {str(e)})", flush=True)
 
             time.sleep(retry_interval)
             retries += 1

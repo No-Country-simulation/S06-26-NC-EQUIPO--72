@@ -8,7 +8,6 @@ import {
   // ArrowRight,
   ChevronRight,
   // GraduationCap,
-  Loader2,
   MapPin,
   SquareCheckBig,
   Star,
@@ -27,6 +26,11 @@ import {
   YAxis,
 } from "recharts";
 import { useMentoriasBrechas } from "../hooks/useMentorias";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  BarChartDataSkeleton,
+  ListMentorsSkeleton,
+} from "../skeletons/MentoriasPageSkeleton";
 
 // data del backend
 // {
@@ -55,7 +59,7 @@ import { useMentoriasBrechas } from "../hooks/useMentorias";
 // }
 
 export default function MentoriasPage() {
-  const { data, isLoading, error } = useMentoriasBrechas();
+  const { data, isLoading, isError } = useMentoriasBrechas();
 
   const allPerson = data?.brechas?.reduce(
     (acc, item) => acc + item.n_usuarios,
@@ -166,31 +170,6 @@ export default function MentoriasPage() {
   //   },
   // ];
 
-  // Renderizado en estado de carga (Loader Centrado Premium)
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-        <p className="text-xs text-slate-500 font-bold tracking-wider animate-pulse">
-          Cargando indicadores de mentorías...
-        </p>
-      </div>
-    );
-  }
-
-  // Renderizado en caso de error de conexión o carga
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center max-w-lg mx-auto mt-10">
-        <AlertCircle className="w-10 h-10 text-red-600 mx-auto mb-3" />
-        <h4 className="text-sm font-bold text-red-800">
-          Error al conectar con el servidor
-        </h4>
-        <p className="text-xs text-red-600 mt-1">{error?.message}</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -206,8 +185,32 @@ export default function MentoriasPage() {
         </div>
       </div>
       {/*  */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 3 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <Skeleton className="w-8 h-8 rounded-lg" />
+              </div>
+
+              <div className="mt-3 space-y-2">
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-3 w-28" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : isError ? (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center flex items-center justify-center gap-2 text-xs text-red-600 font-semibold shadow-xs">
+          <AlertCircle className="w-4 h-4 text-red-500" />
+          <span>Error al sincronizar datos de mentorias con el servidor</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
           <div className="flex items-center gap-4">
             <GraduationCap className="w-8 h-8 text-gray-600" />
             <div className="flex flex-col items-baseline gap-1">
@@ -218,20 +221,20 @@ export default function MentoriasPage() {
           </div>
           <p className="text-xs text-slate-500 font-medium">Mentores Activos</p>
         </div> */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
-          <div className="flex items-center gap-4">
-            <User className="w-8 h-8 text-gray-600" />
-            <div className="flex flex-col items-baseline gap-1">
-              <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                {allPerson}
-              </span>
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
+            <div className="flex items-center gap-4">
+              <User className="w-8 h-8 text-gray-600" />
+              <div className="flex flex-col items-baseline gap-1">
+                <span className="text-2xl font-bold text-slate-800 tracking-tight">
+                  {allPerson}
+                </span>
+              </div>
             </div>
+            <p className="text-xs text-slate-500 font-medium">
+              Acceso a servicios
+            </p>
           </div>
-          <p className="text-xs text-slate-500 font-medium">
-            Acceso a servicios
-          </p>
-        </div>
-        {/* <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
+          {/* <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
           <div className="flex items-center gap-4">
             <Star className="w-8 h-8 text-yellow-400" />
             <div className="flex flex-col items-baseline gap-1">
@@ -244,64 +247,70 @@ export default function MentoriasPage() {
             Efectividad Media
           </p>
         </div> */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
-          <div className="flex items-center gap-4">
-            <SquareCheckBig className="w-8 h-8 text-green-600" />
-            <div className="flex flex-col items-baseline gap-1">
-              <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                {programsActive}
-              </span>
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
+            <div className="flex items-center gap-4">
+              <SquareCheckBig className="w-8 h-8 text-green-600" />
+              <div className="flex flex-col items-baseline gap-1">
+                <span className="text-2xl font-bold text-slate-800 tracking-tight">
+                  {programsActive}
+                </span>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 font-medium">
+              Programas Activos
+            </p>
+          </div>
+        </div>
+      )}
+
+      {isLoading ? (
+        <BarChartDataSkeleton />
+      ) : isError ? (
+        <></>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
+            <div className="border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-bold text-slate-800">
+                Mentorizados por Región
+              </h3>
+            </div>
+            <div className="flex-1 mt-4">
+              <ChartContainer
+                config={barChartConfig}
+                className="h-[240px] w-full"
+              >
+                <BarChart
+                  data={barChartData}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="region"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tick={{ fontSize: 9, fill: "#64748b" }}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tick={{ fontSize: 9, fill: "#64748b" }}
+                    domain={[0, 10]}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar
+                    dataKey="mentorizados"
+                    fill="var(--color-mentores)"
+                    radius={[2, 2, 0, 0]}
+                    barSize={25}
+                  />
+                </BarChart>
+              </ChartContainer>
             </div>
           </div>
-          <p className="text-xs text-slate-500 font-medium">
-            Programas Activos
-          </p>
-        </div>
-      </div>
-      {/*  */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
-          <div className="border-b border-slate-100 pb-3">
-            <h3 className="text-sm font-bold text-slate-800">
-              Mentorizados por Región
-            </h3>
-          </div>
-          <div className="flex-1 mt-4">
-            <ChartContainer
-              config={barChartConfig}
-              className="h-[240px] w-full"
-            >
-              <BarChart
-                data={barChartData}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              >
-                <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="region"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={{ fontSize: 9, fill: "#64748b" }}
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={{ fontSize: 9, fill: "#64748b" }}
-                  domain={[0, 10]}
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar
-                  dataKey="mentorizados"
-                  fill="var(--color-mentores)"
-                  radius={[2, 2, 0, 0]}
-                  barSize={25}
-                />
-              </BarChart>
-            </ChartContainer>
-          </div>
-        </div>
-        {/* <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
+          {/* <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
           <div className="border-b border-slate-100 pb-3">
             <h3 className="text-sm font-bold text-slate-800">
               Evaluación de Desempeño Nacional
@@ -327,80 +336,87 @@ export default function MentoriasPage() {
             </ChartContainer>
           </div>
         </div> */}
-      </div>
-      {/*  */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-100 p-4">
-          <h3 className="text-sm font-bold text-slate-800">
-            Programas de Mentoría Activos
-          </h3>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs table-auto">
-            <tbody>
-              {programs.map((program) => (
-                <tr
-                  key={program.name}
-                  className="border-b border-slate-200 hover:bg-slate-50 transition-colors"
-                >
-                  <td className="w-full py-4 pl-4">
-                    <section className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
-                        <Users className="w-5 h-5 text-violet-600" />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <span className="font-semibold text-slate-800">
-                          {program.name}
-                        </span>
+      )}
 
-                        <div className="flex items-center gap-3 text-slate-500 text-xs">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {program.region}
+      {isLoading ? (
+        <ListMentorsSkeleton />
+      ) : isError ? (
+        <></>
+      ) : (
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-100 p-4">
+            <h3 className="text-sm font-bold text-slate-800">
+              Programas de Mentoría Activos
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs table-auto">
+              <tbody>
+                {programs?.map((program) => (
+                  <tr
+                    key={program.name}
+                    className="border-b border-slate-200 hover:bg-slate-50 transition-colors"
+                  >
+                    <td className="w-full py-4 pl-4">
+                      <section className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
+                          <Users className="w-5 h-5 text-violet-600" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="font-semibold text-slate-800">
+                            {program.name}
                           </span>
 
-                          <span className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            {program.mentees} mentorizados
+                          <div className="flex items-center gap-3 text-slate-500 text-xs">
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {program.region}
+                            </span>
+
+                            <span className="flex items-center gap-1">
+                              <Users className="w-3 h-3" />
+                              {program.mentees} mentorizados
+                            </span>
+                          </div>
+                        </div>
+                      </section>
+                    </td>
+                    <td className="whitespace-nowrap py-4 pr-4 text-center">
+                      <section className="flex items-center gap-3">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            program.status === "ALTA"
+                              ? "bg-green-100 text-green-700"
+                              : program.status === "MEDIA"
+                                ? "bg-amber-100 text-amber-700"
+                                : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {program.status}
+                        </span>
+                        <div className="flex flex-col items-center">
+                          <span className="font-bold text-slate-800 flex items-center gap-1">
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            {program.effectiveness}
+                          </span>
+
+                          <span className="text-xs text-slate-400">
+                            efectividad
                           </span>
                         </div>
-                      </div>
-                    </section>
-                  </td>
-                  <td className="whitespace-nowrap py-4 pr-4 text-center">
-                    <section className="flex items-center gap-3">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          program.status === "ALTA"
-                            ? "bg-green-100 text-green-700"
-                            : program.status === "MEDIA"
-                              ? "bg-amber-100 text-amber-700"
-                              : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {program.status}
-                      </span>
-                      <div className="flex flex-col items-center">
-                        <span className="font-bold text-slate-800 flex items-center gap-1">
-                          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                          {program.effectiveness}
-                        </span>
-
-                        <span className="text-xs text-slate-400">
-                          efectividad
-                        </span>
-                      </div>
-                      <button className="p-1 rounded hover:bg-slate-100">
-                        <ChevronRight className="w-4 h-4 text-slate-400" />
-                      </button>
-                    </section>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                        <button className="p-1 rounded hover:bg-slate-100">
+                          <ChevronRight className="w-4 h-4 text-slate-400" />
+                        </button>
+                      </section>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
       {/*  */}
       {/* <div className="bg-white border border-red-100 rounded-2xl p-5">
         <div className="flex items-start gap-4">

@@ -24,7 +24,13 @@ services:
     image: mysql:8.0
     container_name: Appbitb2g_Mysql
     restart: always
-    command: --default-authentication-plugin=mysql_native_password --local-infile=1
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --local-infile=1
+      --innodb-redo-log-capacity=4294967296
+      --innodb-log-buffer-size=256M
+      --innodb-flush-log-at-trx-commit=2
+      --innodb-buffer-pool-size=1G
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
@@ -47,14 +53,12 @@ services:
     restart: always
     ports:
       - "8080:8080"
-
     volumes:
       - ./back:/app
       - /app/target
-      - ~/.m2:/root/.m2 
+      - ~/.m2:/root/.m2
     env_file:
       - .env
-
     environment:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
       - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/${DB_NAME}?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
@@ -65,10 +69,16 @@ services:
       - LOGGING_LEVEL_ORG_HIBERNATE_ORM_RESULTS_BASIC=TRACE
       - AI_SERVICE_URL=${AI_SERVICE_URL}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8080/api/actuator/health | grep UP || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
     networks:
       - app-network
-
 
 
 
@@ -112,7 +122,7 @@ services:
       db:
         condition: service_healthy
       backend:
-        condition: service_started
+        condition: service_healthy
     networks:
       - app-network
 

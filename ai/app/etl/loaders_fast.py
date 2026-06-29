@@ -1,261 +1,318 @@
 import os
 import time
+import traceback
+import tempfile
+import pandas as pd
 import mysql.connector
 from app.core.config import settings
-from sqlalchemy import text
-from app.etl.database import engine
 
 DATA_DIR = "/app/data"
 
+# helpers 
 
-def get_mysql_connection():
-    """Obtiene una conexión directa a MySQL usando mysql-connector"""
+def get_conn():
     return mysql.connector.connect(
         host=settings.db_host,
         port=settings.db_port,
         user=settings.db_user,
         password=settings.db_password,
         database=settings.db_name,
-        allow_local_infile=True
+        allow_local_infile=True,
     )
 
 
+def _fast_load(cursor, conn, file_path: str, sql: str, label: str) -> int:
+    cursor.execute(sql, (file_path,))
+    conn.commit()
+    return cursor.rowcount
+
+
+def _bulk_insert(conn, cursor, table: str, columns: list[str], rows: list[tuple]) -> int:
+    placeholders = ", ".join(["%s"] * len(columns))
+    cols = ", ".join(columns)
+    cursor.executemany(
+        f"INSERT INTO {table} ({cols}) VALUES ({placeholders})",
+        rows,
+    )
+    conn.commit()
+    return len(rows)
+
+
+def _session_speed_settings(cursor):
+    cursor.execute("SET SESSION foreign_key_checks = 0")
+    cursor.execute("SET SESSION unique_checks = 0")
+    cursor.execute("SET SESSION sql_mode = ''")
+
+
+def _session_speed_restore(cursor):
+    cursor.execute("SET SESSION foreign_key_checks = 1")
+    cursor.execute("SET SESSION unique_checks = 1")
+
+
+# loaders
+
 def load_antenas_fast():
-    """Carga la tabla de antenas usando LOAD DATA INFILE"""
-    file_path = os.path.join(DATA_DIR, "antenas_flp.csv")
-    if not os.path.exists(file_path):
-        print(f"Archivo {file_path} no encontrado, saltando antenas")
+    path = os.path.join(DATA_DIR, "antenas_flp.csv")
+    if not os.path.exists(path):
+        print("  [antenas] archivo no encontrado, saltando", flush=True)
         return
-    
-    print("Cargando antenas con LOAD DATA INFILE...")
-    start_time = time.time()
-    
-    conn = get_mysql_connection()
-    cursor = conn.cursor()
-    
+
+    print(f"[antenas] LOAD DATA INFILE ({os.path.getsize(path):,} bytes)...", flush=True)
+    t0 = time.time()
+    conn = get_conn(); cur = conn.cursor()
     try:
-        sql = """
-        LOAD DATA LOCAL INFILE %s
-        INTO TABLE antenas
-        FIELDS TERMINATED BY ','
-        ENCLOSED BY '"'
-        LINES TERMINATED BY '\n'
-        IGNORE 1 LINES
-        (@ecgi, @cluster, @municipio, @lat, @lon)
-        SET ecgi = CAST(@ecgi AS CHAR),
-            cluster = @cluster,
-            municipio = @municipio,
-            lat = @lat,
-            lon = @lon
-        """
-        cursor.execute(sql, (file_path,))
-        conn.commit()
-        
-        elapsed = time.time() - start_time
-        print(f"Cargadas {cursor.rowcount} filas en antenas en {elapsed:.2f}s")
+        _session_speed_settings(cur)
+        n = _fast_load(cur, conn, path, """
+            LOAD DATA LOCAL INFILE %s
+            INTO TABLE antenas
+            FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\\n'
+            IGNORE 1 LINES
+            (@ecgi, @cluster, @municipio, @lat, @lon)
+            SET ecgi = CAST(@ecgi AS CHAR),
+                cluster = @cluster, municipio = @municipio,
+                lat = @lat, lon = @lon
+        """, "antenas")
+        print(f"[antenas] {n:,} filas en {time.time()-t0:.1f}s", flush=True)
+    except Exception:
+        print("[antenas] ERROR:", flush=True); traceback.print_exc(); raise
     finally:
-        cursor.close()
-        conn.close()
+        _session_speed_restore(cur); cur.close(); conn.close()
 
 
 def load_assinantes_fast():
-    """Carga la tabla de assinantes usando LOAD DATA INFILE"""
-    file_path = os.path.join(DATA_DIR, "assinantes.csv")
-    if not os.path.exists(file_path):
-        print(f"Archivo {file_path} no encontrado, saltando assinantes")
+    path = os.path.join(DATA_DIR, "assinantes.csv")
+    if not os.path.exists(path):
+        print("  [assinantes] archivo no encontrado, saltando", flush=True)
         return
-    
-    print("Cargando assinantes con LOAD DATA INFILE...")
-    start_time = time.time()
-    
-    conn = get_mysql_connection()
-    cursor = conn.cursor()
-    
-    try:
-        sql = """
-        LOAD DATA LOCAL INFILE %s
-        INTO TABLE assinantes
-        FIELDS TERMINATED BY ','
-        ENCLOSED BY '"'
-        LINES TERMINATED BY '\n'
-        IGNORE 1 LINES
-        (assinante_hash, home_cluster, home_municipio, income_cluster, age_group, mobility_pattern, flag_flagship)
-        """
-        cursor.execute(sql, (file_path,))
-        conn.commit()
-        
-        elapsed = time.time() - start_time
-        print(f"Cargadas {cursor.rowcount} filas en assinantes en {elapsed:.2f}s")
-    finally:
-        cursor.close()
-        conn.close()
 
-
-def load_concentracao_fast():
-    """Carga la tabla de concentração usando LOAD DATA INFILE con transformaciones"""
-    file_path = os.path.join(DATA_DIR, "tensor_concentracao.csv")
-    if not os.path.exists(file_path):
-        print(f"Archivo {file_path} no encontrado, saltando concentracao")
-        return
-    
-    print("Cargando concentracao con LOAD DATA INFILE...")
-    start_time = time.time()
-    
-    conn = get_mysql_connection()
-    cursor = conn.cursor()
-    
+    print(f"[assinantes] LOAD DATA INFILE ({os.path.getsize(path):,} bytes)...", flush=True)
+    t0 = time.time()
+    conn = get_conn(); cur = conn.cursor()
     try:
-        sql = """
-        LOAD DATA LOCAL INFILE %s
-        INTO TABLE concentracao
-        FIELDS TERMINATED BY ','
-        ENCLOSED BY '"'
-        LINES TERMINATED BY '\n'
-        IGNORE 1 LINES
-        (@ecgi, @cluster, @municipio, @day_date, @periodo, @n_usuarios, @download_bytes, @congestionamento_medio)
-        SET ecgi = CAST(@ecgi AS CHAR),
-            cluster = @cluster,
-            municipio = @municipio,
-            day_date = @day_date,
-            periodo = @periodo,
-            n_usuarios = @n_usuarios,
-            download_gb = @download_bytes / 1000000000,
-            congestionamento_medio = @congestionamento_medio,
-            rat_type_predominante = NULL
-        """
-        cursor.execute(sql, (file_path,))
-        conn.commit()
-        
-        elapsed = time.time() - start_time
-        print(f"Cargadas {cursor.rowcount} filas em concentracao em {elapsed:.2f}s")
+        _session_speed_settings(cur)
+        n = _fast_load(cur, conn, path, """
+            LOAD DATA LOCAL INFILE %s
+            INTO TABLE assinantes
+            FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\\n'
+            IGNORE 1 LINES
+            (assinante_hash, home_cluster, home_municipio,
+             income_cluster, age_group, mobility_pattern, flag_flagship)
+        """, "assinantes")
+        print(f"[assinantes] {n:,} filas en {time.time()-t0:.1f}s", flush=True)
+    except Exception:
+        print("[assinantes] ERROR:", flush=True); traceback.print_exc(); raise
     finally:
-        cursor.close()
-        conn.close()
+        _session_speed_restore(cur); cur.close(); conn.close()
 
 
 def load_mobilidade_agregada_fast():
-    """Carga la tabla de mobilidade agregada usando LOAD DATA INFILE (el más rápido para archivos grandes)"""
-    file_path = os.path.join(DATA_DIR, "tensor_mobilidade.csv")
-    if not os.path.exists(file_path):
-        print(f"Archivo {file_path} no encontrado, saltando mobilidade_agregada")
+    path = os.path.join(DATA_DIR, "tensor_mobilidade.csv")
+    if not os.path.exists(path):
+        print("  [mobilidade] archivo no encontrado, saltando", flush=True)
         return
-    
-    print("Cargando mobilidade_agregada con LOAD DATA INFILE...")
-    start_time = time.time()
-    
-    conn = get_mysql_connection()
-    cursor = conn.cursor()
-    
-    try:
-        sql = """
+
+    size_mb = os.path.getsize(path) / 1_048_576
+    print(f"[mobilidade] carga por chunks via INFILE ({size_mb:.0f} MB)...", flush=True)
+    t0 = time.time()
+    total = 0
+    CHUNK = 100_000
+
+    conn = get_conn(); cur = conn.cursor()
+    _session_speed_settings(cur)
+
+    sql_load = """
         LOAD DATA LOCAL INFILE %s
         INTO TABLE mobilidade_agregada
-        FIELDS TERMINATED BY ','
-        ENCLOSED BY '"'
-        LINES TERMINATED BY '\n'
-        IGNORE 1 LINES
-        (@ecgi, @cluster, @municipio, @day_date, @periodo_sessao, @income_cluster, @age_group, @rat_type, @n_sessoes, @download_bytes, @drop_pct, @congestionamento)
+        FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\\n'
+        IGNORE 0 LINES
+        (@ecgi, @cluster, @municipio, @day_date, @periodo,
+         @income_cluster, @age_group, @rat_type, @n_sessoes,
+         @download_bytes, @drop_pct_avg, @congestionamento_avg)
         SET ecgi = CAST(@ecgi AS CHAR),
-            cluster = @cluster,
-            municipio = @municipio,
-            day_date = @day_date,
-            periodo = @periodo_sessao,
-            income_cluster = @income_cluster,
-            age_group = @age_group,
-            rat_type = @rat_type,
-            n_sessoes = @n_sessoes,
-            download_gb = @download_bytes / 1000000000,
-            drop_pct_avg = @drop_pct,
-            congestionamento_avg = @congestionamento
-        """
-        cursor.execute(sql, (file_path,))
-        conn.commit()
-        
-        elapsed = time.time() - start_time
-        print(f"Cargadas {cursor.rowcount} filas en mobilidade_agregada en {elapsed:.2f}s")
+            cluster = @cluster, municipio = @municipio,
+            day_date = NULLIF(@day_date, '0000-00-00'),
+            periodo = @periodo, income_cluster = @income_cluster,
+            age_group = @age_group, rat_type = @rat_type,
+            n_sessoes = @n_sessoes, download_bytes = @download_bytes,
+            drop_pct_avg = @drop_pct_avg,
+            congestionamento_avg = @congestionamento_avg
+    """
+
+    try:
+        for i, chunk in enumerate(pd.read_csv(path, chunksize=CHUNK), 1):
+            chunk = (
+                chunk[["ecgi", "cluster", "municipio", "day_date", "periodo_sessao",
+                        "income_cluster", "age_group", "rat_type", "n_sessoes",
+                        "download_bytes", "drop_pct", "congestionamento"]]
+                .rename(columns={
+                    "periodo_sessao": "periodo",
+                    "drop_pct": "drop_pct_avg",
+                    "congestionamento": "congestionamento_avg",
+                })
+            )
+            chunk["ecgi"] = chunk["ecgi"].astype(str)
+
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".csv", delete=False, newline=""
+            ) as tmp:
+                tmp_path = tmp.name
+                chunk.to_csv(tmp, index=False, header=False)
+
+            try:
+                cur.execute(sql_load, (tmp_path,))
+                conn.commit()
+                total += cur.rowcount
+            finally:
+                os.unlink(tmp_path)
+
+            elapsed = time.time() - t0
+            speed = total / elapsed if elapsed else 0
+            print(
+                f"  [mobilidade] chunk {i:>4} | {total:>12,} filas | {speed:>8,.0f} f/s",
+                flush=True,
+            )
+
+        print(f"[mobilidade] completado: {total:,} filas en {time.time()-t0:.1f}s", flush=True)
+
+    except Exception:
+        print("[mobilidade] ERROR:", flush=True); traceback.print_exc(); raise
     finally:
-        cursor.close()
-        conn.close()
+        _session_speed_restore(cur); cur.close(); conn.close()
+
+
+def load_concentracao_fast():
+    # CSV: ecgi, cluster, municipio, day_date, periodo, n_usuarios, n_sessoes,
+    #      download_bytes, upload_bytes, dur_media_s, drop_pct_medio,
+    #      congestionamento_medio, chamadas_total, mensagens_total, lat, lon  (16 cols)
+    path = os.path.join(DATA_DIR, "tensor_concentracao.csv")
+    if not os.path.exists(path):
+        print("  [concentracao] archivo no encontrado, saltando", flush=True)
+        return
+
+    print(f"[concentracao] LOAD DATA INFILE ({os.path.getsize(path):,} bytes)...", flush=True)
+    t0 = time.time()
+    conn = get_conn(); cur = conn.cursor()
+    try:
+        _session_speed_settings(cur)
+        n = _fast_load(cur, conn, path, """
+            LOAD DATA LOCAL INFILE %s
+            INTO TABLE concentracao
+            FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\\n'
+            IGNORE 1 LINES
+            (@ecgi, @cluster, @municipio, @day_date, @periodo,
+             @n_usuarios, @descarte1, @download_bytes, @descarte2,
+             @descarte3, @descarte4, @congestionamento_medio,
+             @descarte5, @descarte6, @descarte7, @descarte8)
+            SET ecgi = CAST(@ecgi AS CHAR),
+                cluster = @cluster, municipio = @municipio,
+                day_date = NULLIF(@day_date, ''),
+                periodo = @periodo,
+                n_usuarios = @n_usuarios,
+                download_gb = @download_bytes / 1000000000,
+                congestionamento_medio = @congestionamento_medio,
+                rat_type_predominante = NULL
+        """, "concentracao")
+        print(f"[concentracao] {n:,} filas cargadas en {time.time()-t0:.1f}s", flush=True)
+
+        print("[concentracao] calculando rat_type_predominante...", flush=True)
+        t1 = time.time()
+        cur.execute("""
+            UPDATE concentracao c
+            INNER JOIN (
+                SELECT ecgi, day_date, periodo, rat_type
+                FROM (
+                    SELECT ecgi, day_date, periodo, rat_type,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY ecgi, day_date, periodo
+                               ORDER BY COUNT(*) DESC, rat_type
+                           ) AS rn
+                    FROM mobilidade_agregada
+                    WHERE rat_type IS NOT NULL AND day_date IS NOT NULL
+                    GROUP BY ecgi, day_date, periodo, rat_type
+                ) ranked WHERE rn = 1
+            ) m ON c.ecgi = m.ecgi AND c.day_date = m.day_date AND c.periodo = m.periodo
+            SET c.rat_type_predominante = m.rat_type
+        """)
+        conn.commit()
+        print(f"[concentracao] rat_type actualizado para {cur.rowcount:,} filas en {time.time()-t1:.1f}s", flush=True)
+
+    except Exception:
+        print("[concentracao] ERROR:", flush=True); traceback.print_exc(); raise
+    finally:
+        _session_speed_restore(cur); cur.close(); conn.close()
 
 
 def load_flujo_od_fast():
-    """Carga la tabla de flujo OD usando LOAD DATA INFILE"""
-    file_path = os.path.join(DATA_DIR, "tensor_od.csv")
-    if not os.path.exists(file_path):
-        print(f"Archivo {file_path} no encontrado, saltando flujo_od")
+    # CSV: cluster_origem, municipio_origem, lat_origem, lon_origem,
+    #      cluster_destino, municipio_destino, lat_destino, lon_destino,
+    #      mesmo_cluster, n_usuarios, n_viagens, dist_media_km, periodo_predominante  (13 cols)
+    path = os.path.join(DATA_DIR, "tensor_od.csv")
+    if not os.path.exists(path):
+        print("  [flujo_od] archivo no encontrado, saltando", flush=True)
         return
-    
-    print("Cargando flujo_od con LOAD DATA INFILE...")
-    start_time = time.time()
-    
-    conn = get_mysql_connection()
-    cursor = conn.cursor()
-    
+
+    print(f"[flujo_od] LOAD DATA INFILE ({os.path.getsize(path):,} bytes)...", flush=True)
+    t0 = time.time()
+    conn = get_conn(); cur = conn.cursor()
     try:
-        sql = """
-        LOAD DATA LOCAL INFILE %s
-        INTO TABLE flujo_od
-        FIELDS TERMINATED BY ','
-        ENCLOSED BY '"'
-        LINES TERMINATED BY '\n'
-        IGNORE 1 LINES
-        (@cluster_origem, @municipio_origem, @cluster_destino, @municipio_destino, @n_usuarios, @n_viagens, @dist_media_km, @mesmo_cluster)
-        SET cluster_origem = @cluster_origem,
-            municipio_origem = @municipio_origem,
-            cluster_destino = @cluster_destino,
-            municipio_destino = @municipio_destino,
-            n_usuarios = @n_usuarios,
-            n_viagens = @n_viagens,
-            dist_media_km = @dist_media_km,
-            mesmo_cluster = @mesmo_cluster
-        """
-        cursor.execute(sql, (file_path,))
-        conn.commit()
-        
-        elapsed = time.time() - start_time
-        print(f"Cargadas {cursor.rowcount} filas en flujo_od en {elapsed:.2f}s")
+        _session_speed_settings(cur)
+        n = _fast_load(cur, conn, path, """
+            LOAD DATA LOCAL INFILE %s
+            INTO TABLE flujo_od
+            FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\\n'
+            IGNORE 1 LINES
+            (@cluster_origem, @municipio_origem, @descarte1, @descarte2,
+             @cluster_destino, @municipio_destino, @descarte3, @descarte4,
+             @mesmo_cluster, @n_usuarios, @n_viagens, @dist_media_km, @descarte5)
+            SET cluster_origem = @cluster_origem,
+                municipio_origem = @municipio_origem,
+                cluster_destino = @cluster_destino,
+                municipio_destino = @municipio_destino,
+                n_usuarios = @n_usuarios, n_viagens = @n_viagens,
+                dist_media_km = @dist_media_km,
+                mesmo_cluster = @mesmo_cluster
+        """, "flujo_od")
+        print(f"[flujo_od] {n:,} filas en {time.time()-t0:.1f}s", flush=True)
+    except Exception:
+        print("[flujo_od] ERROR:", flush=True); traceback.print_exc(); raise
     finally:
-        cursor.close()
-        conn.close()
+        _session_speed_restore(cur); cur.close(); conn.close()
 
 
 def load_fluxo_vias_fast():
-    """Carga la tabla de fluxo vias usando LOAD DATA INFILE"""
-    file_path = os.path.join(DATA_DIR, "tensor_fluxo_vias.csv")
-    if not os.path.exists(file_path):
-        print(f"Archivo {file_path} no encontrado, saltando fluxo_vias")
+    # CSV: ecgi_origem, lat_origem, lon_origem, cluster_origem, municipio_origem,
+    #      ecgi_destino, lat_destino, lon_destino, cluster_destino, municipio_destino,
+    #      n_usuarios, n_transicoes, dist_km, periodo_predominante, pct_do_cluster_origem  (15 cols)
+    path = os.path.join(DATA_DIR, "tensor_fluxo_vias.csv")
+    if not os.path.exists(path):
+        print("  [fluxo_vias] archivo no encontrado, saltando", flush=True)
         return
-    
-    print("Cargando fluxo_vias con LOAD DATA INFILE...")
-    start_time = time.time()
-    
-    conn = get_mysql_connection()
-    cursor = conn.cursor()
-    
+
+    print(f"[fluxo_vias] LOAD DATA INFILE ({os.path.getsize(path):,} bytes)...", flush=True)
+    t0 = time.time()
+    conn = get_conn(); cur = conn.cursor()
     try:
-        sql = """
-        LOAD DATA LOCAL INFILE %s
-        INTO TABLE fluxo_vias
-        FIELDS TERMINATED BY ','
-        ENCLOSED BY '"'
-        LINES TERMINATED BY '\n'
-        IGNORE 1 LINES
-        (@ecgi_origem, @cluster_origem, @ecgi_destino, @cluster_destino, @n_usuarios, @n_transicoes, @dist_km, @periodo_predominante, @pct_do_cluster_origem)
-        SET ecgi_origem = CAST(@ecgi_origem AS CHAR),
-            cluster_origem = @cluster_origem,
-            ecgi_destino = CAST(@ecgi_destino AS CHAR),
-            cluster_destino = @cluster_destino,
-            n_usuarios = @n_usuarios,
-            n_transicoes = @n_transicoes,
-            dist_km = @dist_km,
-            periodo_predominante = @periodo_predominante,
-            pct_do_cluster_origem = @pct_do_cluster_origem
-        """
-        cursor.execute(sql, (file_path,))
-        conn.commit()
-        
-        elapsed = time.time() - start_time
-        print(f"Cargadas {cursor.rowcount} filas en fluxo_vias en {elapsed:.2f}s")
+        _session_speed_settings(cur)
+        n = _fast_load(cur, conn, path, """
+            LOAD DATA LOCAL INFILE %s
+            INTO TABLE fluxo_vias
+            FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\\n'
+            IGNORE 1 LINES
+            (@ecgi_origem, @descarte1, @descarte2, @cluster_origem, @municipio_origem,
+             @ecgi_destino, @descarte3, @descarte4, @cluster_destino, @municipio_destino,
+             @n_usuarios, @n_transicoes, @dist_km,
+             @periodo_predominante, @pct_do_cluster_origem)
+            SET ecgi_origem = CAST(@ecgi_origem AS CHAR),
+                cluster_origem = @cluster_origem,
+                ecgi_destino = CAST(@ecgi_destino AS CHAR),
+                cluster_destino = @cluster_destino,
+                n_usuarios = @n_usuarios, n_transicoes = @n_transicoes,
+                dist_km = @dist_km,
+                periodo_predominante = @periodo_predominante,
+                pct_do_cluster_origem = @pct_do_cluster_origem
+        """, "fluxo_vias")
+        print(f"[fluxo_vias] {n:,} filas en {time.time()-t0:.1f}s", flush=True)
+    except Exception:
+        print("[fluxo_vias] ERROR:", flush=True); traceback.print_exc(); raise
     finally:
-        cursor.close()
-        conn.close()
+        _session_speed_restore(cur); cur.close(); conn.close()
