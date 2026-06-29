@@ -33,7 +33,7 @@ public interface TerritorialIndicatorsRepository extends JpaRepository<Territori
                                 )
                                 FROM indicadores_territoriales ind
                                 WHERE ind.cluster = geo.cluster
-                                  AND ind.categoria = :categoria
+                                  AND ind.categoria = UPPER(:categoria)
                                   
                                   AND (:indicador IS NULL OR ind.indicador = :indicador)
                             ), JSON_ARRAY()

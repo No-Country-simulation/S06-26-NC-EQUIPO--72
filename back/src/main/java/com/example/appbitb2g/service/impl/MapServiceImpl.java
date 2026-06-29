@@ -45,7 +45,7 @@ public class MapServiceImpl implements MapService {
               
                 
                
-                if (categoria==null || !CATEGORIAS_VALIDAS.contains(categoria)) {
+                if (categoria==null || !CATEGORIAS_VALIDAS.contains(categoria.toUpperCase())) {
                         throw new BadRequestException(
                                         "El valor de Categoria debe ser SALUD_MENTAL / EMPLEO / EDUCACION");
                 }
