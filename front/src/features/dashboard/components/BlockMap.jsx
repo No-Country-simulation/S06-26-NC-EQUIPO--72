@@ -76,7 +76,7 @@ export const BlockMap = ({
     });
 
     return Math.ceil(maxX + 30);
-  }, []);
+  }, [regiones.data?.regiones]);
 
   const handleMouseEnter = (region, e) => {
     const svgElementRef = e.currentTarget.closest("svg");
