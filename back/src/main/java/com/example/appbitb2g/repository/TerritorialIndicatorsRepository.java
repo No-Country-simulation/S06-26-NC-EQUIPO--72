@@ -33,7 +33,7 @@ public interface TerritorialIndicatorsRepository extends JpaRepository<Territori
                                 )
                                 FROM indicadores_territoriales ind
                                 WHERE ind.cluster = geo.cluster
-                                  AND ind.categoria = UPPER(:categoria)
+                                  AND UPPER(ind.categoria) = UPPER(:categoria)
                                   
                                   AND (:indicador IS NULL OR ind.indicador = :indicador)
                             ), JSON_ARRAY()
@@ -48,13 +48,7 @@ public interface TerritorialIndicatorsRepository extends JpaRepository<Territori
                 i.municipio,
                 COALESCE(AVG(c_ant.lat), AVG(a_direct.lat)) as lat,               
                 COALESCE(AVG(c_ant.lon), AVG(a_direct.lon)) as lon,               
-                ROUND(
-                    COALESCE(
-                        LN(NULLIF(AVG(c.congestionamento_medio), 0)) / 26.0,
-                        0
-                    ),
-                    4
-                ) as congestionamento_medio,
+                MAX(c.congestionamento_medio) as congestionamento_medio, 
                 SUM(c.n_usuarios) as n_usuarios  
             FROM indicadores_territoriales i 
             LEFT JOIN concentracao c ON c.cluster = i.cluster
