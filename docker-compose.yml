@@ -31,6 +31,9 @@ services:
       --innodb-log-buffer-size=256M
       --innodb-flush-log-at-trx-commit=2
       --innodb-buffer-pool-size=1G
+      --slow_query_log=1
+      --long_query_time=0
+      --log_queries_not_using_indexes=1
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}

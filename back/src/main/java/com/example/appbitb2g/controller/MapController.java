@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +24,7 @@ import java.util.Arrays;
 @Tag(name = "Mapa", description = "Endpoints para visualizar regiones y sus indicadores territoriales")
 public class MapController{
     private final MapService mapService;
+    
 
     public MapController(MapService mapService) {
         this.mapService = mapService;
@@ -92,22 +95,15 @@ public class MapController{
     @GetMapping("/indicadores")
     public ResponseEntity<?> getIndicadoresMap(
             @Parameter(description = "Categoría de indicadores a consultar", example = "EDUCACION", required = true)
-            @RequestParam(name = "categoria") String categoria,
+            @RequestParam(name = "categoria" ,required = false) String categoria,
             @Parameter(description = "Indicador específico opcional", example = "idhm_2010_educacion")
             @RequestParam(name = "indicador", required = false) String indicador,
             @Parameter(description = "Municipio a filtrar", example = "São José")
             @RequestParam(name = "municipio", required = false) String municipio
     ){
-        // 1. Validación de seguridad contra el contrato
-        if(!Arrays.asList("SALUD_MENTAL", "EMPLEO","EDUCACION").contains(categoria.toUpperCase())){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                    new MensajeResponseDTO(
-                            "FILTRO_INVALIDO",
-                            "El valor de ´Categoria´ debe ser SALUD_MENTAL / EMPLEO / EDUCACION"
-                    )
-            );
-
-        }
+          
+          
+       
 
         // 2. Llamada al servicio que cruza Antenas + Concentracion + TerritorialIndicators
               MapIndicadoresResponseDTO response = mapService.obtenerMapaIndicadores(categoria, indicador,municipio);
