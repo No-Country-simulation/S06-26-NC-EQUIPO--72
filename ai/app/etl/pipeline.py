@@ -105,3 +105,7 @@ def run_pipeline():
         print(f"[ETL] Pipeline completado con errores en: {errors}", flush=True)
     else:
         print("[ETL] Pipeline completado exitosamente", flush=True)
+
+
+
+        

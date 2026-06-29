@@ -1,0 +1,24 @@
+
+# Ignorar entornos virtuales de Python
+venv/
+.venv/
+ENV/
+env/
+
+# Ignorar dependencias de Node
+node_modules/
+dist/
+build/
+
+# Ignorar carpetas o archivos de datos pesados (como modelos o datasets de la IA)
+*.bin
+*.pkl
+*.h5
+models/
+datasets/
+
+# Archivos del sistema y logs
+.git
+.gitignore
+.dockerignore
+*.log
