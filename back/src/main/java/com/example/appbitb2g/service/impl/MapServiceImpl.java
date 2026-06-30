@@ -31,13 +31,15 @@ public class MapServiceImpl implements MapService {
         // garantizando que IntelliJ no marque la variable como inactiva.
         private final AntenaRepository antenaRepository;
         private final TerritorialIndicatorsRepository territorialIndicatorsRepository;
+        private final ConcentracaoRepository concentracaoRepository;
         private final ObjectMapper objectMapper;
           private static final Set<String> CATEGORIAS_VALIDAS = Set.of("SALUD_MENTAL", "EDUCACION", "EMPLEO");
 
-        public MapServiceImpl(AntenaRepository antenaRepository, TerritorialIndicatorsRepository territorialIndicatorsRepository,
+        public MapServiceImpl(AntenaRepository antenaRepository, TerritorialIndicatorsRepository territorialIndicatorsRepository, ConcentracaoRepository concentracaoRepository,
                               ObjectMapper objectMapper) {
             this.antenaRepository = antenaRepository;
             this.territorialIndicatorsRepository = territorialIndicatorsRepository;
+            this.concentracaoRepository = concentracaoRepository;
                 this.objectMapper = objectMapper;
         }
 
@@ -69,15 +71,19 @@ public class MapServiceImpl implements MapService {
         public MapResponseDTO obtenerMapa(String periodo, String municipio, String fecha) {
                 // Si los filtros vienen vacion de Front asignamos valores por defecto
                 String periodoFinal = (periodo != null && !periodo.isBlank()) ? periodo.toUpperCase() : "TARDE";
-                String fechaFinal = (fecha != null && !fecha.isBlank()) ? fecha : LocalDate.now().toString();
+                LocalDate fechaFinal = (fecha != null && !fecha.isBlank())
+                        ? LocalDate.parse(fecha)
+                        : concentracaoRepository.findMaxDayDate();
                 // 2. Si dice "todos", mandamos null para que la query desactive el filtro de municipio
-                String filtroMunicipio = (municipio!= null && !municipio.equalsIgnoreCase("todos"))? municipio : null;
+                String filtroMunicipio = (municipio != null && !municipio.equalsIgnoreCase("todos")) ? municipio : null;
 
+                
                 // 3. Llamamos a tu repositorio real que calcula promedios geográficos y de tráfico
 
-                List<MapResponseDTO.MapRegionDTO> regionesReales= antenaRepository.obtenerDatosMapaPrincipal(periodoFinal,filtroMunicipio,fechaFinal);
-
+                List<MapResponseDTO.MapRegionDTO> regionesReales =
+                        antenaRepository.obtenerDatosMapaPrincipal(periodoFinal, filtroMunicipio, fechaFinal);
                 // Envolvemos la lista real en el DTO final y se lo mandamos al Frontend
                 return new MapResponseDTO(regionesReales);
         }
 }
+ 
