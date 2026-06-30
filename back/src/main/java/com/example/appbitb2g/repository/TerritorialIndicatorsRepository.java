@@ -28,7 +28,7 @@ public interface TerritorialIndicatorsRepository extends JpaRepository<Territori
         -- Concentración de usuarios y congestión del cluster en el último día disponible
         concentracion_actual AS (
             SELECT c.cluster,
-                ROUND(AVG(c.congestionamento_medio), 2) AS congestionamento_medio,
+                TRUNCATE(AVG(c.congestionamento_medio), 2) AS congestionamento_medio,
                 SUM(c.n_usuarios) AS n_usuarios
             FROM concentracao c
             JOIN ultimo_dia u ON c.day_date = u.day_date
