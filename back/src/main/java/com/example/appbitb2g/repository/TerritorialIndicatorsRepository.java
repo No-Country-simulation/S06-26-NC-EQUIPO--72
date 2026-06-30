@@ -44,11 +44,8 @@ public interface TerritorialIndicatorsRepository extends JpaRepository<Territori
         )
         FROM (
             SELECT i.cluster, i.municipio, COALESCE(AVG(c_ant.lat), AVG(a_direct.lat)) AS lat, COALESCE(AVG(c_ant.lon), AVG(a_direct.lon)) AS lon,
-            (   SELECT AVG(c2.congestionamento_medio)
-                FROM concentracao c2
-                WHERE c2.cluster = i.cluster
-            ) AS congestionamento_medio,
-                SUM(c.n_usuarios) as n_usuarios  
+            round(AVG(c.congestionamento_medio),2) congestionamento_medio,
+            SUM(c.n_usuarios) as n_usuarios  
             FROM indicadores_territoriales i 
             LEFT JOIN concentracao c ON c.cluster = i.cluster
             LEFT JOIN antenas c_ant ON c_ant.ecgi = c.ecgi
