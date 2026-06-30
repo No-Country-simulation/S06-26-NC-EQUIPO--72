@@ -29,13 +29,15 @@ import com.example.appbitb2g.exception.BadRequestException;
 public class MapServiceImpl implements MapService {
         // Se inyecta el repositorio para cumplir con las dependencias de Spring,
         // garantizando que IntelliJ no marque la variable como inactiva.
+        private final AntenaRepository antenaRepository;
         private final TerritorialIndicatorsRepository territorialIndicatorsRepository;
         private final ObjectMapper objectMapper;
           private static final Set<String> CATEGORIAS_VALIDAS = Set.of("SALUD_MENTAL", "EDUCACION", "EMPLEO");
 
-        public MapServiceImpl(TerritorialIndicatorsRepository territorialIndicatorsRepository,
-                        ObjectMapper objectMapper) {
-                this.territorialIndicatorsRepository = territorialIndicatorsRepository;
+        public MapServiceImpl(AntenaRepository antenaRepository, TerritorialIndicatorsRepository territorialIndicatorsRepository,
+                              ObjectMapper objectMapper) {
+            this.antenaRepository = antenaRepository;
+            this.territorialIndicatorsRepository = territorialIndicatorsRepository;
                 this.objectMapper = objectMapper;
         }
 
@@ -65,55 +67,17 @@ public class MapServiceImpl implements MapService {
 
         @Override
         public MapResponseDTO obtenerMapa(String periodo, String municipio, String fecha) {
-                // Valores por defecto según contrato
+                // Si los filtros vienen vacion de Front asignamos valores por defecto
                 String periodoFinal = (periodo != null && !periodo.isBlank()) ? periodo.toUpperCase() : "TARDE";
                 String fechaFinal = (fecha != null && !fecha.isBlank()) ? fecha : LocalDate.now().toString();
+                // 2. Si dice "todos", mandamos null para que la query desactive el filtro de municipio
+                String filtroMunicipio = (municipio!= null && !municipio.equalsIgnoreCase("todos"))? municipio : null;
 
-                List<MapResponseDTO.MapRegionDTO> regiones = new ArrayList<>();
+                // 3. Llamamos a tu repositorio real que calcula promedios geográficos y de tráfico
 
-                regiones.add(new MapResponseDTO.MapRegionDTO(
-                                "SAO_JOSE_KOBRASOL",
-                                "São José",
-                                -27.5935,
-                                -48.6358,
-                                12400,
-                                0.72,
-                                "LTE",
-                                34.5,
-                                periodoFinal,
-                                fechaFinal));
+                List<MapResponseDTO.MapRegionDTO> regionesReales= antenaRepository.obtenerDatosMapaPrincipal(periodoFinal,filtroMunicipio,fechaFinal);
 
-                regiones.add(new MapResponseDTO.MapRegionDTO(
-                                "FLORIANOPOLIS_CENTRO",
-                                "Florianópolis",
-                                -27.5969,
-                                -48.5495,
-                                18500,
-                                0.42,
-                                "5G",
-                                45.2,
-                                periodoFinal,
-                                fechaFinal));
-
-                regiones.add(new MapResponseDTO.MapRegionDTO(
-                                "FLORIANOPOLIS_TRINDADE",
-                                "Florianópolis",
-                                -27.5862,
-                                -48.5152,
-                                8200,
-                                0.18,
-                                "LTE",
-                                28.1,
-                                periodoFinal,
-                                fechaFinal));
-
-                // Filtrar por municipio si se proporciona
-                if (municipio != null && !municipio.isBlank() && !municipio.equalsIgnoreCase("todos")) {
-                        regiones = regiones.stream()
-                                        .filter(r -> r.municipio().equalsIgnoreCase(municipio))
-                                        .toList();
-                }
-
-                return new MapResponseDTO(regiones);
+                // Envolvemos la lista real en el DTO final y se lo mandamos al Frontend
+                return new MapResponseDTO(regionesReales);
         }
 }
