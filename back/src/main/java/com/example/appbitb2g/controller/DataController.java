@@ -2,8 +2,10 @@ package com.example.appbitb2g.controller;
 
 
 
+import com.example.appbitb2g.dto.responseDTO.errorResponse.ErrorResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -41,8 +43,26 @@ public class DataController {
             description = "Consulta procesada correctamente",
             content = @Content(schema = @Schema(implementation = AiQueryResponseDTO.class))
         ),
-        @ApiResponse(responseCode = "422", description = "Consulta irrelevante o no resoluble"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servicio")
+        @ApiResponse(
+                responseCode = "422",
+                description = "Consulta irrelevante o no resoluble",
+                content=@Content(
+                        mediaType = "application/json",
+                        schema = @Schema(
+                                implementation =  ErrorResponseDto.class),
+                         examples = @ExampleObject(
+                                 name = "Ejemplo Consulta Irrelevante (422)",
+                                 summary = "Ejemplo real de error cuando la consulta de IA está fuera de contexto",
+                                 value = "{\n" +
+                                         "  \"error\": \"CONSULTA_IRRELEVANTE\",\n" +
+                                         "  \"mensaje\": \"La consulta no puede resolverse con los datos disponibles.\"\n" +
+                                         "}"
+                        )
+                )
+
+        ),
+
+        //@ApiResponse(responseCode = "500", description = "Error interno del servicio")
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
         description = "Consulta a enviar al servicio de IA",
@@ -50,7 +70,7 @@ public class DataController {
         content = @Content(schema = @Schema(implementation = AiQueryRequestDTO.class))
     )
     @PostMapping("/datos")
-    public ResponseEntity<AiQueryResponseDTO> datosQuery(@RequestBody AiQueryRequestDTO requestDto) {
+    public ResponseEntity<?> datosQuery(@RequestBody AiQueryRequestDTO requestDto) {
         var response = dataService.aiQueryAgent(requestDto);
         return ResponseEntity.ok(response);
     }
