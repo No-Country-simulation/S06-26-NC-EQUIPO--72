@@ -44,7 +44,7 @@ La documentación interactiva está disponible automáticamente con FastAPI
 ## Preparación de Datasets y Pipeline ETL
 
 ### 1. Obtener los datasets
-Los archivos CSV están disponibles en este [Google Drive](https://drive.google.com/drive/folders/1nXCg4Il5vmBI_5aldhNMPfAdp_dQyobE?usp=sharing) 
+Los archivos CSV están disponibles en este [Google Drive](https:/drive.google.com/drive/folders/1nXCg4Il5vmBI_5aldhNMPfAdp_dQyobE?usp=sharing) 
 
 > **Nota:** los CSV de esta carpeta ya están **saneados y corregidos**. No es necesario volver a ejecutar el script de corrección sobre estos archivos.
 
