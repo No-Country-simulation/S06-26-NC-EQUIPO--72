@@ -87,6 +87,7 @@ function MainLayout({ children, currentTab, onTabChange }) {
 
             {/* Footer / Profile */}
             <SidebarFooter className="border-t border-sidebar-border p-4 group-data-[collapsible=icon]:p-2 bg-sidebar animate-none">
+              {/* 
               <div className="flex items-center gap-3 px-2 py-1.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
                 <div className="w-8 h-8 rounded-full bg-[#2563eb] flex items-center justify-center text-white font-bold text-xs shrink-0">
                   AR
@@ -96,9 +97,21 @@ function MainLayout({ children, currentTab, onTabChange }) {
                   <p className="text-[9px] text-slate-400 truncate">Analista Senior</p>
                 </div>
               </div>
+              */}
+
+              {/* 
               <button className="w-full mt-2 flex items-center gap-2 px-2 py-2 text-xs hover:text-white text-slate-400 transition-colors group-data-[collapsible=icon]:justify-center">
                 <LogOut className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="group-data-[collapsible=icon]:hidden truncate">Cerrar sesión</span>
+              </button>
+              */}
+
+              <button 
+                onClick={() => onTabChange("landing")}
+                className="w-full mt-2 flex items-center gap-2 px-2.5 py-2.5 text-xs hover:text-white hover:bg-slate-800 text-slate-400 rounded-lg transition-all group-data-[collapsible=icon]:justify-center cursor-pointer font-medium"
+              >
+                <LogOut className="w-4 h-4 flex-shrink-0 text-slate-400 group-hover:text-white" />
+                <span className="group-data-[collapsible=icon]:hidden truncate">Volver al Inicio</span>
               </button>
             </SidebarFooter>
           </Sidebar>
