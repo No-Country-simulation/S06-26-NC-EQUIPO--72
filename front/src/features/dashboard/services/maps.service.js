@@ -13,6 +13,15 @@ class MapsService {
     return result;
   }
 
+  async getRegions() {
+    const response = await fetch(`${this.API}regiones`);
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error("Error al obtener las regiones", result.message);
+    }
+    return result;
+  }
+
   async getMapData(params = {}) {
     const url = new URL(`${this.API}mapa`);
     Object.entries(params).forEach(([key, value]) => {

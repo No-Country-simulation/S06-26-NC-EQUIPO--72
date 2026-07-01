@@ -9,6 +9,13 @@ export function useMapsIndicators(category) {
   });
 }
 
+export function useRegions() {
+  return useQuery({
+    queryKey: ["regions"],
+    queryFn: () => MapsService.getRegions(),
+  });
+}
+
 export function useMapData(params = {}) {
   return useQuery({
     queryKey: ["map-data", params],
