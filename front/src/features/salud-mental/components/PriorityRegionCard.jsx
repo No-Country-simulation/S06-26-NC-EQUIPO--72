@@ -1,3 +1,5 @@
+import { formatClusterName } from "@/shared/utils/format";
+
 export const PriorityRegionCard = ({
   region,
   status,
@@ -31,7 +33,7 @@ export const PriorityRegionCard = ({
   return (
     <div className={`rounded-lg border p-3 ${borderColor}`}>
       <div className="flex items-start justify-between">
-        <h3 className="text-sm font-semibold">{region}</h3>
+        <h3 className="text-sm font-semibold">{formatClusterName(region)}</h3>
         <span
           className={`text-xs px-2 py-0.5 rounded-full ${barColor} font-bold ${textColor}`}
         >

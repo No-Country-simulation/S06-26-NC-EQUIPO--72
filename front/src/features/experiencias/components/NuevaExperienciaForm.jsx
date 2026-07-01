@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 import { useCreateExperiencia } from "../hooks/useExperiencias";
+import { formatClusterName } from "@/shared/utils/format";
 
 // Lista oficial de clústeres para Florianópolis
 const FLORI_CLUSTERS = [
@@ -176,7 +177,7 @@ export default function NuevaExperienciaForm({ onSubmitSuccess, onCancel }) {
           <option value="">Seleccione una región territorial...</option>
           {FLORI_CLUSTERS.map((c) => (
             <option key={c} value={c}>
-              {c.replace("FLORIANOPOLIS_", "").replace("_CORREDOR", "")}
+              {formatClusterName(c)}
             </option>
           ))}
         </select>

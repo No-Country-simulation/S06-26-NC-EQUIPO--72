@@ -28,6 +28,7 @@ import {
 } from "recharts";
 import { PriorityRegionCard } from "../components/PriorityRegionCard";
 import { useSaludMental } from "../hooks/useSaludMental";
+import { formatClusterName } from "@/shared/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   BarChartDataSkeleton,
@@ -114,7 +115,7 @@ export default function SaludMentalPage() {
   };
 
   const barChartData = regiones?.map((region) => ({
-    region: region.cluster,
+    region: formatClusterName(region.cluster),
     demanda: region.congestionamento_medio * 100,
     acceso: region.indicador_social?.valor,
   }));
@@ -191,7 +192,7 @@ export default function SaludMentalPage() {
               <SquareCheckBig className="shrink-0 w-8 h-8 text-green-600" />
               <div className="flex flex-col items-baseline gap-1">
                 <span className="text-lg font-bold text-slate-800 tracking-tight">
-                  {mejorRegion?.cluster}
+                  {formatClusterName(mejorRegion?.cluster)}
                 </span>
                 <span className="text-xs text-slate-400 font-medium">
                   {mejorRegion?.indicador_social?.valor} — Óptimo

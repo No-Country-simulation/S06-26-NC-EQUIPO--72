@@ -3,6 +3,7 @@ import { generarMapaOrganico } from "../utils/organicMap";
 import { useMapsIndicators } from "../hooks/useMaps";
 import { AlertCircle, ChartColumn, Layers } from "lucide-react";
 import { BlockMapSkeleton } from "../skeletons/BlockMapSkeleton";
+import { formatClusterName } from "@/shared/utils/format";
 
 const tabs = [
   { key: "EMPLEO", label: "Tasa de Empleo" },
@@ -183,7 +184,7 @@ export const BlockMap = ({
                   fontWeight="700"
                   fill="#111827"
                 >
-                  {region.cluster}
+                  {formatClusterName(region.cluster)}
                 </text>
 
                 <text
@@ -212,7 +213,7 @@ export const BlockMap = ({
             >
               <div className="flex items-start justify-between gap-1 flex-wrap">
                 <h4 className="text-xs font-bold text-slate-800">
-                  {tooltip.region.cluster}
+                  {formatClusterName(tooltip.region.cluster)}
                 </h4>
 
                 <span className="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-slate-100 text-slate-500">
