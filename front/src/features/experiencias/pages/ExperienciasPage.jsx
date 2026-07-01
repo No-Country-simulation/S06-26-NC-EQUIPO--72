@@ -26,6 +26,7 @@ import {
   ExperienciasSkeletons,
   IndicatorsSkeleton,
 } from "../skeletons/ExperienciasPageSkeletons";
+import { formatClusterName } from "@/shared/utils/format";
 
 // Lista oficial de clústeres para Florianópolis (coincide con la sección de Formaciones)
 const FLORI_CLUSTERS = [
@@ -151,13 +152,8 @@ function ExperienciasPage() {
         impact: impactText,
         impactColor: impactColor,
         replicable: exp.replicable === 1,
-        // Limpiamos los textos del clúster técnico (ej: "FLORIANOPOLIS_CENTRO" -> "CENTRO")
-        region: exp.cluster
-          ? exp.cluster
-              .replace("FLORIANOPOLIS_", "")
-              .replace("_CORREDOR", "")
-              .replace("_", " ")
-          : "Sin definir",
+        // Limpiamos los textos del clúster técnico (ej: "FLORIANOPOLIS_CENTRO" -> "Centro")
+        region: formatClusterName(exp.cluster) || "Sin definir",
         beneficiarios: `${territorial.nUsuarios.toLocaleString("es-ES")} beneficiarios`,
         beneficiariosRaw: territorial.nUsuarios,
         leader: exp.liderReferente || "No asignado",

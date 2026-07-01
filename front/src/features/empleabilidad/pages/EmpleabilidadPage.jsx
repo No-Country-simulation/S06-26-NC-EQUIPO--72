@@ -25,6 +25,7 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart";
 import { useEmpleabilidad } from "../hooks/useEmpleabilidad";
+import { formatClusterName } from "@/shared/utils/format";
 import {
   BarChartSkeleton,
   RankingListSkeleton,
@@ -516,7 +517,7 @@ function EmpleabilidadPage() {
                     <div className="flex items-center gap-2 max-w-[200px] truncate">
                       <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span className="text-slate-700 truncate">
-                        {item.cluster}
+                        {formatClusterName(item.cluster)}
                       </span>
                     </div>
 

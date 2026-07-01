@@ -10,9 +10,10 @@ import EmpleabilidadPage from "./features/empleabilidad/pages/EmpleabilidadPage"
 import ReportesPage from "./features/reportes/pages/ReportesPage";
 import AlertasPage from "./features/alertas/pages/AlertasPage";
 import ConfiguracionPage from "./features/configuracion/pages/ConfiguracionPage";
+import LandingPage from "./features/dashboard/pages/LandingPage";
 
 function App() {
-  const [currentTab, setCurrentTab] = useState("inicio");
+  const [currentTab, setCurrentTab] = useState("landing");
   const [selectedCluster, setSelectedCluster] = useState(null);
   const [activeMapTab, setActiveMapTab] = useState("EMPLEO");
 
@@ -20,6 +21,10 @@ function App() {
     setSelectedCluster(clusterName);
     setCurrentTab("cluster-detail");
   };
+
+  if (currentTab === "landing") {
+    return <LandingPage onEnterDemo={() => setCurrentTab("inicio")} />;
+  }
 
   return (
     <MainLayout currentTab={currentTab} onTabChange={setCurrentTab}>
