@@ -11,6 +11,8 @@ from app.agent.schema_linker import schema_linker
 from app.agent.tools import llamar_endpoint, ejecutar_sql
 from app.agent.state import AgentState
 from app.core.config import settings
+from app.agent.normalizer import normalizar_plan
+
 
 logger = logging.getLogger(__name__)
 
@@ -79,9 +81,8 @@ async def planner(state: AgentState) -> AgentState:
     try:
         clean = response.content.strip().removeprefix("```json").removesuffix("```").strip()
         plan = json.loads(clean)
+        plan = normalizar_plan(plan)  # <-- corrección determinística post-LLM
     except json.JSONDecodeError:
-        # Fallback conservador: si no se puede parsear, no asumimos fuera de dominio
-        # para no bloquear consultas válidas por un error de formato del LLM.
         plan = {"servicio": None, "fuera_de_dominio": False, "razon": "fallback por error de parseo"}
 
     return {**state, "plan": plan}
@@ -128,40 +129,43 @@ async def tool_caller(state: AgentState) -> AgentState:
     fuentes = []
 
     if decision["tipo"] == "endpoint":
-        # DESHABILITADO TEMPORALMENTE: los endpoints del backend
-        # (/brechas, /mapa, /mapa/indicadores, /programas) todavía no están
-        # implementados. Cuando estén listos, descomentar el bloque de abajo
-        # y borrar el bloque de "deshabilitado" que le sigue.
-
-        # data = await llamar_endpoint(
-        #     metodo=decision["metodo"],
-        #     endpoint=decision["endpoint"],
-        #     params=decision["params"],
-        # )
-        # results = data.get("resultado", {})
-        # fuentes = data.get("fuentes", [])
-
-        print(
-            f"\nENDPOINT '{decision['endpoint']}' DESHABILITADO TEMPORALMENTE "
-            f"(backend aún no lo implementa) - devolviendo resultado vacío.\n",
-            flush=True,
-        )
-        logger.warning(
-            "Endpoint %s deshabilitado temporalmente - backend no implementado.",
-            decision["endpoint"],
-        )
-        results = {
-            "mensaje": "Esta funcionalidad todavía no está disponible. El equipo está trabajando en ella.",
-            "endpoint_solicitado": decision["endpoint"],
-        }
-        fuentes = []
+        if decision["endpoint"] == "/brechas":
+            print(
+                f"\nENDPOINT '/brechas' NO DISPONIBLE (todavía no está implementado).\n",
+                flush=True,
+            )
+            logger.warning(
+                "Endpoint /brechas solicitado pero no está disponible.",
+            )
+            results = {
+                "error": "El endpoint /brechas todavía no está disponible. El equipo está trabajando en él.",
+                "endpoint_solicitado": decision["endpoint"],
+            }
+            fuentes = []
+        else:
+            # Todos los demás endpoints están activados
+            data = await llamar_endpoint(
+                metodo=decision["metodo"],
+                endpoint=decision["endpoint"],
+                params=decision["params"],
+            )
+            results = data.get("resultado", {})
+            fuentes = data.get("fuentes", [])
 
     elif decision["tipo"] == "sql":
+        plan = state.get("plan", {})
         data = await ejecutar_sql(
             consulta=state["consulta"],
             schema_minimo=decision["schema_minimo"],
             model=_primary_model,
-            fecha=state.get("plan", {}).get("fecha"),
+            fecha=plan.get("fecha"),
+            filtros={
+                "municipio": plan.get("municipio"),
+                "cluster": plan.get("cluster"),
+                "periodo": plan.get("periodo"),
+                "income_cluster": plan.get("income_cluster"),
+                "servicio": plan.get("servicio"),
+            },
         )
         results = data.get("resultado", {})
         fuentes = data.get("fuentes", [])

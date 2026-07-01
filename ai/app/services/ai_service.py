@@ -1,4 +1,3 @@
-
 import logging
 from fastapi import HTTPException
 from app.models.schemas import ConsultaRequest, ConsultaResponse

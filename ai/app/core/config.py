@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     gemini_model_fallback: str = "gemini-2.0-flash-lite"
 
     # Backend
-    backend_url: str = "http://backend:8080"
+    backend_url: str = "http://backend:8080/api"
 
     # Qdrant
     qdrant_url: str = "http://qdrant:6333"
@@ -41,7 +41,7 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
     
-    schema_linker_threshold: float = 0.70
+    schema_linker_threshold: float = 0.67
 
 
 

@@ -68,6 +68,13 @@ Florianópolis, São José, Palhoça, Biguaçu
 ## Segmentos de ingresos
 A (alto) / B (medio-alto) / C (medio) / D (bajo)
 
+## Indicadores válidos por categoría (nombres EXACTOS tal como están en la base de datos)
+- EMPLEO: taxa_emprego_formal, taxa_desemprego
+- EDUCACION: evasao_escolar, taxa_conclusao_ensino_medio
+- SALUD_MENTAL: taxa_internacao_psiquiatrica, cobertura_atencao_basica
+Nota: los nombres están en portugués porque así están cargados en la base — no los
+traduzcas ni los adaptes al español aunque la consulta esté en español.
+
 ## Reglas de extracción
 - servicio: inferí del contexto.
   "jóvenes sin trabajo" / "desempleo" → EMPLEO
@@ -90,10 +97,17 @@ A (alto) / B (medio-alto) / C (medio) / D (bajo)
 - cluster: solo si la consulta nombra una zona del listado de 23 clusters. null si no aplica.
   Corregí variantes comunes: "Roçado" → SAO_JOSE_ROÇADO, "Kobrasol" → SAO_JOSE_KOBRASOL,
   "Pedra Branca" → PALHOCA_PEDRA_BRANCA, "Beira-Mar" → CBD_BEIRAMAR.
-- indicador: solo si pide un indicador específico.
-  "tasa de internación psiquiátrica" → taxa_internacao_psiquiatrica
-  "empleo formal" → taxa_empleo_formal
-  null si no se menciona.
+- indicador: es un filtro OPCIONAL — el endpoint /mapa/indicadores funciona perfecto
+  solo con "categoria" y devuelve TODOS los indicadores de esa categoría.
+  SOLO completá este campo si el usuario nombra un indicador puntual y específico de
+  la lista de arriba (o un sinónimo directo). NUNCA lo completes para preguntas
+  genéricas — en esos casos dejalo en null. NO inventes ni asumas un indicador por default.
+  Ejemplos:
+    "cuál es el nivel de empleo en Trindade" → indicador: null (genérico)
+    "cómo está la situación laboral en Trindade" → indicador: null (genérico)
+    "cuál es la tasa de desempleo en Trindade" → indicador: taxa_desemprego (específico)
+    "cómo está la salud mental en Coqueiros" → indicador: null (genérico)
+    "tasa de internación psiquiátrica en Coqueiros" → indicador: taxa_internacao_psiquiatrica
 - fecha: formato YYYY-MM-DD. null si no se menciona.
 - Si un campo no aplica, usá null.
 

@@ -1,4 +1,5 @@
 import logging
+import json
 import re
 import httpx
 import aiomysql
@@ -20,6 +21,14 @@ Usa SQL profesional. Genera una consulta SQL de solo lectura (SELECT) para MySQL
 Schema disponible:
 {schema}
 
+## Filtros ya resueltos (usar estos valores EXACTOS en el WHERE, no reinterpretar la consulta)
+{filtros}
+
+Si un filtro es null, no lo incluyas en el WHERE. Si el filtro `municipio` o `cluster`
+tiene un valor, usalo tal cual está escrito arriba — ya fue validado contra la lista
+oficial de municipios/clusters, así que no intentes corregirlo ni interpretarlo de la
+consulta en lenguaje natural.
+
 Reglas:
 - Solo SELECT, nunca INSERT/UPDATE/DELETE/DROP
 - Limita los resultados a 50 filas máximo con LIMIT 50
@@ -27,33 +36,15 @@ Reglas:
 - Responde SOLO con el SQL, sin explicaciones ni markdown
 
 ## Regla crítica sobre fechas (day_date)
-Si la tabla tiene columna `day_date` y la consulta del usuario NO especifica una fecha
-o rango de fechas explícito, NUNCA agregues (SUM, COUNT, AVG) sobre todos los días
-históricos disponibles - eso da resultados inflados y sin sentido temporal.
-
-En su lugar, filtrá siempre por el día más reciente disponible en esa tabla, usando
-una subquery de este tipo:
+Si la tabla tiene columna `day_date` y no hay un filtro de fecha explícito arriba,
+NUNCA agregues (SUM, COUNT, AVG) sobre todos los días históricos disponibles.
+En su lugar, filtrá siempre por el día más reciente:
 
     WHERE day_date = (SELECT MAX(day_date) FROM <misma_tabla>)
 
-Ejemplo - MAL (sin filtrar por fecha, suma todo el histórico):
-    SELECT municipio, SUM(n_usuarios) AS total_usuarios
-    FROM concentracao
-    WHERE municipio = 'São José'
-    GROUP BY municipio
-
-Ejemplo - BIEN (toma solo el día más reciente):
-    SELECT municipio, day_date, SUM(n_usuarios) AS total_usuarios
-    FROM concentracao
-    WHERE municipio = 'São José'
-      AND day_date = (SELECT MAX(day_date) FROM concentracao)
-    GROUP BY municipio, day_date
-
-Si la consulta del usuario SÍ menciona una fecha específica o un rango
-("el 15 de marzo", "la última semana", "en enero"), usá esa fecha/rango en vez
-del día más reciente. Fecha detectada por el planner (si aplica): {fecha}
-
-Consulta del usuario: {consulta}
+Consulta original del usuario (solo como contexto para entender la intención,
+no para extraer nombres de zonas/municipios — usá los filtros de arriba para eso):
+{consulta}
 """
 
 async def llamar_endpoint(metodo: str, endpoint: str, params: dict) -> dict:
@@ -91,22 +82,34 @@ async def llamar_endpoint(metodo: str, endpoint: str, params: dict) -> dict:
             return {"resultado": {}, "fuentes": []}
 
 
-async def ejecutar_sql(consulta: str, schema_minimo: str, model: ChatOpenAI, fecha: str | None = None) -> dict:
+async def ejecutar_sql(
+    consulta: str,
+    schema_minimo: str,
+    model: ChatOpenAI,
+    fecha: str | None = None,
+    filtros: dict | None = None,
+) -> dict:
     """
     Genera SQL con el modelo primary y lo ejecuta contra MySQL (solo SELECT).
     """
+    filtros = filtros or {}
+    if fecha:
+        filtros = {**filtros, "fecha": fecha}
+
+    filtros_relevantes = {k: v for k, v in filtros.items() if v is not None}
+    filtros_texto = json.dumps(filtros_relevantes, ensure_ascii=False) if filtros_relevantes else "(ninguno)"
 
     # 1. Genera el SQL
     prompt = TEXT_TO_SQL_PROMPT.format(
         schema=schema_minimo,
         consulta=consulta,
-        fecha=fecha or "no especificada - usar el día más reciente (MAX(day_date))",
+        filtros=filtros_texto,
     )
     response = await model.ainvoke([
         SystemMessage(content=prompt),
         HumanMessage(content=consulta)
     ])
-
+    
     sql = _limpiar_sql(response.content.strip())
 
     print("\n" + "-"*80, flush=True)
