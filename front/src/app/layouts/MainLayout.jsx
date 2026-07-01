@@ -148,12 +148,15 @@ function MainLayout({ children, currentTab, onTabChange }) {
                 </div>
 
                 {/* Bell notifications */}
+                {/* 
                 <div className="relative cursor-pointer p-1 text-slate-600 hover:text-slate-800">
                   <Bell className="w-4 h-4" />
                   <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
                 </div>
+                */}
 
                 {/* Profile dropdown */}
+                {/* 
                 <div className="flex items-center gap-2 cursor-pointer border-l border-slate-200 pl-4">
                   <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-700 text-xs">
                     AR
@@ -161,6 +164,7 @@ function MainLayout({ children, currentTab, onTabChange }) {
                   <span className="text-xs font-medium text-slate-700">Ana R.</span>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                 </div>
+                */}
               </div>
             </header>
 

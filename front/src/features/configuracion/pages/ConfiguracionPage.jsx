@@ -77,9 +77,10 @@ export default function ConfiguracionPage() {
       {/* Configuration Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Card 1: Perfil de Usuario */}
+        {/* 
         <div className="bg-white border border-slate-200/80 rounded-xl p-5 hover:shadow-xs transition-shadow flex flex-col justify-between space-y-6">
           <div className="space-y-4">
-            {/* Card Title Header */}
+            // Card Title Header
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shrink-0">
                 <User className="w-4 h-4" />
@@ -94,7 +95,7 @@ export default function ConfiguracionPage() {
               </div>
             </div>
 
-            {/* Inputs Block */}
+            // Inputs Block
             <div className="space-y-3 pt-2">
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -150,7 +151,6 @@ export default function ConfiguracionPage() {
             </div>
           </div>
 
-          {/* Action Button */}
           <button
             onClick={() => triggerSave("profile")}
             disabled={saveStatus.profile !== "idle"}
@@ -171,6 +171,7 @@ export default function ConfiguracionPage() {
             {saveStatus.profile === "idle" && <span>Guardar cambios</span>}
           </button>
         </div>
+        */}
 
         {/* Card 2: Notificaciones */}
         <div className="bg-white border border-slate-200/80 rounded-xl p-5 hover:shadow-xs transition-shadow flex flex-col justify-between space-y-6">
