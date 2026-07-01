@@ -36,7 +36,7 @@ ormsgpack==1.12.2
 packaging==26.2
 pandas==3.0.3
 portalocker==3.2.0
-protobuf==7.35.1
+protobuf==4.25.5
 pydantic==2.13.4
 pydantic-settings==2.8.1
 pydantic_core==2.46.4
@@ -65,6 +65,5 @@ xxhash==3.7.0
 zstandard==0.25.0
 sqlalchemy==2.0.36
 mysql-connector-python==9.1.0
-qdrant-client
-google-generativeai
+google-genai
 aiomysql

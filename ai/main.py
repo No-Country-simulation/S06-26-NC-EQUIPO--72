@@ -15,7 +15,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Agregar middlewares
 app.add_middleware(LoggingMiddleware)
 
 app.include_router(router)

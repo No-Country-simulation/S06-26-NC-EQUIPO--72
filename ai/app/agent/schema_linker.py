@@ -1,4 +1,5 @@
 import logging
+import json
 from app.agent.state import AgentState
 from app.vectorstore.searcher import search
 
@@ -87,12 +88,29 @@ async def schema_linker(state: AgentState) -> AgentState:
     consulta = state["consulta"]
     plan = state.get("plan", {})
 
+    print("\n" + "="*80, flush=True)
+    print("=== TEST SCHEMA LINKING Y EMBEDDINGS ===", flush=True)
+    print(f"Consulta: {consulta}", flush=True)
+    print(f"Plan del planner: {json.dumps(plan, ensure_ascii=False, indent=2)}", flush=True)
+    print("\nBuscando en vectorstore...", flush=True)
+
     result = search(consulta, top_k=1)
+
+    print("\nResultado del schema linker:", flush=True)
+    if result:
+        print(json.dumps(result, ensure_ascii=False, indent=2), flush=True)
+        print(f"\nScore de similitud: {result.get('score', 0):.4f}", flush=True)
+    else:
+        print("No se encontró ningún resultado en el vectorstore (fallback a SQL)", flush=True)
 
     if result and result["tipo"] == "endpoint":
         decision = _build_endpoint_decision(result, plan)
     else:
         decision = _build_sql_decision(result)
+
+    print("\nDecisión final del schema linker:", flush=True)
+    print(json.dumps(decision, ensure_ascii=False, indent=2), flush=True)
+    print("="*80 + "\n", flush=True)
 
     logger.info("Schema linker decision: %s", decision)
     return {**state, "schema_decision": decision}

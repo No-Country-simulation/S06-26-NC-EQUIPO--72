@@ -1,18 +1,26 @@
 import logging
+import json
+import hashlib
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
-from google.generativeai import embed_content
+from google import genai
+from google.genai import types
 from app.core.config import settings
 from app.vectorstore.documents import ALL_DOCUMENTS
-import google.generativeai as genai
 
 logger = logging.getLogger(__name__)
 
-genai.configure(api_key=settings.google_api_key.get_secret_value())
-
+client_genai = genai.Client(api_key=settings.google_api_key.get_secret_value())
 
 COLLECTION_NAME = settings.qdrant_collection
-VECTOR_SIZE = 768  # dimensión de gemini-embedding-exp-03-07
+
+# Qdrant exige IDs enteros sin signo o UUID — un string arbitrario como "__meta__"
+# hace fallar el upsert con un error de validación. Usamos un UUID fijo y reservado.
+META_POINT_ID = "00000000-0000-0000-0000-000000000000"
+
+# task_type usado al indexar documentos. Se centraliza acá para que el hash
+# de invalidación lo tenga en cuenta automáticamente.
+_EMBEDDING_TASK_TYPE = "RETRIEVAL_DOCUMENT"
 
 
 def get_qdrant_client() -> QdrantClient:
@@ -20,40 +28,66 @@ def get_qdrant_client() -> QdrantClient:
 
 
 def _embed(text: str) -> list[float]:
-    result = embed_content(
+    result = client_genai.models.embed_content(
         model=settings.gemini_embedding_model,
-        content=text,
-        task_type="RETRIEVAL_DOCUMENT",
+        contents=text,
+        config=types.EmbedContentConfig(task_type=_EMBEDDING_TASK_TYPE),
     )
-    return result["embedding"]
+    return result.embeddings[0].values
+
+
+def _documents_hash() -> str:
+    """
+    Hash del contenido + modelo de embedding + task_type, para invalidar
+    el cache automáticamente cuando cualquiera de los tres cambie.
+    """
+    raw = json.dumps(
+        [(d["id"], d["texto"]) for d in ALL_DOCUMENTS],
+        ensure_ascii=False,
+    ) + settings.gemini_embedding_model + _EMBEDDING_TASK_TYPE
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+
+def _get_stored_hash(client: QdrantClient) -> str | None:
+    """Obtiene el hash almacenado en la colección (si existe)."""
+    try:
+        # Intentar recuperar el punto meta
+        points = client.retrieve(
+            collection_name=COLLECTION_NAME,
+            ids=[META_POINT_ID],
+            with_payload=True,
+            with_vectors=False,
+        )
+        if points and len(points) > 0:
+            return points[0].payload.get("hash")
+    except Exception:
+        # El punto meta no existe o la colección no existe
+        pass
+    return None
 
 
 def init_vectorstore() -> None:
     """
     Inicializa la colección en Qdrant e indexa los documentos.
-    Se llama una vez al startup. Si la colección ya existe y tiene
-    el mismo número de puntos, omite la re-indexación.
+    Usa un hash de los documentos + config de embedding para invalidar automáticamente.
     """
+    current_hash = _documents_hash()
     client = get_qdrant_client()
-
     existing = [c.name for c in client.get_collections().collections]
 
     if COLLECTION_NAME in existing:
-        info = client.get_collection(COLLECTION_NAME)
-        if info.points_count == len(ALL_DOCUMENTS):
+        stored_hash = _get_stored_hash(client)
+        if stored_hash == current_hash:
             logger.info(
-                "Vectorstore ya inicializado con %d documentos - omitiendo re-indexación.",
-                len(ALL_DOCUMENTS),
+                "Vectorstore ya inicializado y sin cambios - omitiendo re-indexación.",
             )
             return
-        logger.info("Colección existente con distinto número de puntos - re-indexando.")
+        logger.info(
+            "Vectorstore desactualizado (hash distinto) - re-indexando."
+        )
         client.delete_collection(COLLECTION_NAME)
 
-    client.create_collection(
-        collection_name=COLLECTION_NAME,
-        vectors_config=VectorParams(size=VECTOR_SIZE, distance=Distance.COSINE),
-    )
-
+    # Generar todos los puntos primero para conocer el tamaño del vector
     points = []
     for i, doc in enumerate(ALL_DOCUMENTS):
         vector = _embed(doc["texto"])
@@ -65,5 +99,30 @@ def init_vectorstore() -> None:
             )
         )
 
+    vector_size = len(points[0].vector) if points else 0
+
+    # Crear la colección
+    client.create_collection(
+        collection_name=COLLECTION_NAME,
+        vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
+    )
+
+    # Agregar el punto meta con el hash
+    # Usamos un vector de ceros para el punto meta (no participará en búsquedas
+    # relevantes ya que searcher.py lo excluye explícitamente por filtro)
+    meta_vector = [0.0] * vector_size if vector_size > 0 else []
+    points.append(
+        PointStruct(
+            id=META_POINT_ID,
+            vector=meta_vector,
+            payload={"hash": current_hash, "type": "meta"},
+        )
+    )
+
+    # Insertar todos los puntos
     client.upsert(collection_name=COLLECTION_NAME, points=points)
-    logger.info("Vectorstore inicializado con %d documentos.", len(ALL_DOCUMENTS))
+    logger.info(
+        "Vectorstore inicializado con %d documentos y hash %s.",
+        len(ALL_DOCUMENTS),
+        current_hash[:12],  # Mostrar solo los primeros 12 chars para brevedad
+    )

@@ -4,7 +4,8 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
 def get_database_url():
-    return f"mysql+mysqlconnector://{settings.db_user}:{settings.db_password}@{settings.db_host}:{settings.db_port}/{settings.db_name}"
+    password = settings.db_password.get_secret_value()
+    return f"mysql+mysqlconnector://{settings.db_user}:{password}@{settings.db_host}:{settings.db_port}/{settings.db_name}"
 
 engine = create_engine(get_database_url())
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # Google (embeddings + fallback)
     google_api_key: SecretStr
-    gemini_embedding_model: str = "models/gemini-embedding-exp-03-07"
+    gemini_embedding_model: str = "gemini-embedding-001"
     gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai"
     gemini_model_fallback: str = "gemini-2.0-flash-lite"
 
@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     db_name: str = "app_bit_b_2g_db"
     db_user: str = "root"
     db_password: SecretStr = SecretStr("root")
+    
+    # MySQL (usuario de solo lectura para Text-to-SQL)
+    db_readonly_user: str = "ai_readonly"
+    db_readonly_password: SecretStr = SecretStr("ai_readonly_pass")
 
     model_config = SettingsConfigDict(
         env_file=".env",

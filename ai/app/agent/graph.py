@@ -1,6 +1,7 @@
-
 import json
 import logging
+from datetime import date, datetime, timedelta
+from decimal import Decimal
 from typing import Any
 from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI
@@ -12,6 +13,46 @@ from app.agent.state import AgentState
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+def _json_default(obj: Any) -> Any:
+    """
+    Convierte tipos que json.dumps no soporta nativamente pero que
+    MySQL/aiomysql devuelven con frecuencia: TIME -> timedelta,
+    DATE/DATETIME -> date/datetime, DECIMAL -> Decimal.
+    """
+    if isinstance(obj, timedelta):
+        # timedelta representa TIME en MySQL - lo pasamos a "HH:MM:SS"
+        total_seconds = int(obj.total_seconds())
+        horas, resto = divmod(total_seconds, 3600)
+        minutos, segundos = divmod(resto, 60)
+        return f"{horas:02d}:{minutos:02d}:{segundos:02d}"
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    if isinstance(obj, Decimal):
+        return float(obj)
+    raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
+
+
+# Mensajes de respuesta para consultas fuera de dominio, por idioma.
+_MENSAJE_FUERA_DE_DOMINIO = {
+    "es": (
+        "Este asistente responde consultas sobre inclusión social, formación, empleo, "
+        "salud mental, conectividad y programas sociales en la Región Metropolitana de "
+        "Florianópolis. ¿Querés reformular tu pregunta dentro de ese contexto?"
+    ),
+    "pt": (
+        "Este assistente responde consultas sobre inclusão social, formação, emprego, "
+        "saúde mental, conectividade e programas sociais na Região Metropolitana de "
+        "Florianópolis. Você poderia reformular sua pergunta dentro desse contexto?"
+    ),
+    "en": (
+        "This assistant answers questions about social inclusion, training, employment, "
+        "mental health, connectivity, and social programs in the Florianópolis Metropolitan "
+        "Region. Could you rephrase your question within that scope?"
+    ),
+}
+
 
 # instancia modelo light (Planner y Formatter)
 _light_model = ChatOpenAI(
@@ -39,15 +80,45 @@ async def planner(state: AgentState) -> AgentState:
         clean = response.content.strip().removeprefix("```json").removesuffix("```").strip()
         plan = json.loads(clean)
     except json.JSONDecodeError:
-        plan = {"servicio": None, "razon": "fallback por error de parseo"}
+        # Fallback conservador: si no se puede parsear, no asumimos fuera de dominio
+        # para no bloquear consultas válidas por un error de formato del LLM.
+        plan = {"servicio": None, "fuera_de_dominio": False, "razon": "fallback por error de parseo"}
 
     return {**state, "plan": plan}
+
+
+def _route_after_planner(state: AgentState) -> str:
+    """
+    Decide si la consulta sigue el flujo normal (schema_linker -> tool_caller)
+    o corta directo a una respuesta de fuera de dominio, sin gastar llamadas
+    de más a Qdrant, al backend o al modelo de text-to-SQL.
+    """
+    if state.get("plan", {}).get("fuera_de_dominio"):
+        return "fuera_de_dominio"
+    return "schema_linker"
+
+
+# Nodo - Fuera de dominio (corta el flujo temprano, sin tools ni SQL)
+async def fuera_de_dominio_node(state: AgentState) -> AgentState:
+    idioma = state.get("idioma", "es")
+    mensaje = _MENSAJE_FUERA_DE_DOMINIO.get(idioma, _MENSAJE_FUERA_DE_DOMINIO["es"])
+
+    razon = state.get("plan", {}).get("razon", "")
+    logger.info("Consulta fuera de dominio detectada. Razón: %s", razon)
+
+    return {
+        **state,
+        "tool_results": {},
+        "fuentes": [],
+        "respuesta_ia": mensaje,
+        "visualizacion_sugerida": "tabla_datos",
+    }
 
 
 # Nodo 2 - Tool Caller
 async def tool_caller(state: AgentState) -> AgentState:
     """
-    Ejecuta la decisión del schema_linker:
+     Ejecuta la decisión del schema_linker:
     - Si tipo == "endpoint": llama al backend via HTTP
     - Si tipo == "sql": genera SQL con el modelo primary y lo ejecuta
     """
@@ -57,19 +128,40 @@ async def tool_caller(state: AgentState) -> AgentState:
     fuentes = []
 
     if decision["tipo"] == "endpoint":
-        data = await llamar_endpoint(
-            metodo=decision["metodo"],
-            endpoint=decision["endpoint"],
-            params=decision["params"],
+        # DESHABILITADO TEMPORALMENTE: los endpoints del backend
+        # (/brechas, /mapa, /mapa/indicadores, /programas) todavía no están
+        # implementados. Cuando estén listos, descomentar el bloque de abajo
+        # y borrar el bloque de "deshabilitado" que le sigue.
+
+        # data = await llamar_endpoint(
+        #     metodo=decision["metodo"],
+        #     endpoint=decision["endpoint"],
+        #     params=decision["params"],
+        # )
+        # results = data.get("resultado", {})
+        # fuentes = data.get("fuentes", [])
+
+        print(
+            f"\nENDPOINT '{decision['endpoint']}' DESHABILITADO TEMPORALMENTE "
+            f"(backend aún no lo implementa) - devolviendo resultado vacío.\n",
+            flush=True,
         )
-        results = data.get("resultado", {})
-        fuentes = data.get("fuentes", [])
+        logger.warning(
+            "Endpoint %s deshabilitado temporalmente - backend no implementado.",
+            decision["endpoint"],
+        )
+        results = {
+            "mensaje": "Esta funcionalidad todavía no está disponible. El equipo está trabajando en ella.",
+            "endpoint_solicitado": decision["endpoint"],
+        }
+        fuentes = []
 
     elif decision["tipo"] == "sql":
         data = await ejecutar_sql(
             consulta=state["consulta"],
             schema_minimo=decision["schema_minimo"],
             model=_primary_model,
+            fecha=state.get("plan", {}).get("fecha"),
         )
         results = data.get("resultado", {})
         fuentes = data.get("fuentes", [])
@@ -83,7 +175,7 @@ async def formatter(state: AgentState) -> AgentState:
     context = f"""
 Consulta original: {state["consulta"]}
 Idioma: {state["idioma"]}
-Datos retornados: {json.dumps(state["tool_results"], ensure_ascii=False)}
+Datos retornados: {json.dumps(state["tool_results"], ensure_ascii=False, default=_json_default)}
 """
     response = await _light_model.ainvoke([
         SystemMessage(content=FORMATTER_PROMPT),
@@ -108,15 +200,28 @@ def build_graph():
     graph = StateGraph(AgentState)
 
     graph.add_node("planner", planner)
+    graph.add_node("fuera_de_dominio", fuera_de_dominio_node)
     graph.add_node("schema_linker", schema_linker)
     graph.add_node("tool_caller", tool_caller)
     graph.add_node("formatter", formatter)
 
     graph.set_entry_point("planner")
-    graph.add_edge("planner", "schema_linker")
+
+    # Routing condicional: si es fuera de dominio, corta directo a END
+    # sin pasar por schema_linker/tool_caller/formatter.
+    graph.add_conditional_edges(
+        "planner",
+        _route_after_planner,
+        {
+            "schema_linker": "schema_linker",
+            "fuera_de_dominio": "fuera_de_dominio",
+        },
+    )
+
     graph.add_edge("schema_linker", "tool_caller")
     graph.add_edge("tool_caller", "formatter")
     graph.add_edge("formatter", END)
+    graph.add_edge("fuera_de_dominio", END)
 
     return graph.compile()
 
