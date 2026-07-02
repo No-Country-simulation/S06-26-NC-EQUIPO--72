@@ -103,18 +103,14 @@ def _route_after_planner(state: AgentState) -> str:
 async def fuera_de_dominio_node(state: AgentState) -> AgentState:
     idioma = state.get("idioma", "es")
     mensaje = _MENSAJE_FUERA_DE_DOMINIO.get(idioma, _MENSAJE_FUERA_DE_DOMINIO["es"])
-
     razon = state.get("plan", {}).get("razon", "")
     logger.info("Consulta fuera de dominio detectada. Razón: %s", razon)
 
     return {
         **state,
-        "tool_results": {},
-        "fuentes": [],
+        "fuera_de_dominio": True,
         "respuesta_ia": mensaje,
-        "visualizacion_sugerida": "tabla_datos",
     }
-
 
 # Nodo 2 - Tool Caller
 async def tool_caller(state: AgentState) -> AgentState:

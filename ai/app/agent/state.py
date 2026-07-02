@@ -11,3 +11,4 @@ class AgentState(TypedDict):
     respuesta_ia: str
     visualizacion_sugerida: str
     fuentes: list
+    fuera_de_dominio: bool 

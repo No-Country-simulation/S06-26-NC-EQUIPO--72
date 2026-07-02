@@ -12,16 +12,6 @@ class AIService:
         """
         Procesa una consulta del usuario
         """
-        # Verifica si la consulta está vacía o solo tiene espacios
-        if not request.consulta or not request.consulta.strip():
-            raise HTTPException(
-                status_code=422,
-                detail={
-                    "error": "CONSULTA_VACIA",
-                    "mensaje": "La consulta no puede estar vacía.",
-                }
-            )
-
         try:
             # Ejecuta el agente
             state = await agent.ainvoke({
@@ -29,6 +19,16 @@ class AIService:
                 "idioma": request.idioma,
                 "filtros": {},
             })
+            
+            if state.get("fuera_de_dominio"):
+                raise HTTPException(
+                    status_code=422,
+                    detail={
+                        "error": "CONSULTA_FUERA_DE_DOMINIO",
+                        "mensaje": state.get("respuesta_ia"),
+                    }
+                )
+            
             # Extrae los datos de la respuesta
             tool_results = state.get("tool_results", {})
             datos = tool_results if isinstance(tool_results, list) else []
