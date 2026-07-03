@@ -468,10 +468,9 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
             <span>Últimos 12 meses</span>
           </button>
-          <button className="flex items-center gap-1.5 bg-white border border-slate-200 text-xs font-semibold text-slate-700 px-3 py-2 rounded-lg hover:bg-slate-50 cursor-pointer">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <span>Filtros</span>
-          </button>
+         
+         
+
         </div>
       </div>
 
