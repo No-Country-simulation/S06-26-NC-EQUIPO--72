@@ -44,7 +44,7 @@ public record GapsResponseDTO(
             @Schema(description = "Nombre del indicador", example = "taxa_internacao_psiquiatrica")
             String indicador,
             @Schema(description = "Valor del indicador", example = "17.4")
-            BigDecimal valor, // Mantiene la precisión decimal exacta (ej: 17.4)
+            Double valor, // Mantiene la precisión decimal exacta (ej: 17.4)
             @Schema(description = "Unidad de medida", example = "porcentaje")
             String unidad
     ) {}
