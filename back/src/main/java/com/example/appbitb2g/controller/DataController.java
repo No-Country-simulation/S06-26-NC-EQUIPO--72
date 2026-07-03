@@ -71,6 +71,12 @@ public class DataController {
     )
     @PostMapping("/datos")
     public ResponseEntity<?> datosQuery(@RequestBody AiQueryRequestDTO requestDto) {
+        if (requestDto.consulta() == null || requestDto.consulta().isBlank()) {
+            var error = new ErrorResponseDto("CONSULTA_VACIA", "El campo 'consulta' es obligatorio.");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+
         var response = dataService.aiQueryAgent(requestDto);
         return ResponseEntity.ok(response);
     }

@@ -15,7 +15,7 @@ def get_conn():
         host=settings.db_host,
         port=settings.db_port,
         user=settings.db_user,
-        password=settings.db_password,
+        password=settings.db_password.get_secret_value(),
         database=settings.db_name,
         allow_local_infile=True,
     )

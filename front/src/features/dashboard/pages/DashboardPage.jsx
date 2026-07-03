@@ -559,7 +559,7 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
         <BlockMap onClusterSelect={onClusterSelect} />
 
         {/* Right Card: Asistente IA */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between min-h-[500px]">
+        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between min-h-[450px]">
           <div className="flex flex-col h-full w-full justify-between flex-1">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-shrink-0">
