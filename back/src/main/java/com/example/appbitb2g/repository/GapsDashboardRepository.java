@@ -96,7 +96,7 @@ public class GapsDashboardRepository {
 					          AND (@municipio IS NULL OR municipio = @municipio)
 					    ) it_ranked
 					    WHERE rn = 1
-					) ind ON tech.cluster = ind.cluster AND tech.municipio = ind.municipio
+					)  AND tech.municipio = ind.municipio
 				
 					LEFT JOIN (
 					    -- Eje Programas (Conteo de cobertura)
