@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 import { useCreateFormacion } from "../hooks/useFormaciones";
+import { formatClusterName } from "@/shared/utils/format";
 
 // Lista oficial de clústeres para Florianópolis
 const FLORI_CLUSTERS = [
@@ -159,7 +160,7 @@ export default function NuevoProgramaForm({ onSubmitSuccess, onCancel }) {
           <option value="">Seleccione una región territorial...</option>
           {FLORI_CLUSTERS.map((c) => (
             <option key={c} value={c}>
-              {c.replace("FLORIANOPOLIS_", "").replace("_CORREDOR", "")}
+              {formatClusterName(c)}
             </option>
           ))}
         </select>

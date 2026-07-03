@@ -39,6 +39,7 @@ import {
 
 // Importamos el formulario de creación de nuevo programa
 import NuevoProgramaForm from "../components/NuevoProgramaForm";
+import { formatClusterName } from "@/shared/utils/format";
 import {
   BarChartSkeleton,
   ProgramListSkeleton,
@@ -292,7 +293,7 @@ function FormacionesPage() {
 
       return {
         // Mostramos el nombre abreviado en el eje X para mejorar la estética del gráfico
-        region: c.replace("FLORIANOPOLIS_", "").replace("_CORREDOR", ""),
+        region: formatClusterName(c),
         programas: count * 10, // Multiplicamos por 10 para balancear visualmente la escala
         cobertura: clusterInfo.cobertura,
       };
@@ -752,7 +753,7 @@ function FormacionesPage() {
                           <td className="py-3 px-4 text-slate-600 font-medium">
                             <span className="flex items-center gap-1.5">
                               <MapPin className="w-3.5 h-3.5 text-slate-400 animate-pulse" />
-                              <span>{program.region}</span>
+                              <span>{formatClusterName(program.region)}</span>
                             </span>
                           </td>
 

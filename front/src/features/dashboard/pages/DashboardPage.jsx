@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/chart";
 import { BlockMap } from "../components/BlockMap";
 import { useMapsIndicators } from "../hooks/useMaps";
+import { formatClusterName } from "@/shared/utils/format";
 
 function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMapTabChange }) {
   const [messages, setMessages] = useState([
@@ -111,9 +112,7 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
   const barChartData = useMemo(() => {
     if (!rawEmpleo || !rawEmpleo.regiones) return [];
     return rawEmpleo.regiones.map((r) => {
-      const cleanName = r.cluster
-        ? r.cluster.charAt(0).toUpperCase() + r.cluster.slice(1).toLowerCase()
-        : "Sin nombre";
+      const cleanName = formatClusterName(r.cluster) || "Sin nombre";
       const valDesempleo = r.indicadores?.[0]?.valor
         ? parseFloat(r.indicadores[0].valor)
         : 0;
@@ -312,10 +311,7 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
         color = "bg-amber-500";
       }
 
-      const cleanName = item.cluster
-        ? item.cluster.charAt(0).toUpperCase() +
-          item.cluster.slice(1).toLowerCase()
-        : "Sin nombre";
+      const cleanName = formatClusterName(item.cluster) || "Sin nombre";
 
       return {
         region: cleanName,

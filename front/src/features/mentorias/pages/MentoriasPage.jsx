@@ -26,6 +26,7 @@ import {
   YAxis,
 } from "recharts";
 import { useMentoriasBrechas } from "../hooks/useMentorias";
+import { formatClusterName } from "@/shared/utils/format";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   BarChartDataSkeleton,
@@ -79,7 +80,7 @@ export default function MentoriasPage() {
   };
 
   const barChartData = data?.brechas?.map((brecha) => ({
-    region: brecha.cluster,
+    region: formatClusterName(brecha.cluster),
     mentorizados: brecha.indicador_social.valor,
   }));
 
@@ -112,7 +113,7 @@ export default function MentoriasPage() {
   // ];
 
   const programs = data?.brechas?.map((brecha) => ({
-    name: brecha.cluster,
+    name: formatClusterName(brecha.cluster),
     region: brecha.municipio,
     mentees: brecha.programas_activos,
     status: brecha.severidad_brecha,

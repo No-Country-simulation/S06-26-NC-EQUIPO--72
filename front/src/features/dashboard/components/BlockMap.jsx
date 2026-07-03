@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
 import { generarMapaOrganico } from "../utils/organicMap";
-import { useMapsIndicators } from "../hooks/useMaps";
+import { useRegions } from "../hooks/useMaps";
 import { AlertCircle, ChartColumn, Layers } from "lucide-react";
 import { BlockMapSkeleton } from "../skeletons/BlockMapSkeleton";
+import { formatClusterName } from "@/shared/utils/format";
 
 const tabs = [
   { key: "EMPLEO", label: "Tasa de Empleo" },
@@ -10,7 +11,7 @@ const tabs = [
   { key: "SALUD_MENTAL", label: "Salud Mental" },
 ];
 
-const labelByKey = new Map(tabs.map((t) => [t.key, t.label]));
+// const labelByKey = new Map(tabs.map((t) => [t.key, t.label]));
 
 const fillColors = {
   critico: "#f87171",
@@ -20,10 +21,10 @@ const fillColors = {
 };
 
 const getStatusFromCongestion = (value) => {
-  if (value >= 0.75) return fillColors.optimo;
-  if (value >= 0.55) return fillColors.bueno;
-  if (value >= 0.35) return fillColors.alerta;
-  return fillColors.critico;
+  if (value > 11) return fillColors.critico;
+  if (value > 8) return fillColors.alerta;
+  if (value > 5) return fillColors.bueno;
+  return fillColors.optimo;
 };
 
 const tabButtonClass = (isActive) =>
@@ -45,7 +46,9 @@ export const BlockMap = ({
     region: null,
   });
 
-  const regiones = useMapsIndicators(activeMapTab);
+  // const regiones = useMapsIndicators(activeMapTab);
+  const regiones = useRegions();
+
   const regionesCompletas = generarMapaOrganico(regiones.data?.regiones);
 
   const regionTextCenter = regionesCompletas.map((region) => {
@@ -169,7 +172,7 @@ export const BlockMap = ({
               >
                 <polygon
                   points={region.points}
-                  fill={getStatusFromCongestion(region.congestionamento_medio)}
+                  fill={getStatusFromCongestion(region.n_antenas)}
                   stroke="#fff"
                   strokeWidth="3"
                   className="transition-all hover:opacity-80"
@@ -183,7 +186,7 @@ export const BlockMap = ({
                   fontWeight="700"
                   fill="#111827"
                 >
-                  {region.cluster}
+                  {formatClusterName(region.cluster)}
                 </text>
 
                 <text
@@ -194,7 +197,7 @@ export const BlockMap = ({
                   fontWeight="800"
                   fill="#111827"
                 >
-                  {`${region.congestionamento_medio * 100}%`}
+                  {region.n_antenas} Ant.
                 </text>
               </g>
             ))}
@@ -212,14 +215,15 @@ export const BlockMap = ({
             >
               <div className="flex items-start justify-between gap-1 flex-wrap">
                 <h4 className="text-xs font-bold text-slate-800">
-                  {tooltip.region.cluster}
+                  {formatClusterName(tooltip.region.cluster)}
                 </h4>
 
                 <span className="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-slate-100 text-slate-500">
-                  {(tooltip.region.n_usuarios / 10000).toFixed(1)}M hab.
+                  {/* {(tooltip.region.n_usuarios / 10000).toFixed(1)}M hab. */}
+                  {tooltip.region.n_antenas} Antenas
                 </span>
               </div>
-              <div className="mt-3">
+              {/* <div className="mt-3">
                 <p className="text-sm text-slate-400 lowercase">
                   {labelByKey.get(tooltip.region.indicadores[0].categoria)}
                 </p>
@@ -227,7 +231,7 @@ export const BlockMap = ({
                 <p className="text-sm font-bold text-blue-600">
                   {tooltip.region.indicadores[0].valor.toFixed(1)}%
                 </p>
-              </div>
+              </div> */}
 
               <div className="mt-3 border-t border-slate-200 pt-3">
                 <p className="text-sm text-slate-400">
