@@ -40,11 +40,17 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({HttpClientErrorException.class, HttpServerErrorException.class})
     public ResponseEntity<ErrorResponseDto> handleRestClientException(RestClientResponseException ex) {
-        // Para el servicio de IA mock, solo devolverá la error standard de consulta irrelevante
-        return ResponseEntity.status(422).body(new ErrorResponseDto(
-                "CONSULTA_IRRELEVANTE",
-                "La consulta no puede resolverse con los datos disponibles."
-        ));
+        if (ex.getStatusCode().value() == 422) {
+            return ResponseEntity.status(422).body(new ErrorResponseDto(
+                    "CONSULTA_IRRELEVANTE",
+                    "La consulta no puede resolverse con los datos disponibles."
+            ));
+        }
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponseDto(
+                "ERROR_INTERNO",
+                "Ocurrió un error procesando la consulta."
+            ));
     }
 
 }

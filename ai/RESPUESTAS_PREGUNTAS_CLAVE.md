@@ -33,10 +33,6 @@ Este análisis usa el **dataset CDRView** para responder las preguntas clave del
 | PALHOCA_PEDRA_BRANCA  | Palhoca       | 2,239.39          | 0.3505              | 0.0687        | LTE                    |
 | TRINDADE              | Florianopolis | 1,873.69          | 0.3504              | 0.0685        | LTE                    |
 
-### Recomendaciones para estas zonas:
-1. Aumentar la capacidad de las antenas congestionadas
-2. Reducir la tasa de drop de paquetes
-3. Optimizar la red LTE (aunque no es 3G, tiene alta congestión)
 
 ---
 
@@ -84,26 +80,6 @@ Para encontrar zonas con **alta concentración laboral pero bajo empleo formal**
 6. **PALHOCA_PEDRA_BRANCA** (Palhoca)
 7. **TRINDADE** (Florianopolis)
 
-### Plan de Acción Recomendado:
-#### Paso 1: Mejorar la Infraestructura
-- Aumentar la capacidad de antenas en zonas congestionadas
-- Optimizar la red para reducir el drop de paquetes
-- Priorizar LTE/5G en todas las antenas de estas zonas
-
-#### Paso 2: Implementar Programas Sociales (después de mejorar la infraestructura)
-| Programas Sociales Recomendados |
-|---------------------------------|
-| Educación digital (capacitación en tecnología) |
-| Servicios públicos online (atención ciudadana digital) |
-| Telemedicina (atención médica a distancia) |
-| Capacitación laboral para el mercado digital |
-| Acceso a internet subsidiado para familias vulnerables |
-
-#### Paso 3: Complementar con Datos Externos
-Para priorizar mejor, combina con:
-- Índice de Vulnerabilidad Social (IVS) del IBGE
-- Ubicación de escuelas y centros de salud
-- Datos de programas sociales existentes en la zona
 
 ---
 
