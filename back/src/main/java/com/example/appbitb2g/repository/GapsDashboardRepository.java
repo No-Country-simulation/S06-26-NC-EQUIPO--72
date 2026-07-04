@@ -25,6 +25,8 @@ import java.util.List;
 @Repository
 public class GapsDashboardRepository {
 
+	public static final double UMBRAL_CONGESTIONAMENTO = 0.351;
+    public static final int UMBRAL_USUARIOS = 2000;
 	private final NamedParameterJdbcTemplate jdbcTemplate;
 
 	public GapsDashboardRepository(NamedParameterJdbcTemplate jdbcTemplate) {
@@ -37,96 +39,131 @@ public class GapsDashboardRepository {
 	                                                                   String incomeCluster) {
 
 		final String QUERY = """
-					SELECT
-					    tech.cluster,
-					    tech.municipio,
-					    tech.n_usuarios,
-					    ROUND(tech.congestionamento_medio, 2) AS congestionamento_medio,
-					    tech.rat_type_predominante,
-				
-					    -- Sub-objeto indicador_social
-					    ind.categoria AS ind_categoria,
-					    ind.indicador AS ind_indicador,
-					    ind.valor AS ind_valor,
-					    ind.unidad AS ind_unidad,
-				
-					    COALESCE(prog.programas_activos, 0) AS programas_activos,
-				
-					    -- severidad_brecha: Concentración de personas + calidad de red + ausencia de programas
-					    CASE
-					        WHEN tech.congestionamento_medio > @umbral_congestionamento
-					             AND tech.n_usuarios > @umbral_usuarios
-					             AND COALESCE(prog.programas_activos, 0) = 0
-					        THEN 'ALTA'
-					        WHEN tech.congestionamento_medio > (@umbral_congestionamento - 0.2)
-					        THEN 'MEDIA'
-					        ELSE 'BAJA'
-					    END AS severidad_brecha
-				
-					FROM (
-					    -- Eje Técnico (Calidad de red y concentración de personas)
-					    SELECT
-					        cluster,
-					        municipio,
-					        ROUND(AVG(n_usuarios)) AS n_usuarios,
-					        AVG(congestionamento_medio) AS congestionamento_medio,
-					        MAX(rat_type_predominante) AS rat_type_predominante
-					    FROM concentracao
-					    WHERE periodo = COALESCE(@periodo, 'TARDE')
-					      AND (@municipio IS NULL OR municipio = @municipio)
-					      AND (@income_cluster IS NULL OR EXISTS (
-					          SELECT 1
-					          FROM mobilidade_agregada ma
-					          WHERE ma.cluster = concentracao.cluster
-					            AND ma.municipio = concentracao.municipio
-					            AND ma.periodo = concentracao.periodo
-					            AND ma.income_cluster = @income_cluster
-					      ))
-					    GROUP BY cluster, municipio
-					) tech
-				
-					LEFT JOIN (
-					    -- Eje Social (Indicador más reciente)
-					    SELECT cluster, municipio, categoria, indicador, valor, unidad
-					    FROM (
-					        SELECT cluster, municipio, categoria, indicador, valor, unidad,
-					               ROW_NUMBER() OVER (PARTITION BY cluster, municipio ORDER BY fecha_referencia DESC, id DESC) AS rn
-					        FROM indicadores_territoriales
-					        WHERE categoria = @servicio
-					          AND (@municipio IS NULL OR municipio = @municipio)
-					    ) it_ranked
-					    WHERE rn = 1
-					)  AND tech.municipio = ind.municipio
-				
-					LEFT JOIN (
-					    -- Eje Programas (Conteo de cobertura)
-					    SELECT
-					        cluster,
-					        municipio,
-					        COUNT(*) AS programas_activos
-					    FROM programas_sociales
-					    WHERE activo = 1
-					      AND (tipo = @servicio OR @servicio NOT IN ('FORMACION', 'MENTORIA', 'EXPERIENCIA'))
-					      AND (@municipio IS NULL OR municipio = @municipio)
-					    GROUP BY cluster, municipio
-					) prog ON tech.cluster = prog.cluster AND tech.municipio = prog.municipio
-				
-					ORDER BY
-					    CASE severidad_brecha
-					        WHEN 'ALTA' THEN 1
-					        WHEN 'MEDIA' THEN 2
-					        ELSE 3
-					    END ASC,
-					    tech.n_usuarios DESC,
-					    tech.congestionamento_medio DESC;
-				""";
+			SELECT
+				tech.cluster,
+				tech.municipio,
+				tech.n_usuarios,
+				ROUND(tech.congestionamento_medio, 2) AS congestionamento_medio,
+				tech.rat_type_predominante,
+
+				-- Sub-objeto indicador_social
+				ind.categoria AS ind_categoria,
+				ind.indicador AS ind_indicador,
+				ind.valor AS ind_valor,
+				ind.unidad AS ind_unidad,
+
+				COALESCE(prog.programas_activos, 0) AS programas_activos,
+
+				-- severidad_brecha: Concentración de personas + ausencia de programas + indicador social
+				CASE
+					-- ALTA: mucha gente, sin programas y con indicador social que confirma la demanda
+					WHEN tech.n_usuarios > :umbral_usuarios
+						AND COALESCE(prog.programas_activos, 0) = 0
+						AND ind.indicador IS NOT NULL
+					THEN 'ALTA'
+					-- MEDIA: mucha gente, sin programas, pero sin indicador (brecha técnica sin dato social)
+					--     o: mucha gente, con programas (cobertura parcial)
+					WHEN tech.n_usuarios > :umbral_usuarios
+						AND COALESCE(prog.programas_activos, 0) = 0
+						AND ind.indicador IS NULL
+					THEN 'MEDIA'
+					WHEN tech.n_usuarios > :umbral_usuarios
+						AND COALESCE(prog.programas_activos, 0) > 0
+					THEN 'MEDIA'
+					-- BAJA: poca gente
+					ELSE 'BAJA'
+				END AS severidad_brecha
+
+			FROM (
+				-- Eje Técnico (Calidad de red y concentración de personas)
+				SELECT
+					cluster,
+					municipio,
+					ROUND(AVG(n_usuarios)) AS n_usuarios,
+					AVG(congestionamento_medio) AS congestionamento_medio,
+					MAX(rat_type_predominante) AS rat_type_predominante
+				FROM concentracao
+				WHERE periodo = COALESCE(:periodo, 'TARDE')
+				AND day_date = (SELECT MAX(day_date) FROM concentracao)
+				AND LOWER(municipio) = LOWER(COALESCE(:municipio, municipio))
+				AND (:income_cluster IS NULL OR EXISTS (
+					SELECT 1
+					FROM mobilidade_agregada ma
+					WHERE ma.cluster = concentracao.cluster
+						AND ma.municipio = concentracao.municipio
+						AND ma.periodo = concentracao.periodo
+						AND ma.income_cluster = :income_cluster
+				))
+				GROUP BY cluster, municipio
+			) tech
+
+			LEFT JOIN (
+				-- Eje Social (Indicador más reciente)
+				-- Mapeo servicio -> categoria_indicador:
+				--   FORMACION  -> EDUCACION
+				--   MENTORIA   -> EMPLEO
+				--   EXPERIENCIA-> SALUD_MENTAL
+				--   EMPLEO     -> EMPLEO
+				--   SALUD_MENTAL -> SALUD_MENTAL
+				SELECT cluster, municipio, categoria, indicador, valor, unidad
+				FROM (
+					SELECT cluster, municipio, categoria, indicador, valor, unidad,
+						ROW_NUMBER() OVER (PARTITION BY cluster, municipio ORDER BY fecha_referencia DESC, id DESC) AS rn
+					FROM indicadores_territoriales
+					WHERE categoria = CASE :servicio
+							WHEN 'FORMACION'   THEN 'EDUCACION'
+							WHEN 'MENTORIA'    THEN 'EMPLEO'
+							WHEN 'EXPERIENCIA' THEN 'SALUD_MENTAL'
+							ELSE :servicio
+						END
+					AND LOWER(municipio) = LOWER(COALESCE(:municipio, municipio))
+				) it_ranked
+				WHERE rn = 1
+			) ind ON tech.cluster = ind.cluster AND tech.municipio = ind.municipio
+
+			LEFT JOIN (
+				-- Eje Programas (Conteo de cobertura)
+				-- Mapeo servicio -> tipo_programa:
+				--   FORMACION   -> FORMACION
+				--   MENTORIA    -> MENTORIA
+				--   EXPERIENCIA -> EXPERIENCIA
+				--   EMPLEO      -> sin match (programas_activos = 0 siempre)
+				--   SALUD_MENTAL-> sin match (programas_activos = 0 siempre)
+				SELECT
+					cluster,
+					municipio,
+					COUNT(*) AS programas_activos
+				FROM programas_sociales
+				WHERE activo = 1
+				AND tipo = CASE :servicio
+						WHEN 'EMPLEO'       THEN NULL
+						WHEN 'SALUD_MENTAL' THEN NULL
+						ELSE :servicio
+					END
+				AND LOWER(municipio) = LOWER(COALESCE(:municipio, municipio))
+				GROUP BY cluster, municipio
+			) prog ON tech.cluster = prog.cluster AND tech.municipio = prog.municipio
+
+			ORDER BY
+				CASE severidad_brecha
+					WHEN 'ALTA' THEN 1
+					WHEN 'MEDIA' THEN 2
+					ELSE 3
+				END ASC,
+				tech.n_usuarios DESC,
+				tech.congestionamento_medio DESC
+			""";
 
 		// params assignation
 		MapSqlParameterSource params = new MapSqlParameterSource()
 				.addValue("servicio", servicio)
 				.addValue("municipio", municipio)
 				.addValue("periodo", periodo)
-				.addValue("incomeCluster", incomeCluster);
+				.addValue("income_cluster", incomeCluster)
+				.addValue("umbral_congestionamento", UMBRAL_CONGESTIONAMENTO)
+				.addValue("umbral_usuarios", UMBRAL_USUARIOS);
+
+
 
 		// mapping
 		return jdbcTemplate.query(QUERY, params, (rs, rowNum) -> {

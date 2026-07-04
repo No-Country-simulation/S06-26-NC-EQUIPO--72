@@ -14,6 +14,8 @@ import java.util.List;
 public class BrechaServiceImpl implements BrechasService {
 	private final GapsDashboardRepository gapsDashboardRepository;
 
+
+
 	public BrechaServiceImpl(GapsDashboardRepository gapsDashboardRepository) {
 		this.gapsDashboardRepository = gapsDashboardRepository;
 	}
@@ -39,10 +41,13 @@ public class BrechaServiceImpl implements BrechasService {
 		}
 
 		GapsResponseDTO.CriterioRecord criteria = new GapsResponseDTO.CriterioRecord(
-				servicio,
-				"congestionamento_medio > 0.6 AND programas_activos = 0", // default at the moment
-				0.6 // default at the moment
+			servicio,
+			"n_usuarios > " + GapsDashboardRepository.UMBRAL_USUARIOS + " AND programas_activos = 0",
+			GapsDashboardRepository.UMBRAL_CONGESTIONAMENTO
 		);
+
+
+
 
 		List<GapsResponseDTO.BrechaDetalleRecord> gapsDetails = gapsDashboardRepository
 				.getGapsByCriteria(servicio, municipio, periodo, incomeCluster);
