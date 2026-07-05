@@ -1,6 +1,7 @@
 package com.example.appbitb2g.repository;
 
 import com.example.appbitb2g.dto.responseDTO.socialProgram.GapsResponseDTO;
+import com.example.appbitb2g.mapper.BrechaRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -28,6 +29,7 @@ public class GapsDashboardRepository {
 	public static final double UMBRAL_CONGESTIONAMENTO = 0.351;
     public static final int UMBRAL_USUARIOS = 2000;
 	private final NamedParameterJdbcTemplate jdbcTemplate;
+	private final BrechaRowMapper ROM_MAPPER = new BrechaRowMapper();
 
 	public GapsDashboardRepository(NamedParameterJdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
@@ -163,31 +165,6 @@ public class GapsDashboardRepository {
 				.addValue("umbral_congestionamento", UMBRAL_CONGESTIONAMENTO)
 				.addValue("umbral_usuarios", UMBRAL_USUARIOS);
 
-
-
-		// mapping
-		return jdbcTemplate.query(QUERY, params, (rs, rowNum) -> {
-			GapsResponseDTO.IndicadorSocialRecord socialIndicator = null;
-			if (rs.getString("ind_categoria") != null) {
-				socialIndicator = new GapsResponseDTO.IndicadorSocialRecord(
-						rs.getString("ind_categoria"),
-						rs.getString("ind_indicador"),
-						rs.getDouble("ind_valor"),
-						rs.getString("ind_unidad")
-				);
-			}
-
-			// main object
-			return new GapsResponseDTO.BrechaDetalleRecord(
-					rs.getString("cluster"),
-					rs.getString("municipio"),
-					rs.getInt("n_usuarios"),
-					rs.getDouble("congestionamento_medio"),
-					rs.getString("rat_type_predominante"),
-					socialIndicator,
-					rs.getInt("programas_activos"),
-					rs.getString("severidad_brecha")
-			);
-		});
+		return jdbcTemplate.query(QUERY, params, ROM_MAPPER);
 	}
 }
