@@ -34,12 +34,10 @@ import { useMapData, usePrograms, useMapsIndicators } from "../hooks/useMaps";
 import { formatClusterName } from "@/shared/utils/format";
 
 function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
-  const formattedName = formatClusterName(clusterName);
-
   const [messages, setMessages] = useState([
     {
       sender: "ai",
-      text: `Hola, soy el asistente de IA del APP BiT. He analizado la Región ${formattedName} y puedo ayudarte a identificar brechas y generar recomendaciones basadas en evidencia. ¿Qué te gustaría explorar hoy?`,
+      text: `Hola, soy el asistente de IA del APP BiT. He analizado la Región ${clusterName} y puedo ayudarte a identificar brechas y generar recomendaciones basadas en evidencia. ¿Qué te gustaría explorar hoy?`,
     },
   ]);
   const [chatInput, setChatInput] = useState("");
@@ -564,25 +562,25 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
             {messages.length === 1 && !aiMutation.isPending && (
               <div className="space-y-2 mb-4 flex-shrink-0">
                 <button
-                  onClick={() => handleSendMessage(`¿Qué alertas críticas hay activas en la Región ${formattedName}?`)}
+                  onClick={() => handleSendMessage(`¿Qué alertas críticas hay activas en la Región ${clusterName}?`)}
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
-                  ¿Qué alertas críticas hay activas en la Región {formattedName}?
+                  ¿Qué alertas críticas hay activas en la Región {clusterName}?
                 </button>
                 <button
-                  onClick={() => handleSendMessage(`¿Dónde faltan programas de formación en la Región ${formattedName}?`)}
+                  onClick={() => handleSendMessage(`¿Dónde faltan programas de formación en la Región ${clusterName}?`)}
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
-                  ¿Dónde faltan programas de formación en la Región {formattedName}?
+                  ¿Dónde faltan programas de formación en la Región {clusterName}?
                 </button>
                 <button
-                  onClick={() => handleSendMessage(`¿Qué zonas de la Región ${formattedName} son prioridad para inversión social?`)}
+                  onClick={() => handleSendMessage(`¿Qué zonas de la Región ${clusterName} son prioridad para inversión social?`)}
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
                   ¿Qué zonas son prioridad para inversión social?
                 </button>
                 <button
-                  onClick={() => handleSendMessage(`¿Cómo impacta la conectividad en la salud mental de la Región ${formattedName}?`)}
+                  onClick={() => handleSendMessage(`¿Cómo impacta la conectividad en la salud mental de la Región ${clusterName}?`)}
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
                   ¿Cómo impacta la conectividad en la salud mental?

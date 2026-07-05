@@ -41,7 +41,7 @@ import { BlockMap } from "../components/BlockMap";
 import { useMapsIndicators } from "../hooks/useMaps";
 import { formatClusterName } from "@/shared/utils/format";
 
-function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMapTabChange }) {
+function DashboardPage({ onTabChange, onClusterSelect }) {
   const [messages, setMessages] = useState([
     {
       sender: "ai",
@@ -69,7 +69,7 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
             { sender: "ai", text: data.respuesta_ia },
           ]);
         },
-        onError: (error) => {
+        onError: () => {
           setMessages((prev) => [
             ...prev,
             {
@@ -78,7 +78,7 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
             },
           ]);
         },
-      }
+      },
     );
   };
 
@@ -468,10 +468,9 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
             <span>Últimos 12 meses</span>
           </button>
-          <button className="flex items-center gap-1.5 bg-white border border-slate-200 text-xs font-semibold text-slate-700 px-3 py-2 rounded-lg hover:bg-slate-50 cursor-pointer">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <span>Filtros</span>
-          </button>
+         
+         
+
         </div>
       </div>
 
@@ -556,14 +555,10 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
       {/* Map and AI Assistant Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Card: Mapa de Inclusión Social */}
-        <BlockMap
-          onClusterSelect={onClusterSelect}
-          activeMapTab={activeMapTab}
-          onActiveMapTabChange={onActiveMapTabChange}
-        />
+        <BlockMap onClusterSelect={onClusterSelect} />
 
         {/* Right Card: Asistente IA */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between min-h-[500px]">
+        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between min-h-[450px]">
           <div className="flex flex-col h-full w-full justify-between flex-1">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-shrink-0">
@@ -582,7 +577,10 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
             </div>
 
             {/* Chat Messages Log */}
-            <div ref={chatContainerRef} className="flex-1 overflow-y-auto my-4 space-y-4 pr-1 text-xs min-h-[180px] max-h-[300px] lg:max-h-[500px]">
+            <div
+              ref={chatContainerRef}
+              className="flex-1 overflow-y-auto my-4 space-y-4 pr-1 text-xs min-h-[180px] max-h-[300px] lg:max-h-[500px]"
+            >
               {messages.map((msg, index) => (
                 <div
                   key={index}
@@ -597,7 +595,11 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
                         : "bg-blue-600 text-white"
                     }`}
                   >
-                    {msg.sender === "user" ? "Tú" : <Bot className="w-3.5 h-3.5" />}
+                    {msg.sender === "user" ? (
+                      "Tú"
+                    ) : (
+                      <Bot className="w-3.5 h-3.5" />
+                    )}
                   </div>
                   <div
                     className={`rounded-xl p-3 border leading-relaxed max-w-[80%] ${
@@ -628,25 +630,39 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
             {messages.length === 1 && !aiMutation.isPending && (
               <div className="space-y-2 mb-4 flex-shrink-0">
                 <button
-                  onClick={() => handleSendMessage("¿Qué regiones tienen alto desempleo y baja conectividad?")}
+                  onClick={() =>
+                    handleSendMessage(
+                      "¿Qué regiones tienen alto desempleo y baja conectividad?",
+                    )
+                  }
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
                   ¿Qué regiones tienen alto desempleo y baja conectividad?
                 </button>
                 <button
-                  onClick={() => handleSendMessage("¿Dónde faltan programas de formación?")}
+                  onClick={() =>
+                    handleSendMessage("¿Dónde faltan programas de formación?")
+                  }
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
                   ¿Dónde faltan programas de formación?
                 </button>
                 <button
-                  onClick={() => handleSendMessage("¿Qué zonas son prioridad para inversión social?")}
+                  onClick={() =>
+                    handleSendMessage(
+                      "¿Qué zonas son prioridad para inversión social?",
+                    )
+                  }
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
                   ¿Qué zonas son prioridad para inversión social?
                 </button>
                 <button
-                  onClick={() => handleSendMessage("¿Cómo impacta la conectividad en la salud mental?")}
+                  onClick={() =>
+                    handleSendMessage(
+                      "¿Cómo impacta la conectividad en la salud mental?",
+                    )
+                  }
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
                   ¿Cómo impacta la conectividad en la salud mental?
@@ -657,23 +673,23 @@ function DashboardPage({ onTabChange, onClusterSelect, activeMapTab, onActiveMap
             {/* AI Chat Input */}
             <div className="mt-auto flex-shrink-0 pt-2 border-t border-slate-100">
               <div className="relative w-full">
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                placeholder="Haga una pregunta sobre los datos..."
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                  placeholder="Haga una pregunta sobre los datos..."
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-3 pr-10 py-2.5 text-xs focus:outline-none focus:border-blue-500"
-                disabled={aiMutation.isPending}
-              />
-              <button
-                onClick={() => handleSendMessage()}
-                disabled={aiMutation.isPending}
+                  disabled={aiMutation.isPending}
+                />
+                <button
+                  onClick={() => handleSendMessage()}
+                  disabled={aiMutation.isPending}
                   className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 text-blue-600 hover:text-blue-800 hover:bg-blue-50 flex items-center justify-center rounded-md cursor-pointer transition-colors disabled:opacity-50"
-              >
-                <Send className="w-3.5 h-3.5" />
-              </button>
-            </div>
+                >
+                  <Send className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

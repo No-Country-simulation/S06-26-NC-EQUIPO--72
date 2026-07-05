@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 DATA_RESULT_DIR = BASE_DIR / "data_resultado"
 

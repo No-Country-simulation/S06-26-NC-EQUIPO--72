@@ -123,6 +123,7 @@ function MainLayout({ children, currentTab, onTabChange }) {
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="text-slate-600 hover:bg-slate-100 rounded-md cursor-pointer" />
                 {/* Search bar */}
+                {/* 
                 <div className="relative w-80">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input 
@@ -131,14 +132,17 @@ function MainLayout({ children, currentTab, onTabChange }) {
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-4 py-1.5 text-xs focus:outline-none focus:border-blue-500"
                   />
                 </div>
+                */}
               </div>
 
               {/* Right Actions */}
               <div className="flex items-center gap-5">
+                {/* 
                 <button className="flex items-center gap-2 bg-[#2563eb] hover:bg-blue-600 text-white font-medium text-xs px-4 py-2 rounded-lg transition-colors cursor-pointer">
                   <Download className="w-3.5 h-3.5" />
                   <span>Exportar</span>
                 </button>
+                */}
 
                 {/* Language */}
                 <div className="flex items-center gap-1.5 text-slate-600 text-xs font-medium cursor-pointer">

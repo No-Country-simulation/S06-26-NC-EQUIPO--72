@@ -347,8 +347,8 @@ function ExperienciasPage() {
             impacto en Florianópolis
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-white border border-slate-200 px-3.5 py-2 rounded-lg shadow-xs">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2 bg-white border border-slate-200 px-3.5 py-2 rounded-lg shadow-xs w-full sm:w-auto justify-between sm:justify-start">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">
               Impacto:
             </span>
@@ -365,7 +365,7 @@ function ExperienciasPage() {
           </div>
           <button
             onClick={() => setIsFormOpen(true)}
-            className="flex items-center gap-1.5 bg-[#2563eb] hover:bg-blue-600 text-white font-medium text-xs px-4 py-2.5 rounded-lg transition-all active:scale-[0.98] cursor-pointer shadow-sm"
+            className="flex items-center justify-center gap-1.5 bg-[#2563eb] hover:bg-blue-600 text-white font-medium text-xs px-4 py-2.5 rounded-lg transition-all active:scale-[0.98] cursor-pointer shadow-sm w-full sm:w-auto"
           >
             <Plus className="w-4 h-4" />
             <span>Registrar experiencia</span>
