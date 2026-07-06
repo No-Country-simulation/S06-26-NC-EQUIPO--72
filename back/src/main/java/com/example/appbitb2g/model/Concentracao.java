@@ -35,7 +35,6 @@ public class Concentracao {
     private String municipio;
     @Column(name = "day_date")
     private LocalDate dayDate; // DATE
-  
     private String periodo; // MADRUGADA / MANHA / TARDE
     @Column(name = "n_usuarios")
     private Integer nUsuarios; // INT

@@ -38,6 +38,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDTO);
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDto> handleGeneralException(Exception ex) {
+        ErrorResponseDto errorDTO = new ErrorResponseDto(
+                "ERROR_INTERNO",
+                "Ocurrió un error inesperado al calcular las brechas del territorio"
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorDTO);
+    }
+
     @ExceptionHandler({HttpClientErrorException.class, HttpServerErrorException.class})
     public ResponseEntity<ErrorResponseDto> handleRestClientException(RestClientResponseException ex) {
         if (ex.getStatusCode().value() == 422) {
