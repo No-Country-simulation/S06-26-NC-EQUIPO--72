@@ -81,7 +81,7 @@ export default function MentoriasPage() {
 
   const barChartData = data?.brechas?.map((brecha) => ({
     region: formatClusterName(brecha.cluster),
-    mentorizados: brecha.indicador_social.valor,
+    mentorizados: brecha.indicador_social?.valor,
   }));
 
   // const barChartData = [
