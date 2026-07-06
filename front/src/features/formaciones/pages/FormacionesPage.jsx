@@ -277,7 +277,9 @@ function FormacionesPage() {
         programas: count,
         cobertura: clusterInfo.cobertura,
       };
-    });
+    }).filter(
+      (d) => d.programas > 0 || (d.cobertura !== null && d.cobertura !== undefined)
+    );
   }, [programList, rawBrechas]);
 
   // 7. Categorización del gráfico de torta en base a palabras clave de los programas activos
@@ -546,7 +548,7 @@ function FormacionesPage() {
               >
                 <BarChart
                   data={barChartData}
-                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  margin={{ top: 10, right: -10, left: -20, bottom: 0 }}
                 >
                   <CartesianGrid vertical={false} strokeDasharray="3 3" />
                   <XAxis
@@ -564,20 +566,34 @@ function FormacionesPage() {
                     height={50}
                   />
                   <YAxis
+                    yAxisId="left"
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
                     tick={{ fontSize: 9, fill: "#64748b" }}
                     domain={[0, 100]}
+                    unit="%"
+                  />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tick={{ fontSize: 9, fill: "#64748b" }}
+                    domain={[0, 'auto']}
+                    allowDecimals={false}
                   />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Bar
+                    yAxisId="right"
                     dataKey="programas"
                     fill="var(--color-programas)"
                     radius={[2, 2, 0, 0]}
                     barSize={8}
                   />
                   <Bar
+                    yAxisId="left"
                     dataKey="cobertura"
                     fill="var(--color-cobertura)"
                     radius={[2, 2, 0, 0]}
