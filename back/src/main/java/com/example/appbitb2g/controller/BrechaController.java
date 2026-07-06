@@ -61,7 +61,7 @@ public class BrechaController {
 			@RequestParam(name = "municipio", required = false) String municipio,
 			@Parameter(description = "Período horario opcional", example = "TARDE")
 			@RequestParam(name = "periodo", required = false) String periodo,
-			@Parameter(description = "Clúster de ingresos reservado para compatibilidad del contrato", example = "SAO_JOSE_KOBRASOL")
+			@Parameter(description = "Clúster de ingresos reservado para compatibilidad del contrato", example = "A")
 			@RequestParam(name = "income_cluster", required = false) String incomeCluster) {
 		GapsResponseDTO response = brechasService.analizarBrechas(servicio, municipio, periodo, incomeCluster);
 		return ResponseEntity.ok(response);

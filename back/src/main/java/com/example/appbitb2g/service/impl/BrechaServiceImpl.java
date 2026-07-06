@@ -9,12 +9,12 @@ import com.example.appbitb2g.service.BrechasService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class BrechaServiceImpl implements BrechasService {
 	private final GapsDashboardRepository gapsDashboardRepository;
-
-
+	private static final Set<String> CLUSTER_VALIDOS = Set.of("A", "B", "C", "D");
 
 	public BrechaServiceImpl(GapsDashboardRepository gapsDashboardRepository) {
 		this.gapsDashboardRepository = gapsDashboardRepository;
@@ -32,22 +32,21 @@ public class BrechaServiceImpl implements BrechasService {
 
 		if (ServiceType.fromString(servicio) == null) {
 			throw new BadRequestException(
-					"El valor de 'servicio' debe ser MENTORIA / FORMACION / EXPERIENCIA / SALUD_MENTAL / EMPLEO"
-			);
+					"El valor de 'servicio' debe ser MENTORIA / FORMACION / EXPERIENCIA / SALUD_MENTAL / EMPLEO");
 		}
 
 		if (DayPeriod.fromString(periodo) == null) {
 			throw new BadRequestException("El valor de 'periodo' debe ser MADRUGADA / MANHA / TARDE / NOITE.");
 		}
+		if (incomeCluster == null || !CLUSTER_VALIDOS.contains(incomeCluster.toUpperCase())) {
+			throw new BadRequestException(
+					"El valor de cluster debe ser A / B / C / D");
+		}
 
 		GapsResponseDTO.CriterioRecord criteria = new GapsResponseDTO.CriterioRecord(
-			servicio,
-			"n_usuarios > " + GapsDashboardRepository.UMBRAL_USUARIOS + " AND programas_activos = 0",
-			GapsDashboardRepository.UMBRAL_CONGESTIONAMENTO
-		);
-
-
-
+				servicio,
+				"n_usuarios > " + GapsDashboardRepository.UMBRAL_USUARIOS + " AND programas_activos = 0",
+				GapsDashboardRepository.UMBRAL_CONGESTIONAMENTO);
 
 		List<GapsResponseDTO.BrechaDetalleRecord> gapsDetails = gapsDashboardRepository
 				.getGapsByCriteria(servicio, municipio, periodo, incomeCluster);
@@ -55,4 +54,3 @@ public class BrechaServiceImpl implements BrechasService {
 		return new GapsResponseDTO(gapsDetails, criteria);
 	}
 }
-
