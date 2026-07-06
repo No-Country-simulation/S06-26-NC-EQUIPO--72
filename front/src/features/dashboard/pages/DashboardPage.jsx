@@ -696,7 +696,7 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
       </div>
 
       {/* Grid: Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols- gap-6">
         {/* Card 1: Empleo y Conectividad por Región */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between hover:shadow-sm transition-shadow">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -746,68 +746,6 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
                 />
                 <ChartLegend content={<ChartLegendContent />} />
               </BarChart>
-            </ChartContainer>
-          </div>
-        </div>
-
-        {/* Card 2: Evolución de Indicadores */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between hover:shadow-sm transition-shadow">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 className="text-sm font-bold text-slate-800">
-              Evolución de Indicadores
-            </h3>
-            <span className="text-[10px] font-bold bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200 text-slate-500">
-              12 meses
-            </span>
-          </div>
-          <div className="flex-1 mt-4">
-            <ChartContainer
-              config={lineChartConfig}
-              className="h-[200px] w-full"
-            >
-              <LineChart
-                data={lineChartData}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              >
-                <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="mes"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={{ fontSize: 9, fill: "#64748b" }}
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={{ fontSize: 9, fill: "#64748b" }}
-                  domain={[30, 100]}
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Line
-                  type="monotone"
-                  dataKey="empleo"
-                  stroke="var(--color-empleo)"
-                  strokeWidth={2}
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="conectividad"
-                  stroke="var(--color-conectividad)"
-                  strokeWidth={2}
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="inclusion"
-                  stroke="var(--color-inclusion)"
-                  strokeWidth={2}
-                  dot={false}
-                />
-                <ChartLegend content={<ChartLegendContent />} />
-              </LineChart>
             </ChartContainer>
           </div>
         </div>

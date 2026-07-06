@@ -257,7 +257,7 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
   }
 
   // Preparar valores para mostrar
-  const displayName = formattedName;
+  const displayName = formatClusterName;
   const populationValue = selectedRegion.n_usuarios 
     ? selectedRegion.n_usuarios >= 1000000 
       ? `${(selectedRegion.n_usuarios / 1000000).toFixed(1)}M` 
