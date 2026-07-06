@@ -56,7 +56,7 @@ const FLORI_CLUSTERS = [
  */
 const getClusterData = (clusterName, brechasList) => {
   if (!clusterName)
-    return { nUsuarios: 5000, cobertura: 50, severidad: "MEDIA" };
+    return { nUsuarios: null, cobertura: null, severidad: null };
 
   // Buscamos si existe una brecha registrada para este clúster
   const realMatch = brechasList?.find(
@@ -66,35 +66,23 @@ const getClusterData = (clusterName, brechasList) => {
   if (realMatch) {
     const coverageVal = realMatch.indicador_social?.valor
       ? parseFloat(realMatch.indicador_social.valor)
-      : 0.52;
+      : 0;
     // Si viene como fracción (< 2), la multiplicamos por 100
     const pct = coverageVal < 2 ? coverageVal * 100 : coverageVal;
 
     return {
-      nUsuarios: realMatch.n_usuarios || 8000,
+      nUsuarios: realMatch.n_usuarios || 0,
       cobertura: Math.round(pct),
       programasActivos: realMatch.programas_activos || 0,
-      severidad: realMatch.severidad_brecha || "MEDIA",
+      severidad: realMatch.severidad_brecha || null,
     };
   }
 
-  // Generador de fallback determinista estable
-  let hash = 0;
-  for (let i = 0; i < clusterName.length; i++) {
-    hash = clusterName.charCodeAt(i) + ((hash << 5) - hash);
-  }
-
-  const nUsuarios = 2000 + Math.abs(hash % 15) * 1000;
-  const cobertura = 25 + Math.abs((hash >> 4) % 71);
-  let severidad = "MEDIA";
-  if (cobertura < 40) severidad = "ALTA";
-  else if (cobertura > 75) severidad = "BAJA";
-
   return {
-    nUsuarios,
-    cobertura,
+    nUsuarios: null,
+    cobertura: null,
     programasActivos: 0,
-    severidad,
+    severidad: null,
   };
 };
 
@@ -130,19 +118,13 @@ function ExperienciasPage() {
       // Mapeamos el impacto y colores dinámicos
       let impactText = "Impacto medio";
       let impactColor = "bg-amber-50 text-amber-700 border-amber-200";
-      let barColor = "bg-amber-500";
-      let score = "6.2/10";
 
       if (exp.impactoEstimado === "ALTO") {
         impactText = "Alto Impacto";
         impactColor = "bg-green-50 text-green-700 border-green-200";
-        barColor = "bg-green-500";
-        score = "8.7/10";
       } else if (exp.impactoEstimado === "BAJO") {
         impactText = "Bajo impacto";
         impactColor = "bg-red-50 text-red-700 border-red-200";
-        barColor = "bg-red-500";
-        score = "4.1/10";
       }
 
       return {
@@ -152,13 +134,12 @@ function ExperienciasPage() {
         impact: impactText,
         impactColor: impactColor,
         replicable: exp.replicable === 1,
-        // Limpiamos los textos del clúster técnico (ej: "FLORIANOPOLIS_CENTRO" -> "Centro")
         region: formatClusterName(exp.cluster) || "Sin definir",
-        beneficiarios: `${territorial.nUsuarios.toLocaleString("es-ES")} beneficiarios`,
+        beneficiarios: territorial.nUsuarios !== null && territorial.nUsuarios !== undefined
+          ? `${territorial.nUsuarios.toLocaleString("es-ES")} beneficiarios`
+          : "Sin datos de beneficiarios",
         beneficiariosRaw: territorial.nUsuarios,
         leader: exp.liderReferente || "No asignado",
-        score: score,
-        barColor: barColor,
       };
     });
   }, [rawExperiencias, rawBrechas]);
@@ -178,11 +159,10 @@ function ExperienciasPage() {
   const kpis = useMemo(() => {
     const totalActivas = experienceList.length;
 
-    // Calculamos beneficiarios sumando estimaciones estables de los 16 clústeres oficiales
-    const beneficiariosTotales = FLORI_CLUSTERS.reduce((sum, c) => {
-      const clusterInfo = getClusterData(c, rawBrechas?.brechas);
-      return sum + clusterInfo.nUsuarios;
-    }, 0);
+    // Calculamos beneficiarios sumando los usuarios reales que vienen del backend
+    const beneficiariosTotales = rawBrechas?.brechas?.reduce((sum, b) => {
+      return sum + (b.n_usuarios || 0);
+    }, 0) || 0;
 
     const beneficiariosFormateados =
       beneficiariosTotales >= 1000
@@ -204,7 +184,7 @@ function ExperienciasPage() {
       },
       {
         label: "Beneficiarios totales",
-        value: beneficiariosFormateados,
+        value: beneficiariosFormateados.toString(),
         icon: Users,
         iconColor: "text-slate-600",
         bgColor: "bg-slate-50 border-slate-100",
@@ -304,33 +284,6 @@ function ExperienciasPage() {
         barColor: "bg-pink-500",
       },
     ];
-  }, [experienceList]);
-
-  // 7. Selección dinámica de los datos para el "Caso de Éxito Destacado" de Florianópolis
-  const successCase = useMemo(() => {
-    // Buscamos si existe alguna experiencia de alto impacto en la lista
-    const bestMatch = experienceList.find((e) => e.impact === "Alto Impacto");
-
-    if (bestMatch) {
-      return {
-        title: `${bestMatch.title} — ${bestMatch.region}`,
-        desc:
-          bestMatch.description ||
-          "Proyecto de impacto e innovación comunitaria sustentable.",
-        beneficiarios: bestMatch.beneficiarios.split(" ")[0] || "24K",
-        regionesCount: "1",
-        tasaExito: "85%",
-      };
-    }
-
-    // Caso de éxito estático por defecto en caso de lista vacía
-    return {
-      title: "Laboratorio de Innovación Social — Centro",
-      desc: "Iniciativa que conecta a 24.000 ciudadanos con servicios digitales, formación y empleabilidad. Modelo replicado en 4 regiones con tasas de éxito superiores al 80%.",
-      beneficiarios: "24K",
-      regionesCount: "4",
-      tasaExito: "80%+",
-    };
   }, [experienceList]);
 
   return (
@@ -518,21 +471,6 @@ function ExperienciasPage() {
                     </div>
                   </div>
 
-                  {/* Progress Indicator */}
-                  <div className="mt-5 pt-3.5 border-t border-slate-100">
-                    <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1.5">
-                      <span>Índice de impacto</span>
-                      <span className="text-slate-800">{experience.score}</span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${experience.barColor} transition-all duration-500`}
-                        style={{
-                          width: `${parseFloat(experience.score) * 10}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
                 </div>
               ))}
             </div>
@@ -542,49 +480,6 @@ function ExperienciasPage() {
               búsqueda o filtro.
             </div>
           )}
-        </div>
-      )}
-
-      {/* Featured Success Case Bottom Banner */}
-      {!errorExperiencias && (
-        <div className="bg-linear-to-r from-teal-800 to-teal-700 text-white rounded-xl p-6 shadow-sm border border-teal-900/50">
-          <span className="text-[10px] font-bold text-teal-200 tracking-wider uppercase">
-            Caso de Éxito Destacado
-          </span>
-          <h4 className="text-base font-bold mt-1.5 text-white">
-            {successCase.title}
-          </h4>
-          <p className="text-xs text-teal-100/90 leading-relaxed mt-2 max-w-3xl font-medium">
-            {successCase.desc}
-          </p>
-
-          {/* Success Metrics */}
-          <div className="flex flex-wrap items-center gap-8 mt-5 pt-4 border-t border-teal-600/30">
-            <div>
-              <h5 className="text-xl font-bold text-white leading-none">
-                {successCase.beneficiarios}
-              </h5>
-              <span className="text-[10px] text-teal-200/90 font-semibold mt-1 inline-block">
-                Beneficiarios
-              </span>
-            </div>
-            <div>
-              <h5 className="text-xl font-bold text-white leading-none">
-                {successCase.regionesCount}
-              </h5>
-              <span className="text-[10px] text-teal-200/90 font-semibold mt-1 inline-block">
-                Regiones
-              </span>
-            </div>
-            <div>
-              <h5 className="text-xl font-bold text-white leading-none">
-                {successCase.tasaExito}
-              </h5>
-              <span className="text-[10px] text-teal-200/90 font-semibold mt-1 inline-block">
-                Tasa de éxito estimada
-              </span>
-            </div>
-          </div>
         </div>
       )}
 

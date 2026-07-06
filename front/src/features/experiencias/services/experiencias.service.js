@@ -11,9 +11,9 @@ class ExperienciasService {
    * @param {string} tipo - Tipo de programa a filtrar
    * @returns {Promise<Array>} Listado de experiencias del backend
    */
-  async getProgramas(tipo = "EXPERIENCIA") {
+  async getProgramas(tipo = "EXPERIENCIA", municipio = "Florianopolis") {
     // Realizamos la llamada GET especificando un tamaño de página grande para traer todas las experiencias
-    const response = await fetch(`${this.API}programas?size=100&tipo=${tipo}`);
+    const response = await fetch(`${this.API}programas?size=100&tipo=${tipo}&municipio=${municipio}`);
 
     const result = await response.json();
     
@@ -33,11 +33,12 @@ class ExperienciasService {
    * Por defecto se consulta para "EXPERIENCIA".
    * 
    * @param {string} servicio - Identificador del servicio de brechas
+   * @param {string} municipio - Municipio para filtrar
    * @returns {Promise<Object>} Datos de brechas territoriales
    */
-  async getBrechas(servicio = "EXPERIENCIA") {
+  async getBrechas(servicio = "EXPERIENCIA", municipio = "Florianopolis") {
     // Solicitamos al endpoint /brechas el análisis territorial para el tipo de servicio especificado
-    const response = await fetch(`${this.API}brechas?servicio=${servicio}`);
+    const response = await fetch(`${this.API}brechas?servicio=${servicio}&municipio=${municipio}`);
 
     const result = await response.json();
     
