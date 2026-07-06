@@ -30,6 +30,7 @@ import {
   BarChartSkeleton,
   RankingListSkeleton,
 } from "../skeletons/EmpleabilidadPageSkeleton";
+import { useLanguage } from "@/context/useLenguage";
 
 // Mock Data
 
@@ -101,6 +102,9 @@ const tooltipFormatter = (value, name, item) => {
 // Bottom Section: Ranking de Empleabilidad
 
 function EmpleabilidadPage() {
+  const { lenguage } = useLanguage();
+  const isPortugues = lenguage === "pt";
+
   const [activeTab, setActiveTab] = useState("comparacion");
 
   const empleo = useEmpleabilidad();
@@ -126,20 +130,25 @@ function EmpleabilidadPage() {
 
   const comparisonConfig = {
     formal: {
-      label: "Empleo Formal",
+      label: isPortugues ? "Emprego Formal" : "Empleo Formal",
       color: "#2563eb",
     },
     informal: {
-      label: "Empleo Informal",
+      label: isPortugues ? "Emprego Informal" : "Empleo Informal",
       color: "#38bdf8",
     },
   };
 
-  const comparisonData = empleo?.data?.brechas?.map((brecha) => ({
-    region: brecha.municipio,
-    formal: Math.round((10 - brecha.indicador_social?.valor) * 10),
-    informal: Math.round(brecha.indicador_social?.valor * 10),
-  }));
+  const comparisonData = empleo?.data?.brechas?.map((brecha) => {
+    const rawValue = Number(brecha.indicador_social?.valor);
+    const value = Number.isFinite(rawValue) ? rawValue : 0;
+    const porcentaje = Math.max(0, Math.min(10, value));
+    return {
+      region: brecha.municipio,
+      formal: Math.round((10 - porcentaje) * 10),
+      informal: Math.round(porcentaje * 10),
+    };
+  });
 
   return (
     <div className="space-y-6">
@@ -148,10 +157,10 @@ function EmpleabilidadPage() {
         <div>
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <Briefcase className="w-5 h-5 text-blue-600" />
-            <span>Empleabilidad Regional</span>
+            <span>{isPortugues ? "Empregabilidade Regional" : "Empleabilidad Regional"}</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Análisis de empleo, desempleo y participación laboral
+            {isPortugues ? "Análise de emprego, desemprego e participação no trabalho" : "Análisis de empleo, desempleo y participación laboral"}
           </p>
         </div>
         {/* <div>
@@ -185,7 +194,7 @@ function EmpleabilidadPage() {
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center flex items-center justify-center gap-2 text-xs text-red-600 font-semibold shadow-xs">
           <AlertCircle className="w-4 h-4 text-red-500" />
           <span>
-            Error al sincronizar datos de empleabilidad con el servidor
+            {isPortugues ? "Erro ao sincronizar dados de empregabilidade com o servidor" : "Error al sincronizar datos de empleabilidad con el servidor"}
           </span>
         </div>
       ) : (
@@ -194,10 +203,10 @@ function EmpleabilidadPage() {
           <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
             <div>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                Tasa de Empleo Promedio
+                {isPortugues ? "Taxa de Emprego Média" : "Tasa de Empleo Promedio"}
               </p>
               <h3 className="text-2xl font-bold text-slate-800 tracking-tight mt-1.5">
-                {brechaEmpleo?.indicador_social?.valor.toFixed(1)}%
+                {brechaEmpleo?.indicador_social?.valor.toFixed(1) || 0}%
               </h3>
             </div>
             <div className="flex items-center gap-1 text-[10px] text-green-600 font-bold mt-2">
@@ -210,7 +219,7 @@ function EmpleabilidadPage() {
           <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
             <div>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                Mejor Región
+                {isPortugues ? "Melhor Região" : "Mejor Región"}
               </p>
               <h3 className="text-2xl font-bold text-slate-800 tracking-tight mt-1.5">
                 {mejorCongestionamiento?.municipio}
@@ -219,7 +228,7 @@ function EmpleabilidadPage() {
             <div className="flex items-center gap-1 text-[10px] text-green-600 font-bold mt-2">
               <Award className="w-3.5 h-3.5" />
               <span>
-                {mejorCongestionamiento?.indicador_social?.valor}% de empleo
+                {mejorCongestionamiento?.indicador_social?.valor}{isPortugues ? "% de emprego" : "% de empleo"}
               </span>
             </div>
           </div>
@@ -228,7 +237,7 @@ function EmpleabilidadPage() {
           <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-sm transition-shadow">
             <div>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                Región Crítica
+                {isPortugues ? "Região Crítica" : "Región Crítica"}
               </p>
               <h3 className="text-2xl font-bold text-slate-800 tracking-tight mt-1.5">
                 {peorCongestionamiento?.municipio}
@@ -237,7 +246,7 @@ function EmpleabilidadPage() {
             <div className="flex items-center gap-1 text-[10px] text-red-600 font-bold mt-2">
               <AlertTriangle className="w-3.5 h-3.5" />
               <span>
-                {peorCongestionamiento?.indicador_social?.valor}% de empleo
+                {peorCongestionamiento?.indicador_social?.valor}{isPortugues ? "% de emprego" : "% de empleo"}
               </span>
             </div>
           </div>
@@ -281,7 +290,7 @@ function EmpleabilidadPage() {
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/40"
             }`}
           >
-            Comparación Regional
+            {isPortugues ? "Comparação Regional" : "Comparación Regional"}
           </button>
         )}
         {/* <button
@@ -376,7 +385,7 @@ function EmpleabilidadPage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-slate-800">
-                  Empleo Formal vs Informal por Región
+                  {isPortugues ? "Emprego Formal vs Informal por Região" : "Empleo Formal vs Informal por Región"}
                 </h3>
               </div>
 
@@ -401,7 +410,7 @@ function EmpleabilidadPage() {
                     axisLine={false}
                     tickMargin={8}
                     tick={{ fontSize: 9, fill: "#64748b" }}
-                    domain={[0, 120]}
+                    domain={[0, 100]}
                   />
                   <ChartTooltip
                     content={
@@ -496,11 +505,11 @@ function EmpleabilidadPage() {
       ) : (
         <div className="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-xs transition-shadow">
           <h3 className="text-sm font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100">
-            Ranking de Empleabilidad por Región
+            {isPortugues ? "Ranking de Empregabilidade por Região" : "Ranking de Empleabilidad por Región"}
           </h3>
 
           <div className="divide-y divide-slate-100">
-            {empleo?.data?.brechas?.map((item, index) => {
+            {empleo?.data?.brechas?.slice(0, 10).map((item, index) => {
               const colors = getRankBarColors(item.congestionamento_medio);
               return (
                 <div
@@ -513,15 +522,14 @@ function EmpleabilidadPage() {
                   </div>
 
                   {/* Region details */}
-                  <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 max-w-[200px] truncate">
+                  <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2 min-w-0">
+                    <div className="flex items-center gap-2 max-w-[200px] min-w-0">
                       <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span className="text-slate-700 truncate">
+                      <span className="text-slate-700 truncate min-w-0">
                         {formatClusterName(item.cluster)}
                       </span>
                     </div>
 
-                    {/* Horizontal progress bar */}
                     <div className="flex-1 max-w-md mx-0 sm:mx-8 bg-slate-100 rounded-full h-1.5 overflow-hidden shrink-0">
                       <div
                         className={`h-full rounded-full ${colors.bar}`}
@@ -531,7 +539,6 @@ function EmpleabilidadPage() {
                       />
                     </div>
 
-                    {/* Value and population details */}
                     <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0">
                       <span className={`w-10 text-right ${colors.text}`}>
                         {item.congestionamento_medio * 100}%

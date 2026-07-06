@@ -125,28 +125,14 @@ async def tool_caller(state: AgentState) -> AgentState:
     fuentes = []
 
     if decision["tipo"] == "endpoint":
-        if decision["endpoint"] == "/brechas":
-            print(
-                f"\nENDPOINT '/brechas' NO DISPONIBLE (todavía no está implementado).\n",
-                flush=True,
-            )
-            logger.warning(
-                "Endpoint /brechas solicitado pero no está disponible.",
-            )
-            results = {
-                "error": "El endpoint /brechas todavía no está disponible. El equipo está trabajando en él.",
-                "endpoint_solicitado": decision["endpoint"],
-            }
-            fuentes = []
-        else:
-            # Todos los demás endpoints están activados
-            data = await llamar_endpoint(
-                metodo=decision["metodo"],
-                endpoint=decision["endpoint"],
-                params=decision["params"],
-            )
-            results = data.get("resultado", {})
-            fuentes = data.get("fuentes", [])
+
+        data = await llamar_endpoint(
+            metodo=decision["metodo"],
+            endpoint=decision["endpoint"],
+            params=decision["params"],
+        )
+        results = data.get("resultado", {})
+        fuentes = data.get("fuentes", [])
 
     elif decision["tipo"] == "sql":
         plan = state.get("plan", {})
@@ -172,10 +158,31 @@ async def tool_caller(state: AgentState) -> AgentState:
 
 # Nodo 3 - Formatter (usa modelo light)
 async def formatter(state: AgentState) -> AgentState:
+    tool_results = state["tool_results"]
+
+    # Resumir listas largas para no saturar el contexto del modelo light
+    if isinstance(tool_results, list) and len(tool_results) > 8:
+        alta = [
+            {k: r[k] for k in ("cluster", "municipio", "programas_activos", "severidad_brecha", "n_usuarios") if k in r}
+            for r in tool_results if r.get("severidad_brecha") == "ALTA"
+        ]
+        media_count = sum(1 for r in tool_results if r.get("severidad_brecha") == "MEDIA")
+        baja_count  = sum(1 for r in tool_results if r.get("severidad_brecha") == "BAJA")
+
+        datos_resumidos = {
+            "total_zonas": len(tool_results),
+            "zonas_alta_prioridad": alta,
+            "zonas_media_prioridad_count": media_count,
+            "zonas_baja_prioridad_count": baja_count,
+            "nota": "resumen generado para el formatter — datos completos disponibles en la respuesta"
+        }
+    else:
+        datos_resumidos = tool_results
+
     context = f"""
 Consulta original: {state["consulta"]}
 Idioma: {state["idioma"]}
-Datos retornados: {json.dumps(state["tool_results"], ensure_ascii=False, default=_json_default)}
+Datos retornados: {json.dumps(datos_resumidos, ensure_ascii=False, default=_json_default)}
 """
     response = await _light_model.ainvoke([
         SystemMessage(content=FORMATTER_PROMPT),
@@ -187,11 +194,11 @@ Datos retornados: {json.dumps(state["tool_results"], ensure_ascii=False, default
         respuesta_ia = result.get("respuesta_ia", "No se pudo generar una respuesta.")
         visualizacion = result.get("visualizacion_sugerida", "tabla_datos")
     except json.JSONDecodeError:
+        print(f">>> FORMATTER JSON ERROR. Raw response: {response.content[:500]}", flush=True)
         respuesta_ia = "No se pudo procesar la consulta."
         visualizacion = "tabla_datos"
 
     return {**state, "respuesta_ia": respuesta_ia, "visualizacion_sugerida": visualizacion}
-
 
 
 

@@ -32,6 +32,7 @@ import {
   BarChartDataSkeleton,
   ListMentorsSkeleton,
 } from "../skeletons/MentoriasPageSkeleton";
+import { useLanguage } from "@/context/useLenguage";
 
 // data del backend
 // {
@@ -60,6 +61,9 @@ import {
 // }
 
 export default function MentoriasPage() {
+  const { lenguage } = useLanguage();
+  const isPortugues = lenguage === "pt";
+
   const { data, isLoading, isError } = useMentoriasBrechas();
 
   const allPerson = data?.brechas?.reduce(
@@ -74,7 +78,7 @@ export default function MentoriasPage() {
 
   const barChartConfig = {
     mentorizados: {
-      label: "Mentores",
+      label: isPortugues ? "Mentores" : "Mentores",
       color: "#7f22fe ",
     },
   };
@@ -177,11 +181,10 @@ export default function MentoriasPage() {
         <div>
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <Users className="w-5 h-5 text-violet-600" />
-            <span>Programas de Mentoría</span>
+            <span>{isPortugues ? "Programas de Mentoria" : "Programas de Mentoría"}</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Programas activos, cobertura y efectividad de las mentorías
-            regionales
+            {isPortugues ? "Programas ativos, cobertura e eficácia das mentorias regionais" : "Programas activos, cobertura y efectividad de las mentorías regionales"}
           </p>
         </div>
       </div>
@@ -207,7 +210,7 @@ export default function MentoriasPage() {
       ) : isError ? (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center flex items-center justify-center gap-2 text-xs text-red-600 font-semibold shadow-xs">
           <AlertCircle className="w-4 h-4 text-red-500" />
-          <span>Error al sincronizar datos de mentorias con el servidor</span>
+          <span>{isPortugues ? "Erro ao sincronizar dados de mentorias com o servidor" : "Error al sincronizar datos de mentorias con el servidor"}</span>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -232,7 +235,7 @@ export default function MentoriasPage() {
               </div>
             </div>
             <p className="text-xs text-slate-500 font-medium">
-              Acceso a servicios
+              {isPortugues ? "Acesso a serviços" : "Acceso a servicios"}
             </p>
           </div>
           {/* <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
@@ -258,7 +261,7 @@ export default function MentoriasPage() {
               </div>
             </div>
             <p className="text-xs text-slate-500 font-medium">
-              Programas Activos
+              {isPortugues ? "Programas Ativos" : "Programas Activos"}
             </p>
           </div>
         </div>
@@ -269,11 +272,11 @@ export default function MentoriasPage() {
       ) : isError ? (
         <></>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
             <div className="border-b border-slate-100 pb-3">
               <h3 className="text-sm font-bold text-slate-800">
-                Mentorizados por Región
+                {isPortugues ? "Mentorados por Região" : "Mentorizados por Región"}
               </h3>
             </div>
             <div className="flex-1 mt-4">
@@ -303,7 +306,7 @@ export default function MentoriasPage() {
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Bar
                     dataKey="mentorizados"
-                    fill="var(--color-mentores)"
+                    fill="var(--color-mentorizados)"
                     radius={[2, 2, 0, 0]}
                     barSize={25}
                   />
@@ -348,13 +351,13 @@ export default function MentoriasPage() {
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-100 p-4">
             <h3 className="text-sm font-bold text-slate-800">
-              Programas de Mentoría Activos
+              {isPortugues ? "Programas de Mentoria Ativos" : "Programas de Mentoría Activos"}
             </h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs table-auto">
               <tbody>
-                {programs?.map((program) => (
+                {programs?.slice(0, 10).map((program) => (
                   <tr
                     key={program.name}
                     className="border-b border-slate-200 hover:bg-slate-50 transition-colors"
@@ -377,7 +380,7 @@ export default function MentoriasPage() {
 
                             <span className="flex items-center gap-1">
                               <Users className="w-3 h-3" />
-                              {program.mentees} mentorizados
+                              {program.mentees} {isPortugues ? "mentorados" : "mentorizados"}
                             </span>
                           </div>
                         </div>
@@ -403,7 +406,7 @@ export default function MentoriasPage() {
                           </span>
 
                           <span className="text-xs text-slate-400">
-                            efectividad
+                            {isPortugues ? "eficácia" : "efectividad"}
                           </span>
                         </div>
                         <button className="p-1 rounded hover:bg-slate-100">
