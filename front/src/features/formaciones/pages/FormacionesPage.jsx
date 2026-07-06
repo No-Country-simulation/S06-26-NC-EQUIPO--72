@@ -117,43 +117,24 @@ const getClusterData = (clusterName, brechasList) => {
   );
 
   if (realMatch) {
-    // Si existe, convertimos el valor del indicador social (ej: 0.847 -> 84.7%)
     const coverageVal = realMatch.indicador_social?.valor
       ? parseFloat(realMatch.indicador_social.valor)
-      : 0.52;
-    // Si viene como fracción menor a 2, lo multiplicamos por 100
+      : 0;
     const pct = coverageVal < 2 ? coverageVal * 100 : coverageVal;
 
     return {
-      nUsuarios: realMatch.n_usuarios || 8000,
+      nUsuarios: realMatch.n_usuarios || 0,
       cobertura: Math.round(pct),
       programasActivos: realMatch.programas_activos || 0,
-      severidad: realMatch.severidad_brecha || "MEDIA",
+      severidad: realMatch.severidad_brecha || null,
     };
   }
 
-  // Generador de fallback determinista (usando hashing sobre el nombre del clúster)
-  let hash = 0;
-  for (let i = 0; i < clusterName.length; i++) {
-    hash = clusterName.charCodeAt(i) + ((hash << 5) - hash);
-  }
-
-  // Usuarios estimados (Beneficiarios): entre 2000 y 16000
-  const nUsuarios = 2000 + Math.abs(hash % 15) * 1000;
-
-  // Cobertura estimada: entre 25% y 95%
-  const cobertura = 25 + Math.abs((hash >> 4) % 71);
-
-  // Severidad según cobertura
-  let severidad = "MEDIA";
-  if (cobertura < 40) severidad = "ALTA";
-  else if (cobertura > 75) severidad = "BAJA";
-
   return {
-    nUsuarios,
-    cobertura,
+    nUsuarios: null,
+    cobertura: null,
     programasActivos: 0,
-    severidad,
+    severidad: null,
   };
 };
 
@@ -204,17 +185,21 @@ function FormacionesPage() {
       let estado = "Activo";
       if (!isActivo) {
         estado = "Crítico"; // Inactivo/crítico
-      } else if (territorial.cobertura < 40) {
-        estado = "Crítico"; // Cobertura muy baja
-      } else if (territorial.cobertura < 70) {
-        estado = "Alerta"; // Cobertura intermedia
+      } else if (territorial.cobertura !== null && territorial.cobertura !== undefined) {
+        if (territorial.cobertura < 40) {
+          estado = "Crítico"; // Cobertura muy baja
+        } else if (territorial.cobertura < 70) {
+          estado = "Alerta"; // Cobertura intermedia
+        }
       }
 
       return {
         id: prog.id,
         nombre: prog.nombre,
         region: prog.cluster,
-        beneficiarios: territorial.nUsuarios.toLocaleString("es-ES"),
+        beneficiarios: territorial.nUsuarios !== null && territorial.nUsuarios !== undefined
+          ? territorial.nUsuarios.toLocaleString("es-ES")
+          : "-",
         beneficiariosRaw: territorial.nUsuarios,
         cobertura: territorial.cobertura,
         estado: estado,
@@ -243,11 +228,9 @@ function FormacionesPage() {
     const totalProgramas = programList.length;
     const activos = programList.filter((p) => p.activo).length;
 
-    // Calculamos los beneficiarios totales sumando los usuarios de todos los clústeres oficiales
-    const beneficiariosTotales = FLORI_CLUSTERS.reduce((sum, c) => {
-      const clusterInfo = getClusterData(c, rawBrechas?.brechas);
-      return sum + clusterInfo.nUsuarios;
-    }, 0);
+    const beneficiariosTotales = rawBrechas?.brechas?.reduce((sum, b) => {
+      return sum + (b.n_usuarios || 0);
+    }, 0) || 0;
 
     // Formateamos los beneficiarios (ej: 145000 -> 145K)
     const beneficiariosFormateados =
@@ -255,19 +238,20 @@ function FormacionesPage() {
         ? Math.round(beneficiariosTotales / 1000) + "K"
         : beneficiariosTotales;
 
-    // Cobertura promedio de los 16 clústeres de Florianópolis
-    const totalCobertura = FLORI_CLUSTERS.reduce((sum, c) => {
-      const clusterInfo = getClusterData(c, rawBrechas?.brechas);
-      return sum + clusterInfo.cobertura;
+    const brechasValidas = rawBrechas?.brechas?.filter((b) => b.indicador_social?.valor !== undefined) || [];
+    const totalCobertura = brechasValidas.reduce((sum, b) => {
+      const val = parseFloat(b.indicador_social.valor);
+      const pct = val < 2 ? val * 100 : val;
+      return sum + pct;
     }, 0);
-    const coberturaMedia = FLORI_CLUSTERS.length
-      ? Math.round(totalCobertura / FLORI_CLUSTERS.length)
+    const coberturaMedia = brechasValidas.length
+      ? Math.round(totalCobertura / brechasValidas.length)
       : 0;
 
-    // Regiones (clústeres) que tienen una brecha severa (cobertura menor al 50%)
-    const regionesConBrecha = FLORI_CLUSTERS.filter((c) => {
-      const clusterInfo = getClusterData(c, rawBrechas?.brechas);
-      return clusterInfo.cobertura < 50;
+    const regionesConBrecha = brechasValidas.filter((b) => {
+      const val = parseFloat(b.indicador_social.valor);
+      const pct = val < 2 ? val * 100 : val;
+      return pct < 50;
     }).length;
 
     return {
@@ -275,29 +259,27 @@ function FormacionesPage() {
       activosCount: activos,
       beneficiarios: beneficiariosFormateados,
       cobertura: `${coberturaMedia}%`,
-      regionesBrechaText: `${regionesConBrecha} de ${FLORI_CLUSTERS.length} totales`,
+      regionesBrechaText: `${regionesConBrecha} de ${rawBrechas?.brechas?.length || 0} registradas`,
       regionesBrechaCount: regionesConBrecha,
     };
   }, [programList, rawBrechas]);
 
-  // 6. Preparación de datos para el Gráfico de Barras (Programas y Cobertura por Región)
   const barChartData = useMemo(() => {
     return FLORI_CLUSTERS.map((c) => {
-      // Contamos cuántos programas de formación se ejecutan en este clúster
       const count = programList.filter(
         (p) => p.region.toUpperCase() === c.toUpperCase(),
       ).length;
 
-      // Obtenemos los indicadores de cobertura del clúster
       const clusterInfo = getClusterData(c, rawBrechas?.brechas);
 
       return {
-        // Mostramos el nombre abreviado en el eje X para mejorar la estética del gráfico
         region: formatClusterName(c),
-        programas: count * 10, // Multiplicamos por 10 para balancear visualmente la escala
+        programas: count,
         cobertura: clusterInfo.cobertura,
       };
-    });
+    }).filter(
+      (d) => d.programas > 0 || (d.cobertura !== null && d.cobertura !== undefined)
+    );
   }, [programList, rawBrechas]);
 
   // 7. Categorización del gráfico de torta en base a palabras clave de los programas activos
@@ -373,6 +355,7 @@ function FormacionesPage() {
 
   // Selección de colores para las barras de progreso del listado
   const getCoverageColors = (val) => {
+    if (val === null || val === undefined) return { text: "text-slate-400", bar: "bg-slate-200" };
     if (val >= 70) return { text: "text-green-600", bar: "bg-green-500" };
     if (val >= 40) return { text: "text-amber-600", bar: "bg-amber-500" };
     return { text: "text-red-600", bar: "bg-red-500" };
@@ -565,7 +548,7 @@ function FormacionesPage() {
               >
                 <BarChart
                   data={barChartData}
-                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  margin={{ top: 10, right: -10, left: -20, bottom: 0 }}
                 >
                   <CartesianGrid vertical={false} strokeDasharray="3 3" />
                   <XAxis
@@ -583,20 +566,34 @@ function FormacionesPage() {
                     height={50}
                   />
                   <YAxis
+                    yAxisId="left"
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
                     tick={{ fontSize: 9, fill: "#64748b" }}
                     domain={[0, 100]}
+                    unit="%"
+                  />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tick={{ fontSize: 9, fill: "#64748b" }}
+                    domain={[0, 'auto']}
+                    allowDecimals={false}
                   />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Bar
+                    yAxisId="right"
                     dataKey="programas"
                     fill="var(--color-programas)"
                     radius={[2, 2, 0, 0]}
                     barSize={8}
                   />
                   <Bar
+                    yAxisId="left"
                     dataKey="cobertura"
                     fill="var(--color-cobertura)"
                     radius={[2, 2, 0, 0]}
@@ -769,14 +766,18 @@ function FormacionesPage() {
                           <td className="py-3 px-4">
                             <div className="flex flex-col gap-1">
                               <span className={`font-bold ${colors.text}`}>
-                                {program.cobertura}%
+                                {program.cobertura !== null && program.cobertura !== undefined
+                                  ? `${program.cobertura}%`
+                                  : "Sin datos"}
                               </span>
-                              <div className="w-24 bg-slate-100 rounded-full h-1 overflow-hidden">
-                                <div
-                                  className={`h-full rounded-full ${colors.bar} transition-all duration-500`}
-                                  style={{ width: `${program.cobertura}%` }}
-                                ></div>
-                              </div>
+                              {program.cobertura !== null && program.cobertura !== undefined && (
+                                <div className="w-24 bg-slate-100 rounded-full h-1 overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full ${colors.bar} transition-all duration-500`}
+                                    style={{ width: `${program.cobertura}%` }}
+                                  ></div>
+                                </div>
+                              )}
                             </div>
                           </td>
 

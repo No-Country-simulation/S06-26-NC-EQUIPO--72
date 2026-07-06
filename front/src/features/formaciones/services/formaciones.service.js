@@ -1,8 +1,8 @@
 class FormacionesService {
   API = import.meta.env.VITE_API_URL;
 
-  async getProgramas(tipo = "FORMACION") {
-    const response = await fetch(`${this.API}programas?size=100&tipo=${tipo}`);
+  async getProgramas(tipo = "FORMACION", municipio = "Florianopolis") {
+    const response = await fetch(`${this.API}programas?size=100&tipo=${tipo}&municipio=${municipio}`);
 
     const result = await response.json();
     if (!response.ok) {
@@ -15,8 +15,8 @@ class FormacionesService {
   }
 
 
-  async getBrechas(servicio = "FORMACION") {
-    const response = await fetch(`${this.API}brechas?servicio=${servicio}`);
+  async getBrechas(servicio = "FORMACION", municipio = "Florianopolis") {
+    const response = await fetch(`${this.API}brechas?servicio=${servicio}&municipio=${municipio}`);
 
     const result = await response.json();
     if (!response.ok) {
