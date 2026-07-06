@@ -2,7 +2,6 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { useAiAgent } from "../hooks/useAiAgent";
 import {
   Calendar,
-  Filter,
   ArrowUpRight,
   Send,
   Briefcase,
@@ -21,8 +20,6 @@ import {
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell,
@@ -599,7 +596,7 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between min-h-[450px]">
           <div className="flex flex-col h-full w-full justify-between flex-1">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-shrink-0">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded bg-[#2563eb] text-white flex items-center justify-center">
                   <Bot className="w-3.5 h-3.5" />
@@ -672,7 +669,7 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
 
             {/* Suggestions Prompts */}
             {messages.length === 1 && !aiMutation.isPending && (
-              <div className="space-y-2 mb-4 flex-shrink-0">
+              <div className="space-y-2 mb-4 shrink-0">
                 <button
                   onClick={() =>
                     handleSendMessage(
@@ -733,7 +730,7 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
             )}
 
             {/* AI Chat Input */}
-            <div className="mt-auto flex-shrink-0 pt-2 border-t border-slate-100">
+            <div className="mt-auto shrink-0 pt-2 border-t border-slate-100">
               <div className="relative w-full">
                 <input
                   type="text"

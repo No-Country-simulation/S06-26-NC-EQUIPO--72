@@ -44,6 +44,7 @@ import {
   BarChartSkeleton,
   ProgramListSkeleton,
 } from "../skeletons/FormacionesPageSkeleton";
+import { useLanguage } from "@/context/useLenguage";
 
 // Lista de clústeres oficiales para el municipio de Florianópolis
 const FLORI_CLUSTERS = [
@@ -139,6 +140,8 @@ const getClusterData = (clusterName, brechasList) => {
 };
 
 function FormacionesPage() {
+  const { language } = useLanguage();
+  const isPortugues = language === "pt";
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -185,7 +188,10 @@ function FormacionesPage() {
       let estado = "Activo";
       if (!isActivo) {
         estado = "Crítico"; // Inactivo/crítico
-      } else if (territorial.cobertura !== null && territorial.cobertura !== undefined) {
+      } else if (
+        territorial.cobertura !== null &&
+        territorial.cobertura !== undefined
+      ) {
         if (territorial.cobertura < 40) {
           estado = "Crítico"; // Cobertura muy baja
         } else if (territorial.cobertura < 70) {
@@ -197,9 +203,10 @@ function FormacionesPage() {
         id: prog.id,
         nombre: prog.nombre,
         region: prog.cluster,
-        beneficiarios: territorial.nUsuarios !== null && territorial.nUsuarios !== undefined
-          ? territorial.nUsuarios.toLocaleString("es-ES")
-          : "-",
+        beneficiarios:
+          territorial.nUsuarios !== null && territorial.nUsuarios !== undefined
+            ? territorial.nUsuarios.toLocaleString("es-ES")
+            : "-",
         beneficiariosRaw: territorial.nUsuarios,
         cobertura: territorial.cobertura,
         estado: estado,
@@ -228,9 +235,10 @@ function FormacionesPage() {
     const totalProgramas = programList.length;
     const activos = programList.filter((p) => p.activo).length;
 
-    const beneficiariosTotales = rawBrechas?.brechas?.reduce((sum, b) => {
-      return sum + (b.n_usuarios || 0);
-    }, 0) || 0;
+    const beneficiariosTotales =
+      rawBrechas?.brechas?.reduce((sum, b) => {
+        return sum + (b.n_usuarios || 0);
+      }, 0) || 0;
 
     // Formateamos los beneficiarios (ej: 145000 -> 145K)
     const beneficiariosFormateados =
@@ -238,7 +246,10 @@ function FormacionesPage() {
         ? Math.round(beneficiariosTotales / 1000) + "K"
         : beneficiariosTotales;
 
-    const brechasValidas = rawBrechas?.brechas?.filter((b) => b.indicador_social?.valor !== undefined) || [];
+    const brechasValidas =
+      rawBrechas?.brechas?.filter(
+        (b) => b.indicador_social?.valor !== undefined,
+      ) || [];
     const totalCobertura = brechasValidas.reduce((sum, b) => {
       const val = parseFloat(b.indicador_social.valor);
       const pct = val < 2 ? val * 100 : val;
@@ -255,11 +266,15 @@ function FormacionesPage() {
     }).length;
 
     return {
-      activosText: `${activos} de ${totalProgramas} totales`,
+      activosText: isPortugues
+        ? `${activos} de ${totalProgramas} totais`
+        : `${activos} de ${totalProgramas} totales`,
       activosCount: activos,
       beneficiarios: beneficiariosFormateados,
       cobertura: `${coberturaMedia}%`,
-      regionesBrechaText: `${regionesConBrecha} de ${rawBrechas?.brechas?.length || 0} registradas`,
+      regionesBrechaText: isPortugues
+        ? `${regionesConBrecha} de ${FLORI_CLUSTERS.length} totais`
+        : `${regionesConBrecha} de ${rawBrechas?.brechas?.length || 0} registradas`,
       regionesBrechaCount: regionesConBrecha,
     };
   }, [programList, rawBrechas]);
@@ -278,7 +293,8 @@ function FormacionesPage() {
         cobertura: clusterInfo.cobertura,
       };
     }).filter(
-      (d) => d.programas > 0 || (d.cobertura !== null && d.cobertura !== undefined)
+      (d) =>
+        d.programas > 0 || (d.cobertura !== null && d.cobertura !== undefined),
     );
   }, [programList, rawBrechas]);
 
@@ -326,27 +342,27 @@ function FormacionesPage() {
 
     return [
       {
-        name: "Formación Digital",
+        name: isPortugues ? "Formação Digital" : "Formación Digital",
         value: Math.round((digital / total) * 100),
         color: "#2563eb",
       },
       {
-        name: "Formación Técnica",
+        name: isPortugues ? "Formação Técnica" : "Formación Técnica",
         value: Math.round((tecnica / total) * 100),
         color: "#0d9488",
       },
       {
-        name: "Emprendimiento",
+        name: isPortugues ? "Empreendedorismo" : "Emprendimiento",
         value: Math.round((emprendimiento / total) * 100),
         color: "#a855f7",
       },
       {
-        name: "Idiomas",
+        name: isPortugues ? "Idiomas" : "Idiomas",
         value: Math.round((idiomas / total) * 100),
         color: "#f97316",
       },
       {
-        name: "Otros",
+        name: isPortugues ? "Outros" : "Otros",
         value: Math.round((otros / total) * 100),
         color: "#64748b",
       },
@@ -355,7 +371,8 @@ function FormacionesPage() {
 
   // Selección de colores para las barras de progreso del listado
   const getCoverageColors = (val) => {
-    if (val === null || val === undefined) return { text: "text-slate-400", bar: "bg-slate-200" };
+    if (val === null || val === undefined)
+      return { text: "text-slate-400", bar: "bg-slate-200" };
     if (val >= 70) return { text: "text-green-600", bar: "bg-green-500" };
     if (val >= 40) return { text: "text-amber-600", bar: "bg-amber-500" };
     return { text: "text-red-600", bar: "bg-red-500" };
@@ -368,21 +385,21 @@ function FormacionesPage() {
         return (
           <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 border border-green-200 px-2.5 py-0.5 rounded-full text-xs font-semibold">
             <CheckCircle className="w-3.5 h-3.5 text-green-600" />
-            <span>Activo</span>
+            <span>{isPortugues ? "Ativo" : "Activo"}</span>
           </span>
         );
       case "Alerta":
         return (
           <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-full text-xs font-semibold">
             <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-            <span>Alerta</span>
+            <span>{isPortugues ? "Alerta" : "Alerta"}</span>
           </span>
         );
       case "Crítico":
         return (
           <span className="inline-flex items-center gap-1 bg-red-50 text-red-700 border border-red-200 px-2.5 py-0.5 rounded-full text-xs font-semibold">
             <XCircle className="w-3.5 h-3.5 text-red-600" />
-            <span>Crítico</span>
+            <span>{isPortugues ? "Crítico" : "Crítico"}</span>
           </span>
         );
       default:
@@ -397,10 +414,14 @@ function FormacionesPage() {
         <div>
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-blue-600" />
-            <span>Programas de Formación</span>
+            <span>
+              {isPortugues ? "Programas de Formação" : "Programas de Formación"}
+            </span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Cobertura de formación y capacitación por clústeres en Florianópolis
+            {isPortugues
+              ? "Cobertura de formação e capacitação por clusters em Florianópolis"
+              : "Cobertura de formación y capacitación por clústeres en Florianópolis"}
           </p>
         </div>
         <div>
@@ -409,7 +430,7 @@ function FormacionesPage() {
             className="flex items-center gap-1.5 bg-[#2563eb] hover:bg-blue-600 text-white font-medium text-xs px-4 py-2.5 rounded-lg transition-colors cursor-pointer shadow-sm"
           >
             <Plus className="w-4 h-4" />
-            <span>Nuevo programa</span>
+            <span>{isPortugues ? "Novo programa" : "Nuevo programa"}</span>
           </button>
         </div>
       </div>
@@ -437,8 +458,9 @@ function FormacionesPage() {
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center flex items-center justify-center gap-2 text-xs text-red-600 font-semibold shadow-xs">
           <AlertCircle className="w-4 h-4 text-red-500" />
           <span>
-            Error al sincronizar indicadores del panel de formaciones con el
-            servidor
+            {isPortugues
+              ? "Erro ao sincronizar indicadores do painel de formações com o servidor"
+              : "Error al sincronizar indicadores del panel de formaciones con el servidor"}
           </span>
         </div>
       ) : (
@@ -460,7 +482,7 @@ function FormacionesPage() {
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-1 font-semibold">
-                Programas Activos
+                {isPortugues ? "Programas Ativos" : "Programas Activos"}
               </p>
             </div>
           </div>
@@ -479,7 +501,7 @@ function FormacionesPage() {
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-1 font-semibold">
-                Beneficiarios Totales
+                {isPortugues ? "Beneficiários Totais" : "Beneficiarios Totales"}
               </p>
             </div>
           </div>
@@ -498,7 +520,7 @@ function FormacionesPage() {
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-1 font-semibold">
-                Cobertura Media
+                {isPortugues ? "Cobertura Média" : "Cobertura Media"}
               </p>
             </div>
           </div>
@@ -520,7 +542,7 @@ function FormacionesPage() {
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-1 font-semibold">
-                Regiones con Brecha
+                {isPortugues ? "Regiões com Lacuna" : "Regiones con Brecha"}
               </p>
             </div>
           </div>
@@ -538,7 +560,9 @@ function FormacionesPage() {
           <div className="bg-white border border-slate-200 rounded-xl p-5 lg:col-span-2 flex flex-col justify-between hover:shadow-sm transition-shadow">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-sm font-bold text-slate-800">
-                Programas y Cobertura por Región (Clúster)
+                {isPortugues
+                  ? "Programas e Cobertura por Região (Cluster)"
+                  : "Programas y Cobertura por Región (Clúster)"}
               </h3>
             </div>
             <div className="flex-1 mt-4">
@@ -581,7 +605,7 @@ function FormacionesPage() {
                     axisLine={false}
                     tickMargin={8}
                     tick={{ fontSize: 9, fill: "#64748b" }}
-                    domain={[0, 'auto']}
+                    domain={[0, "auto"]}
                     allowDecimals={false}
                   />
                   <ChartTooltip content={<ChartTooltipContent />} />
@@ -610,7 +634,7 @@ function FormacionesPage() {
             <div>
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 className="text-sm font-bold text-slate-800">
-                  Por Categoría
+                  {isPortugues ? "Por Categoria" : "Por Categoría"}
                 </h3>
               </div>
 
@@ -668,7 +692,7 @@ function FormacionesPage() {
         {/* Barra superior de la tabla */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <h3 className="text-sm font-bold text-slate-800">
-            Listado de Programas
+            {isPortugues ? "Lista de Programas" : "Listado de Programas"}
           </h3>
           <div className="flex items-center gap-3">
             {/* Input de Búsqueda */}
@@ -689,7 +713,17 @@ function FormacionesPage() {
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="flex items-center justify-between gap-1.5 bg-white border border-slate-200 text-xs font-semibold text-slate-700 px-3.5 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer min-w-[100px] select-none text-left"
               >
-                <span>{statusFilter}</span>
+                <span>
+                  {isPortugues
+                    ? statusFilter === "Activo"
+                      ? "Ativo"
+                      : statusFilter === "Crítico"
+                        ? "Crítico"
+                        : statusFilter === "Todos"
+                          ? "Todos"
+                          : "Alerta"
+                    : statusFilter}
+                </span>
                 <ChevronDown
                   className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-150 ${isDropdownOpen ? "rotate-180" : ""}`}
                 />
@@ -706,7 +740,17 @@ function FormacionesPage() {
                       }}
                       className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 cursor-pointer flex items-center justify-between ${statusFilter === opt ? "bg-blue-50/50 text-blue-600 font-bold" : "text-slate-700"}`}
                     >
-                      <span>{opt}</span>
+                      <span>
+                        {isPortugues
+                          ? opt === "Activo"
+                            ? "Ativo"
+                            : opt === "Crítico"
+                              ? "Crítico"
+                              : opt === "Todos"
+                                ? "Todos"
+                                : "Alerta"
+                          : opt}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -724,11 +768,21 @@ function FormacionesPage() {
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="border-b border-slate-100 text-slate-400 font-semibold h-10">
-                    <th className="py-2 pr-4 pl-1">Programa</th>
-                    <th className="py-2 px-4">Región (Clúster)</th>
-                    <th className="py-2 px-4">Beneficiarios</th>
-                    <th className="py-2 px-4">Cobertura</th>
-                    <th className="py-2 px-4">Estado</th>
+                    <th className="py-2 pr-4 pl-1">
+                      {isPortugues ? "Programa" : "Programa"}
+                    </th>
+                    <th className="py-2 px-4">
+                      {isPortugues ? "Região (Cluster)" : "Región (Clúster)"}
+                    </th>
+                    <th className="py-2 px-4">
+                      {isPortugues ? "Beneficiários" : "Beneficiarios"}
+                    </th>
+                    <th className="py-2 px-4">
+                      {isPortugues ? "Cobertura" : "Cobertura"}
+                    </th>
+                    <th className="py-2 px-4">
+                      {isPortugues ? "Estado" : "Estado"}
+                    </th>
                     <th className="py-2 pl-4 pr-1 text-right"></th>
                   </tr>
                 </thead>
@@ -766,18 +820,20 @@ function FormacionesPage() {
                           <td className="py-3 px-4">
                             <div className="flex flex-col gap-1">
                               <span className={`font-bold ${colors.text}`}>
-                                {program.cobertura !== null && program.cobertura !== undefined
+                                {program.cobertura !== null &&
+                                program.cobertura !== undefined
                                   ? `${program.cobertura}%`
                                   : "Sin datos"}
                               </span>
-                              {program.cobertura !== null && program.cobertura !== undefined && (
-                                <div className="w-24 bg-slate-100 rounded-full h-1 overflow-hidden">
-                                  <div
-                                    className={`h-full rounded-full ${colors.bar} transition-all duration-500`}
-                                    style={{ width: `${program.cobertura}%` }}
-                                  ></div>
-                                </div>
-                              )}
+                              {program.cobertura !== null &&
+                                program.cobertura !== undefined && (
+                                  <div className="w-24 bg-slate-100 rounded-full h-1 overflow-hidden">
+                                    <div
+                                      className={`h-full rounded-full ${colors.bar} transition-all duration-500`}
+                                      style={{ width: `${program.cobertura}%` }}
+                                    ></div>
+                                  </div>
+                                )}
                             </div>
                           </td>
 
