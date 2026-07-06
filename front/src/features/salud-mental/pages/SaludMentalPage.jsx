@@ -123,7 +123,7 @@ export default function SaludMentalPage() {
   const priorityRegionCards = regiones?.map((region) => ({
     region: region.cluster,
     status: region.severidad_brecha,
-    mentalHealthIndex: region.indicador_social.valor,
+    mentalHealthIndex: region.indicador_social?.valor,
   }));
 
   const totalIndice = regiones?.reduce(
