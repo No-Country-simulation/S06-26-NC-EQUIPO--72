@@ -269,7 +269,7 @@ export default function MentoriasPage() {
       ) : isError ? (
         <></>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
             <div className="border-b border-slate-100 pb-3">
               <h3 className="text-sm font-bold text-slate-800">
@@ -303,7 +303,7 @@ export default function MentoriasPage() {
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Bar
                     dataKey="mentorizados"
-                    fill="var(--color-mentores)"
+                    fill="var(--color-mentorizados)"
                     radius={[2, 2, 0, 0]}
                     barSize={25}
                   />
@@ -354,7 +354,7 @@ export default function MentoriasPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs table-auto">
               <tbody>
-                {programs?.map((program) => (
+                {programs?.slice(0, 10).map((program) => (
                   <tr
                     key={program.name}
                     className="border-b border-slate-200 hover:bg-slate-50 transition-colors"
