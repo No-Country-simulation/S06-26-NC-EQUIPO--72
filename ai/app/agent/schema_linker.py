@@ -90,7 +90,7 @@ def _build_endpoint_decision(payload: dict, plan: dict) -> dict:
         params = {
             "servicio": servicio,
             "municipio": plan.get("municipio"),
-            "periodo": plan.get("periodo", "TARDE"),
+            "periodo": plan.get("periodo"),  
             "income_cluster": plan.get("income_cluster"),
         }
     elif endpoint == "/mapa":
