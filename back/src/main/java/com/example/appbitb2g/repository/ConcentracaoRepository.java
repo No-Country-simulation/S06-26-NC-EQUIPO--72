@@ -7,6 +7,14 @@ import org.springframework.data.jpa.repository.Query;
 import com.example.appbitb2g.model.Concentracao;
 
 public interface ConcentracaoRepository extends JpaRepository<Concentracao,Integer> {
+
+
+
     @Query("SELECT MAX(c.dayDate) FROM concentracao c")
     LocalDate findMaxDayDate();
+
+    
+
+
+
 }
