@@ -44,10 +44,13 @@ import { useLanguage } from "@/context/useLenguage";
 
 function DashboardPage({ onTabChange, onClusterSelect }) {
   const { language } = useLanguage();
+  const isPortugues = language === "pt";
   const [messages, setMessages] = useState([
     {
       sender: "ai",
-      text: "Hola, soy el asistente de IA del APP BiT. Puedo ayudarle a analizar datos sociales, identificar brechas regionales y generar recomendaciones basadas en evidencia. ¿Qué le gustaría explorar hoy?",
+      text: isPortugues
+        ? "Olá, sou o assistente de IA do APP BiT. Posso ajudá-lo a analisar dados sociais, identificar brechas regionais e gerar recomendações baseadas em evidências. O que gostaria de explorar hoje?"
+        : "Hola, soy el asistente de IA del APP BiT. Puedo ayudarle a analizar datos sociales, identificar brechas regionales y generar recomendaciones basadas en evidencia. ¿Qué le gustaría explorar hoy?",
     },
   ]);
   const [chatInput, setChatInput] = useState("");
@@ -76,7 +79,9 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
             ...prev,
             {
               sender: "ai",
-              text: "Lo siento, ocurrió un error al procesar tu consulta. Por favor, intenta de nuevo más tarde.",
+              text: isPortugues
+                ? "Desculpe, ocorreu um erro ao processar sua consulta. Por favor, tente novamente mais tarde."
+                : "Lo siento, ocurrió un error al procesar tu consulta. Por favor, intenta de nuevo más tarde.",
             },
           ]);
         },
@@ -136,11 +141,11 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
 
   const barChartConfig = {
     empleo: {
-      label: "Empleo",
+      label: isPortugues ? "Emprego" : "Empleo",
       color: "#2563eb",
     },
     conectividad: {
-      label: "Conectividad",
+      label: isPortugues ? "Conectividade" : "Conectividad",
       color: "#0d9488",
     },
   };
@@ -218,15 +223,15 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
 
   const lineChartConfig = {
     empleo: {
-      label: "Empleo",
+      label: isPortugues ? "Emprego" : "Empleo",
       color: "#2563eb",
     },
     conectividad: {
-      label: "Conectividad",
+      label: isPortugues ? "Conectividade" : "Conectividad",
       color: "#0d9488",
     },
     inclusion: {
-      label: "Inclusión",
+      label: isPortugues ? "Inclusão" : "Inclusión",
       color: "#a855f7",
     },
   };
@@ -259,23 +264,35 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
     const pctCritico = total > 0 ? 100 - pctOptimo - pctAlerta : 0;
 
     return [
-      { name: "Con acceso digital", value: pctOptimo, color: "#2563eb" },
-      { name: "Brecha urbana-rural", value: pctAlerta, color: "#f97316" },
-      { name: "Sin conectividad", value: pctCritico, color: "#ef4444" },
+      {
+        name: isPortugues ? "Com acesso digital" : "Con acceso digital",
+        value: pctOptimo,
+        color: "#2563eb",
+      },
+      {
+        name: isPortugues ? "Brecha urbana-rural" : "Brecha urbana-rural",
+        value: pctAlerta,
+        color: "#f97316",
+      },
+      {
+        name: isPortugues ? "Sem conectividade" : "Sin conectividad",
+        value: pctCritico,
+        color: "#ef4444",
+      },
     ];
   }, [rawEmpleo]);
 
   const pieChartConfig = {
     acceso: {
-      label: "Con acceso digital",
+      label: isPortugues ? "Com acesso digital" : "Con acceso digital",
       color: "#2563eb",
     },
     brecha: {
-      label: "Brecha urbana-rural",
+      label: isPortugues ? "Brecha urbana-rural" : "Brecha urbana-rural",
       color: "#f97316",
     },
     sinConectividad: {
-      label: "Sin conectividad",
+      label: isPortugues ? "Sem conectividade" : "Sin conectividad",
       color: "#ef4444",
     },
   };
@@ -401,50 +418,68 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
 
     return [
       {
-        title: "Tasa de Empleo",
+        title: isPortugues ? "Taxa de Emprego" : "Tasa de Empleo",
         value: tasaEmpleoVal,
-        change: "+2.3% vs. mes anterior",
-        badge: "Normal",
+        change: isPortugues
+          ? "+2.3% vs. mês anterior"
+          : "+2.3% vs. mes anterior",
+        badge: isPortugues ? "Normal" : "Normal",
         badgeClass: "bg-green-50 text-green-700 border-green-200",
         icon: JobIcon,
         color: "#3b82f6",
         linePoints: "0,10 20,8 40,12 60,7 80,11 100,5",
       },
       {
-        title: "Congestión de Red Promedio",
+        title: isPortugues
+          ? "Congestionamento Médio de Rede"
+          : "Congestión de Red Promedio",
         value: congestionVal,
-        change: "-1.2% vs. mes anterior",
-        badge: "Estable",
+        change: isPortugues
+          ? "-1.2% vs. mês anterior"
+          : "-1.2% vs. mes anterior",
+        badge: isPortugues ? "Estável" : "Estable",
         badgeClass: "bg-teal-50 text-teal-700 border-teal-200",
         icon: Wifi,
         color: "#10b981",
         linePoints: "0,12 20,10 40,8 60,9 80,6 100,4",
       },
       {
-        title: "Índice de Educación (IDHM)",
+        title: isPortugues
+          ? "Índice de Educação (IDHM)"
+          : "Índice de Educación (IDHM)",
         value: educacionVal,
-        change: "+1.8% vs. mes anterior",
-        badge: "Moderado",
+        change: isPortugues
+          ? "+1.8% vs. mês anterior"
+          : "+1.8% vs. mes anterior",
+        badge: isPortugues ? "Moderado" : "Moderado",
         badgeClass: "bg-purple-50 text-purple-700 border-purple-200",
         icon: Activity,
         color: "#a855f7",
         linePoints: "0,12 20,11 40,13 60,10 80,9 100,7",
       },
       {
-        title: "Internación Psiquiátrica",
+        title: isPortugues
+          ? "Internação Psiquiátrica"
+          : "Internación Psiquiátrica",
         value: saludVal,
-        change: "-0.5% vs. mes anterior",
-        badge: "Alerta",
+        change: isPortugues
+          ? "-0.5% vs. mês anterior"
+          : "-0.5% vs. mes anterior",
+        badge: isPortugues ? "Alerta" : "Alerta",
         badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
         icon: Heart,
         color: "#ec4899",
         linePoints: "0,11 20,10 40,12 60,9 80,10 100,8",
       },
       {
-        title: "Usuarios de Red Totales",
+        title: isPortugues
+          ? "Usuários Totais de Rede"
+          : "Usuarios de Red Totales",
         value: usuariosVal,
-        change: `+0.8% ${regionesEmpleo.length || 9} regiones activas`,
-        badge: "Estable",
+        change: isPortugues
+          ? `+0.8% ${regionesEmpleo.length || 9} regiões ativas`
+          : `+0.8% ${regionesEmpleo.length || 9} regiones activas`,
+        badge: isPortugues ? "Estável" : "Estable",
         badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
         icon: Users,
         color: "#f97316",
@@ -453,7 +488,6 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
     ];
   }, [rawEmpleo, rawEducacion, rawSaludMental]);
 
-  const isPortugues = language === "pt";
   return (
     <div className="space-y-6">
       {/* Title & Filters Row */}
@@ -499,7 +533,9 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center flex items-center justify-center gap-2 text-xs text-red-600 font-semibold shadow-xs">
           <AlertCircle className="w-4 h-4 text-red-500" />
           <span>
-            Error al sincronizar indicadores del panel con el servidor
+            {isPortugues
+              ? "Erro ao sincronizar indicadores do painel com o servidor"
+              : "Error al sincronizar indicadores del panel con el servidor"}
           </span>
         </div>
       ) : (
@@ -569,12 +605,12 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
                   <Bot className="w-3.5 h-3.5" />
                 </div>
                 <h3 className="text-sm font-bold text-slate-800">
-                  Asistente IA
+                  {isPortugues ? "Assistente IA" : "Asistente IA"}
                 </h3>
               </div>
               <span className="flex items-center gap-1.5 text-[10px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                <span>En línea</span>
+                <span>{isPortugues ? "Online" : "En línea"}</span>
               </span>
             </div>
 
@@ -598,7 +634,11 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
                     }`}
                   >
                     {msg.sender === "user" ? (
-                      "Tú"
+                      isPortugues ? (
+                        "Você"
+                      ) : (
+                        "Tú"
+                      )
                     ) : (
                       <Bot className="w-3.5 h-3.5" />
                     )}
@@ -622,7 +662,9 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
                   </div>
                   <div className="bg-slate-50 text-slate-500 border border-slate-100 rounded-xl p-3 flex items-center gap-1.5">
                     <Loader2 className="w-3 h-3 animate-spin text-blue-600" />
-                    <span>IA escribiendo...</span>
+                    <span>
+                      {isPortugues ? "IA digitando..." : "IA escribiendo..."}
+                    </span>
                   </div>
                 </div>
               )}
@@ -634,40 +676,58 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
                 <button
                   onClick={() =>
                     handleSendMessage(
-                      "¿Qué regiones tienen alto desempleo y baja conectividad?",
+                      isPortugues
+                        ? "Quais regiões têm alto desemprego e baixa conectividade?"
+                        : "¿Qué regiones tienen alto desempleo y baja conectividad?",
                     )
                   }
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
-                  ¿Qué regiones tienen alto desempleo y baja conectividad?
-                </button>
-                <button
-                  onClick={() =>
-                    handleSendMessage("¿Dónde faltan programas de formación?")
-                  }
-                  className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
-                >
-                  ¿Dónde faltan programas de formación?
+                  {isPortugues
+                    ? "Quais regiões têm alto desemprego e baixa conectividade?"
+                    : "¿Qué regiones tienen alto desempleo y baja conectividad?"}
                 </button>
                 <button
                   onClick={() =>
                     handleSendMessage(
-                      "¿Qué zonas son prioridad para inversión social?",
+                      isPortugues
+                        ? "Onde faltam programas de formação?"
+                        : "¿Dónde faltan programas de formación?",
                     )
                   }
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
-                  ¿Qué zonas son prioridad para inversión social?
+                  {isPortugues
+                    ? "Onde faltam programas de formação?"
+                    : "¿Dónde faltan programas de formación?"}
                 </button>
                 <button
                   onClick={() =>
                     handleSendMessage(
-                      "¿Cómo impacta la conectividad en la salud mental?",
+                      isPortugues
+                        ? "Quais zonas são prioridade para investimento social?"
+                        : "¿Qué zonas son prioridad para inversión social?",
                     )
                   }
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
-                  ¿Cómo impacta la conectividad en la salud mental?
+                  {isPortugues
+                    ? "Quais zonas são prioridade para investimento social?"
+                    : "¿Qué zonas son prioridad para inversión social?"}
+                </button>
+                <button
+                  onClick={() =>
+                    handleSendMessage(
+                      isPortugues
+                        ? "Como a conectividade impacta a saúde mental?"
+                        : "¿Cómo impacta la conectividad en la salud mental?",
+                    )
+                  }
+                  className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
+                >
+                  {isPortugues
+                    ? "Como a conectividade impacta a saúde mental?"
+                    : "¿Cómo impacta la conectividad en la salud mental?"}
                 </button>
               </div>
             )}
@@ -680,7 +740,11 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                  placeholder="Haga una pregunta sobre los datos..."
+                  placeholder={
+                    isPortugues
+                      ? "Faça uma pergunta sobre os dados..."
+                      : "Haga una pregunta sobre los datos..."
+                  }
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-3 pr-10 py-2.5 text-xs focus:outline-none focus:border-blue-500"
                   disabled={aiMutation.isPending}
                 />
@@ -703,7 +767,9 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between hover:shadow-sm transition-shadow">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 className="text-sm font-bold text-slate-800">
-              Empleo y Conectividad por Región
+              {isPortugues
+                ? "Emprego e Conectividade por Região"
+                : "Empleo y Conectividad por Región"}
             </h3>
             <span className="text-[10px] font-bold bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200 text-slate-500">
               2024
@@ -757,10 +823,10 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
           <div>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-sm font-bold text-slate-800">
-                Inclusión Digital
+                {isPortugues ? "Inclusão Digital" : "Inclusión Digital"}
               </h3>
               <span className="text-[10px] font-bold bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200 text-slate-500">
-                Nacional
+                {isPortugues ? "Nacional" : "Nacional"}
               </span>
             </div>
 
@@ -815,8 +881,14 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
           {/* Salud Mental progress list */}
           <div className="mt-4 pt-3 border-t border-slate-100 space-y-2">
             <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
-              <span>Salud Mental por Región</span>
-              <span className="text-slate-400 font-normal">escala 0-5</span>
+              <span>
+                {isPortugues
+                  ? "Saúde Mental por Região"
+                  : "Salud Mental por Región"}
+              </span>
+              <span className="text-slate-400 font-normal">
+                {isPortugues ? "escala 0-5" : "escala 0-5"}
+              </span>
             </div>
             <div className="space-y-1.5">
               {saludMentalData.map((item, idx) => (
@@ -845,9 +917,13 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
           className="bg-[#eff6ff] hover:bg-[#dbeafe] border border-blue-100 rounded-xl p-4 flex items-center justify-between text-left cursor-pointer transition-all duration-200 group"
         >
           <div>
-            <h5 className="text-xs font-bold text-blue-900">Ver Formaciones</h5>
+            <h5 className="text-xs font-bold text-blue-900">
+              {isPortugues ? "Ver Formações" : "Ver Formaciones"}
+            </h5>
             <p className="text-[10px] text-blue-700/80 mt-1">
-              Programas educativos activos
+              {isPortugues
+                ? "Programas educacionais ativos"
+                : "Programas educativos activos"}
             </p>
           </div>
           <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -861,10 +937,12 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
         >
           <div>
             <h5 className="text-xs font-bold text-green-900">
-              Análisis de Empleo
+              {isPortugues ? "Análise de Emprego" : "Análisis de Empleo"}
             </h5>
             <p className="text-[10px] text-green-700/80 mt-1">
-              Oportunidades laborales
+              {isPortugues
+                ? "Oportunidades de trabalho"
+                : "Oportunidades laborales"}
             </p>
           </div>
           <div className="w-8 h-8 rounded-lg bg-green-100 text-green-600 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -877,9 +955,13 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
           className="bg-[#fef2f2] hover:bg-[#fee2e2] border border-red-100 rounded-xl p-4 flex items-center justify-between text-left cursor-pointer transition-all duration-200 group"
         >
           <div>
-            <h5 className="text-xs font-bold text-red-900">Alertas Activas</h5>
+            <h5 className="text-xs font-bold text-red-900">
+              {isPortugues ? "Alertas Ativos" : "Alertas Activas"}
+            </h5>
             <p className="text-[10px] text-red-700/80 mt-1">
-              Alertas críticas del portal
+              {isPortugues
+                ? "Alertas críticas do portal"
+                : "Alertas críticas del portal"}
             </p>
           </div>
           <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -893,10 +975,12 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
         >
           <div>
             <h5 className="text-xs font-bold text-purple-900">
-              Generar Reporte
+              {isPortugues ? "Gerar Relatório" : "Generar Reporte"}
             </h5>
             <p className="text-[10px] text-purple-700/80 mt-1">
-              Exportar informe analítico
+              {isPortugues
+                ? "Exportar relatório analítico"
+                : "Exportar informe analítico"}
             </p>
           </div>
           <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform">
