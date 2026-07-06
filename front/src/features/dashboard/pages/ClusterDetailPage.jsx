@@ -11,18 +11,10 @@ import {
   Star,
   GraduationCap,
   BookOpen,
-  ArrowUpRight,
-  Sparkles,
   Loader2,
   AlertCircle,
 } from "lucide-react";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
   ResponsiveContainer,
   RadarChart,
   PolarGrid,
@@ -32,12 +24,17 @@ import {
 } from "recharts";
 import { useMapData, usePrograms, useMapsIndicators } from "../hooks/useMaps";
 import { formatClusterName } from "@/shared/utils/format";
+import { useLanguage } from "@/context/useLenguage";
 
 function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
+  const { language } = useLanguage();
+  const isPortugues = language === "pt";
   const [messages, setMessages] = useState([
     {
       sender: "ai",
-      text: `Hola, soy el asistente de IA del APP BiT. He analizado la Región ${clusterName} y puedo ayudarte a identificar brechas y generar recomendaciones basadas en evidencia. ¿Qué te gustaría explorar hoy?`,
+      text: isPortugues
+        ? `Olá, sou o assistente de IA do APP BiT. Analisei a Região ${clusterName} e posso ajudá-lo a identificar lacunas e gerar recomendações baseadas em evidências. O que gostaria de explorar hoje?`
+        : `Hola, soy el asistente de IA del APP BiT. He analizado la Región ${clusterName} y puedo ayudarte a identificar brechas y generar recomendaciones basadas en evidencia. ¿Qué te gustaría explorar hoy?`,
     },
   ]);
   const [chatInput, setChatInput] = useState("");
@@ -68,16 +65,18 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
             { sender: "ai", text: data.respuesta_ia },
           ]);
         },
-        onError: (error) => {
+        onError: () => {
           setMessages((prev) => [
             ...prev,
             {
               sender: "ai",
-              text: "Lo siento, ocurrió un error al procesar tu consulta. Por favor, intenta de nuevo más tarde.",
+              text: isPortugues
+                ? "Desculpe, ocorreu um erro ao processar sua consulta. Por favor, tente novamente mais tarde."
+                : "Lo siento, ocurrió un error al procesar tu consulta. Por favor, intenta de nuevo más tarde.",
             },
           ]);
         },
-      }
+      },
     );
   };
 
@@ -91,7 +90,11 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
   }, [messages]);
 
   // Fetch data desde backend
-  const { data: mapData, isLoading: loadingMap, error: errorMap } = useMapData();
+  const {
+    data: mapData,
+    isLoading: loadingMap,
+    error: errorMap,
+  } = useMapData();
   const { data: empleoData } = useMapsIndicators("EMPLEO");
   const { data: educacionData } = useMapsIndicators("EDUCACION");
   const { data: saludData } = useMapsIndicators("SALUD_MENTAL");
@@ -100,13 +103,17 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
   // Mapeo de tabs a títulos y datos
   const tabConfig = {
     EMPLEO: {
-      title: "Empleo vs. Otras Regiones",
+      title: isPortugues
+        ? "Emprego vs. Outras Regiões"
+        : "Empleo vs. Otras Regiones",
       dataSource: empleoData,
       getValue: (reg) => 100 - parseFloat(reg.indicadores?.[0]?.valor || 0),
       displaySuffix: "%",
     },
     EDUCACION: {
-      title: "Educación vs. Otras Regiones",
+      title: isPortugues
+        ? "Educação vs. Outras Regiões"
+        : "Educación vs. Otras Regiones",
       dataSource: educacionData,
       getValue: (reg) => {
         const val = parseFloat(reg.indicadores?.[0]?.valor || 0);
@@ -115,7 +122,9 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
       displaySuffix: "%",
     },
     SALUD_MENTAL: {
-      title: "Salud Mental vs. Otras Regiones",
+      title: isPortugues
+        ? "Saúde Mental vs. Outras Regiões"
+        : "Salud Mental vs. Otras Regiones",
       dataSource: saludData,
       getValue: (reg) => {
         const val = parseFloat(reg.indicadores?.[0]?.valor || 0);
@@ -132,8 +141,8 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
     if (!clusterName) return null;
 
     // Primero buscar en mapData (endpoint /mapa)
-    let found = mapData?.regiones?.find((r) => 
-      r.cluster.toUpperCase() === clusterName.toUpperCase()
+    let found = mapData?.regiones?.find(
+      (r) => r.cluster.toUpperCase() === clusterName.toUpperCase(),
     );
 
     // Si no está en mapData, buscar en los datos de indicadores que SÍ lo tienen
@@ -143,9 +152,9 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
         ...(educacionData?.regiones || []),
         ...(saludData?.regiones || []),
       ];
-      
-      found = allIndicatorRegions.find((r) => 
-        r.cluster.toUpperCase() === clusterName.toUpperCase()
+
+      found = allIndicatorRegions.find(
+        (r) => r.cluster.toUpperCase() === clusterName.toUpperCase(),
       );
     }
 
@@ -155,10 +164,10 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
   // Obtener indicadores para esta región
   const regionIndicators = useMemo(() => {
     const indicators = {};
-    
+
     if (empleoData?.regiones) {
       const reg = empleoData.regiones.find(
-        (r) => r.cluster.toUpperCase() === clusterName?.toUpperCase()
+        (r) => r.cluster.toUpperCase() === clusterName?.toUpperCase(),
       );
       if (reg?.indicadores?.[0]) {
         indicators.empleo = 100 - parseFloat(reg.indicadores[0].valor);
@@ -167,7 +176,7 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
 
     if (educacionData?.regiones) {
       const reg = educacionData.regiones.find(
-        (r) => r.cluster.toUpperCase() === clusterName?.toUpperCase()
+        (r) => r.cluster.toUpperCase() === clusterName?.toUpperCase(),
       );
       if (reg?.indicadores?.[0]) {
         const val = parseFloat(reg.indicadores[0].valor);
@@ -177,7 +186,7 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
 
     if (saludData?.regiones) {
       const reg = saludData.regiones.find(
-        (r) => r.cluster.toUpperCase() === clusterName?.toUpperCase()
+        (r) => r.cluster.toUpperCase() === clusterName?.toUpperCase(),
       );
       if (reg?.indicadores?.[0]) {
         indicators.saludMental = parseFloat(reg.indicadores[0].valor);
@@ -200,37 +209,58 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
   // Obtener todas las regiones para el gráfico de comparación (dinámico según activeTab)
   const allRegionsForComparison = useMemo(() => {
     if (!currentTabConfig.dataSource?.regiones) return [];
-    return currentTabConfig.dataSource.regiones.map((r) => {
-      const value = currentTabConfig.getValue(r);
-      return {
-        id: r.cluster,
-        name: r.cluster,
-        value: Math.max(0, Math.min(100, Math.round(value))),
-      };
-    }).sort((a, b) => b.value - a.value);
+    return currentTabConfig.dataSource.regiones
+      .map((r) => {
+        const value = currentTabConfig.getValue(r);
+        return {
+          id: r.cluster,
+          name: r.cluster,
+          value: Math.max(0, Math.min(100, Math.round(value))),
+        };
+      })
+      .sort((a, b) => b.value - a.value);
   }, [currentTabConfig]);
 
   // Generar datos del gráfico radar (solo con datos reales disponibles)
   const radarData = useMemo(() => {
     const empleo = regionIndicators.empleo || 0;
-    const conectividad = selectedRegion?.congestionamento_medio 
-      ? Math.round(100 - selectedRegion.congestionamento_medio * 100) 
+    const conectividad = selectedRegion?.congestionamento_medio
+      ? Math.round(100 - selectedRegion.congestionamento_medio * 100)
       : 0;
     const inclusion = regionIndicators.inclusion || 0;
-    const saludMentalPercent = regionIndicators.saludMental 
-      ? Math.max(0, Math.min(100, Math.round((regionIndicators.saludMental / 15) * 100))) 
+    const saludMentalPercent = regionIndicators.saludMental
+      ? Math.max(
+          0,
+          Math.min(100, Math.round((regionIndicators.saludMental / 15) * 100)),
+        )
       : 0;
 
     const data = [
-      { subject: "Empleo", A: Math.round(empleo), fullMark: 100 },
-      { subject: "Conectividad", A: conectividad, fullMark: 100 },
-      { subject: "Salud Mental", A: saludMentalPercent, fullMark: 100 },
+      {
+        subject: isPortugues ? "Emprego" : "Empleo",
+        A: Math.round(empleo),
+        fullMark: 100,
+      },
+      {
+        subject: isPortugues ? "Conectividade" : "Conectividad",
+        A: conectividad,
+        fullMark: 100,
+      },
+      {
+        subject: isPortugues ? "Saúde Mental" : "Salud Mental",
+        A: saludMentalPercent,
+        fullMark: 100,
+      },
     ];
-    
+
     if (inclusion > 0) {
-      data.push({ subject: "Inclusión", A: Math.round(inclusion), fullMark: 100 });
+      data.push({
+        subject: isPortugues ? "Inclusão" : "Inclusión",
+        A: Math.round(inclusion),
+        fullMark: 100,
+      });
     }
-    
+
     return data;
   }, [regionIndicators, selectedRegion]);
 
@@ -249,7 +279,13 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
         <div className="text-center">
           <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
           <p className="text-red-600 font-medium">
-            {errorMap ? "Error al cargar los datos de la región" : "Región no encontrada"}
+            {errorMap
+              ? isPortugues
+                ? "Erro ao carregar os dados da região"
+                : "Error al cargar los datos de la región"
+              : isPortugues
+                ? "Região não encontrada"
+                : "Región no encontrada"}
           </p>
         </div>
       </div>
@@ -258,29 +294,31 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
 
   // Preparar valores para mostrar
   const displayName = formatClusterName;
-  const populationValue = selectedRegion.n_usuarios 
-    ? selectedRegion.n_usuarios >= 1000000 
-      ? `${(selectedRegion.n_usuarios / 1000000).toFixed(1)}M` 
+  const populationValue = selectedRegion.n_usuarios
+    ? selectedRegion.n_usuarios >= 1000000
+      ? `${(selectedRegion.n_usuarios / 1000000).toFixed(1)}M`
       : `${(selectedRegion.n_usuarios / 1000).toFixed(1)}K`
     : "0";
-  
-  const empleoValue = regionIndicators.empleo 
-    ? `${regionIndicators.empleo.toFixed(0)}%` 
+
+  const empleoValue = regionIndicators.empleo
+    ? `${regionIndicators.empleo.toFixed(0)}%`
     : "60%";
-  
-  const conectividadValue = selectedRegion.congestionamento_medio 
-    ? `${Math.round(100 - selectedRegion.congestionamento_medio * 100)}%` 
-    : "50%";
-  
-  const saludMentalValue = regionIndicators.saludMental 
-    ? `${Math.min(5, Math.max(0, (regionIndicators.saludMental / 15) * 4.8)).toFixed(1)}/5` 
-    : "3.0/5";
-  
-  const inclusionValue = regionIndicators.inclusion 
-    ? `${regionIndicators.inclusion.toFixed(0)}%` 
+
+  const conectividadValue = selectedRegion.congestionamento_medio
+    ? `${Math.round(100 - selectedRegion.congestionamento_medio * 100)}%`
     : "50%";
 
-  const hasAlerts = selectedRegion.congestionamento_medio && selectedRegion.congestionamento_medio > 0.7;
+  const saludMentalValue = regionIndicators.saludMental
+    ? `${Math.min(5, Math.max(0, (regionIndicators.saludMental / 15) * 4.8)).toFixed(1)}/5`
+    : "3.0/5";
+
+  const inclusionValue = regionIndicators.inclusion
+    ? `${regionIndicators.inclusion.toFixed(0)}%`
+    : "50%";
+
+  const hasAlerts =
+    selectedRegion.congestionamento_medio &&
+    selectedRegion.congestionamento_medio > 0.7;
 
   return (
     <div className="space-y-6">
@@ -304,12 +342,17 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
                 </span>
               ) : (
                 <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-green-50 text-green-700 border-green-200">
-                  Sin alertas
+                  {isPortugues ? "Sem alertas" : "Sin alertas"}
                 </span>
               )}
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              {populationValue} usuarios • {programCounts.courses + programCounts.mentorings + programCounts.experiences} programas • Actualizado: {selectedRegion.fecha || new Date().toLocaleDateString()}
+              {populationValue} {isPortugues ? "usuários" : "usuarios"} •{" "}
+              {programCounts.courses +
+                programCounts.mentorings +
+                programCounts.experiences}{" "}
+              programas • {isPortugues ? "Atualizado:" : "Actualizado:"}{" "}
+              {selectedRegion.fecha || new Date().toLocaleDateString()}
             </p>
           </div>
         </div>
@@ -329,7 +372,7 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
               {empleoValue}
             </h4>
             <p className="text-[11px] text-slate-500 mt-1 font-semibold">
-              Tasa de Empleo
+              {isPortugues ? "Taxa de Emprego" : "Tasa de Empleo"}
             </p>
           </div>
         </div>
@@ -346,7 +389,7 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
               {conectividadValue}
             </h4>
             <p className="text-[11px] text-slate-500 mt-1 font-semibold">
-              Conectividad
+              {isPortugues ? "Conectividade" : "Conectividad"}
             </p>
           </div>
         </div>
@@ -363,7 +406,7 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
               {saludMentalValue}
             </h4>
             <p className="text-[11px] text-slate-500 mt-1 font-semibold">
-              Salud Mental
+              {isPortugues ? "Saúde Mental" : "Salud Mental"}
             </p>
           </div>
         </div>
@@ -380,7 +423,7 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
               {inclusionValue}
             </h4>
             <p className="text-[11px] text-slate-500 mt-1 font-semibold">
-              Inclusión Digital
+              {isPortugues ? "Inclusão Digital" : "Inclusión Digital"}
             </p>
           </div>
         </div>
@@ -390,7 +433,6 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Columna izquierda: Gráficos (ocupa 2 espacios) */}
         <div className="lg:col-span-2 space-y-6">
-
           {/* Subgrid: radar de indicadores y comparación de empleo */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Perfil de Indicadores en Radar */}
@@ -402,10 +444,22 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
               </div>
               <div className="h-[200px] mt-4 flex items-center justify-center w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                  <RadarChart
+                    cx="50%"
+                    cy="50%"
+                    outerRadius="70%"
+                    data={radarData}
+                  >
                     <PolarGrid />
-                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 9, fill: "#475569" }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 8 }} />
+                    <PolarAngleAxis
+                      dataKey="subject"
+                      tick={{ fontSize: 9, fill: "#475569" }}
+                    />
+                    <PolarRadiusAxis
+                      angle={30}
+                      domain={[0, 100]}
+                      tick={{ fontSize: 8 }}
+                    />
                     <Radar
                       name={displayName}
                       dataKey="A"
@@ -427,18 +481,34 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
               </div>
               <div className="flex-1 space-y-2.5 overflow-y-auto max-h-[200px] pr-1">
                 {allRegionsForComparison.map((item, idx) => {
-                  const isCurrent = item.id.toUpperCase() === clusterName?.toUpperCase();
+                  const isCurrent =
+                    item.id.toUpperCase() === clusterName?.toUpperCase();
                   return (
                     <div key={item.id} className="space-y-1">
                       <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
                         <span className="flex items-center gap-1.5">
-                          <span className="text-slate-400 w-3.5 text-right">{idx + 1}</span>
-                          <span className={isCurrent ? "text-blue-600 font-extrabold" : "text-slate-600"}>
+                          <span className="text-slate-400 w-3.5 text-right">
+                            {idx + 1}
+                          </span>
+                          <span
+                            className={
+                              isCurrent
+                                ? "text-blue-600 font-extrabold"
+                                : "text-slate-600"
+                            }
+                          >
                             {item.name}
                           </span>
                         </span>
-                        <span className={isCurrent ? "text-blue-600 font-extrabold" : "text-slate-800"}>
-                          {item.value}{currentTabConfig.displaySuffix}
+                        <span
+                          className={
+                            isCurrent
+                              ? "text-blue-600 font-extrabold"
+                              : "text-slate-800"
+                          }
+                        >
+                          {item.value}
+                          {currentTabConfig.displaySuffix}
                         </span>
                       </div>
                       <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -457,14 +527,23 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
           {/* Fila de resumen de programas */}
           <div className="space-y-3">
             <h3 className="text-sm font-bold text-slate-800">
-              Resumen de Programas — {displayName}
+              {isPortugues
+                ? "Resumo de Programas — "
+                : "Resumen de Programas — "}
+              {displayName}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Tarjeta Formaciones */}
               <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between">
                 <div>
-                  <h4 className="text-2xl font-bold text-slate-850">{programCounts.courses}</h4>
-                  <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Programas de Formación</p>
+                  <h4 className="text-2xl font-bold text-slate-850">
+                    {programCounts.courses}
+                  </h4>
+                  <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                    {isPortugues
+                      ? "Programas de Formação"
+                      : "Programas de Formación"}
+                  </p>
                 </div>
                 <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center">
                   <BookOpen className="w-4.5 h-4.5" />
@@ -474,8 +553,12 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
               {/* Tarjeta Mentorías */}
               <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between">
                 <div>
-                  <h4 className="text-2xl font-bold text-slate-850">{programCounts.mentorings}</h4>
-                  <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Mentorías Activas</p>
+                  <h4 className="text-2xl font-bold text-slate-850">
+                    {programCounts.mentorings}
+                  </h4>
+                  <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                    {isPortugues ? "Mentorias Ativas" : "Mentorías Activas"}
+                  </p>
                 </div>
                 <div className="w-9 h-9 rounded-xl bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center">
                   <GraduationCap className="w-4.5 h-4.5" />
@@ -485,8 +568,12 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
               {/* Tarjeta Experiencias */}
               <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between">
                 <div>
-                  <h4 className="text-2xl font-bold text-slate-850">{programCounts.experiences}</h4>
-                  <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Experiencias</p>
+                  <h4 className="text-2xl font-bold text-slate-850">
+                    {programCounts.experiences}
+                  </h4>
+                  <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                    {isPortugues ? "Experiências" : "Experiencias"}
+                  </p>
                 </div>
                 <div className="w-9 h-9 rounded-xl bg-yellow-50 border border-yellow-100 text-yellow-600 flex items-center justify-center">
                   <Star className="w-4.5 h-4.5" />
@@ -506,17 +593,20 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
                   <Bot className="w-3.5 h-3.5" />
                 </div>
                 <h3 className="text-sm font-bold text-slate-800">
-                  Asistente IA
+                  {isPortugues ? "Assistente IA" : "Asistente IA"}
                 </h3>
               </div>
               <span className="flex items-center gap-1.5 text-[10px] text-green-600 font-bold bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                <span>En línea</span>
+                <span>{isPortugues ? "Online" : "En línea"}</span>
               </span>
             </div>
 
             {/* Chat Messages Log */}
-            <div ref={chatContainerRef} className="flex-1 overflow-y-auto my-4 space-y-4 pr-1 text-xs min-h-[180px] max-h-[300px]">
+            <div
+              ref={chatContainerRef}
+              className="flex-1 overflow-y-auto my-4 space-y-4 pr-1 text-xs min-h-[180px] max-h-[300px]"
+            >
               {messages.map((msg, index) => (
                 <div
                   key={index}
@@ -531,7 +621,15 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
                         : "bg-[#2563eb] text-white"
                     }`}
                   >
-                    {msg.sender === "user" ? "Tú" : <Bot className="w-3.5 h-3.5" />}
+                    {msg.sender === "user" ? (
+                      isPortugues ? (
+                        "Você"
+                      ) : (
+                        "Tú"
+                      )
+                    ) : (
+                      <Bot className="w-3.5 h-3.5" />
+                    )}
                   </div>
                   <div
                     className={`rounded-xl p-3 border leading-relaxed max-w-[80%] ${
@@ -552,7 +650,9 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
                   </div>
                   <div className="bg-slate-50 text-slate-500 border border-slate-100 rounded-xl p-3 flex items-center gap-1.5">
                     <Loader2 className="w-3 h-3 animate-spin text-blue-600" />
-                    <span>IA escribiendo...</span>
+                    <span>
+                      {isPortugues ? "IA digitando..." : "IA escribiendo..."}
+                    </span>
                   </div>
                 </div>
               )}
@@ -560,43 +660,79 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
 
             {/* Sugerencias estáticas */}
             {messages.length === 1 && !aiMutation.isPending && (
-              <div className="space-y-2 mb-4 flex-shrink-0">
+              <div className="space-y-2 mb-4 shrink-0">
                 <button
-                  onClick={() => handleSendMessage(`¿Qué alertas críticas hay activas en la Región ${clusterName}?`)}
+                  onClick={() =>
+                    handleSendMessage(
+                      isPortugues
+                        ? `Que alertas críticas estão ativas na Região ${clusterName}?`
+                        : `¿Qué alertas críticas hay activas en la Región ${clusterName}?`,
+                    )
+                  }
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
-                  ¿Qué alertas críticas hay activas en la Región {clusterName}?
+                  {isPortugues
+                    ? `Que alertas críticas estão ativas na Região ${clusterName}?`
+                    : `¿Qué alertas críticas hay activas en la Región ${clusterName}?`}
                 </button>
                 <button
-                  onClick={() => handleSendMessage(`¿Dónde faltan programas de formación en la Región ${clusterName}?`)}
+                  onClick={() =>
+                    handleSendMessage(
+                      isPortugues
+                        ? `Onde faltam programas de formação na Região ${clusterName}?`
+                        : `¿Dónde faltan programas de formación en la Región ${clusterName}?`,
+                    )
+                  }
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
-                  ¿Dónde faltan programas de formación en la Región {clusterName}?
+                  {isPortugues
+                    ? `Onde faltam programas de formação na Região ${clusterName}?`
+                    : `¿Dónde faltan programas de formación en la Región ${clusterName}?`}
                 </button>
                 <button
-                  onClick={() => handleSendMessage(`¿Qué zonas de la Región ${clusterName} son prioridad para inversión social?`)}
+                  onClick={() =>
+                    handleSendMessage(
+                      isPortugues
+                        ? `Quais áreas da Região ${clusterName} são prioridade para investimento social?`
+                        : `¿Qué zonas de la Región ${clusterName} son prioridad para inversión social?`,
+                    )
+                  }
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
-                  ¿Qué zonas son prioridad para inversión social?
+                  {isPortugues
+                    ? `Quais áreas são prioridade para investimento social?`
+                    : `¿Qué zonas son prioridad para inversión social?`}
                 </button>
                 <button
-                  onClick={() => handleSendMessage(`¿Cómo impacta la conectividad en la salud mental de la Región ${clusterName}?`)}
+                  onClick={() =>
+                    handleSendMessage(
+                      isPortugues
+                        ? `Como a conectividade impacta a saúde mental na Região ${clusterName}?`
+                        : `¿Cómo impacta la conectividad en la salud mental de la Región ${clusterName}?`,
+                    )
+                  }
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
-                  ¿Cómo impacta la conectividad en la salud mental?
+                  {isPortugues
+                    ? `Como a conectividade impacta a saúde mental?`
+                    : `¿Cómo impacta la conectividad en la salud mental?`}
                 </button>
               </div>
             )}
 
             {/* AI Chat Input */}
-            <div className="mt-auto flex-shrink-0 pt-2 border-t border-slate-100">
+            <div className="mt-auto shrink-0 pt-2 border-t border-slate-100">
               <div className="relative w-full">
                 <input
                   type="text"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                  placeholder="Haga una pregunta sobre los datos de la región..."
+                  placeholder={
+                    isPortugues
+                      ? "Faça uma pergunta sobre os dados da região..."
+                      : "Haga una pregunta sobre los datos de la región..."
+                  }
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-3 pr-10 py-2.5 text-xs focus:outline-none focus:border-blue-500"
                   disabled={aiMutation.isPending}
                 />

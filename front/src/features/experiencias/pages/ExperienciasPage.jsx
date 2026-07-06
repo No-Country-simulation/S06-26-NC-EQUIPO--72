@@ -27,6 +27,7 @@ import {
   IndicatorsSkeleton,
 } from "../skeletons/ExperienciasPageSkeletons";
 import { formatClusterName } from "@/shared/utils/format";
+import { useLanguage } from "@/context/useLenguage";
 
 // Lista oficial de clústeres para Florianópolis (coincide con la sección de Formaciones)
 const FLORI_CLUSTERS = [
@@ -87,6 +88,9 @@ const getClusterData = (clusterName, brechasList) => {
 };
 
 function ExperienciasPage() {
+  const { language } = useLanguage();
+  const isPortugues = language === "pt";
+
   // Estado local para el filtrado de las tarjetas por impacto
   const [impactFilter, setImpactFilter] = useState("Todos");
 
@@ -116,14 +120,14 @@ function ExperienciasPage() {
       const territorial = getClusterData(exp.cluster, rawBrechas?.brechas);
 
       // Mapeamos el impacto y colores dinámicos
-      let impactText = "Impacto medio";
+      let impactText = isPortugues ? "Impacto médio" : "Impacto medio";
       let impactColor = "bg-amber-50 text-amber-700 border-amber-200";
 
       if (exp.impactoEstimado === "ALTO") {
-        impactText = "Alto Impacto";
+        impactText = isPortugues ? "Alto Impacto" : "Alto Impacto";
         impactColor = "bg-green-50 text-green-700 border-green-200";
       } else if (exp.impactoEstimado === "BAJO") {
-        impactText = "Bajo impacto";
+        impactText = isPortugues ? "Baixo impacto" : "Bajo impacto";
         impactColor = "bg-red-50 text-red-700 border-red-200";
       }
 
@@ -134,12 +138,16 @@ function ExperienciasPage() {
         impact: impactText,
         impactColor: impactColor,
         replicable: exp.replicable === 1,
-        region: formatClusterName(exp.cluster) || "Sin definir",
-        beneficiarios: territorial.nUsuarios !== null && territorial.nUsuarios !== undefined
-          ? `${territorial.nUsuarios.toLocaleString("es-ES")} beneficiarios`
-          : "Sin datos de beneficiarios",
+        region:
+          formatClusterName(exp.cluster) ||
+          (isPortugues ? "Não definido" : "Sin definir"),
+        beneficiarios:
+          territorial.nUsuarios !== null && territorial.nUsuarios !== undefined
+            ? `${territorial.nUsuarios.toLocaleString("es-ES")} ${isPortugues ? "beneficiários" : "beneficiarios"}`
+            : "Sin datos de beneficiarios",
         beneficiariosRaw: territorial.nUsuarios,
-        leader: exp.liderReferente || "No asignado",
+        leader:
+          exp.liderReferente || (isPortugues ? "Não atribuído" : "No asignado"),
       };
     });
   }, [rawExperiencias, rawBrechas]);
@@ -160,9 +168,10 @@ function ExperienciasPage() {
     const totalActivas = experienceList.length;
 
     // Calculamos beneficiarios sumando los usuarios reales que vienen del backend
-    const beneficiariosTotales = rawBrechas?.brechas?.reduce((sum, b) => {
-      return sum + (b.n_usuarios || 0);
-    }, 0) || 0;
+    const beneficiariosTotales =
+      rawBrechas?.brechas?.reduce((sum, b) => {
+        return sum + (b.n_usuarios || 0);
+      }, 0) || 0;
 
     const beneficiariosFormateados =
       beneficiariosTotales >= 1000
@@ -176,28 +185,28 @@ function ExperienciasPage() {
 
     return [
       {
-        label: "Experiencias activas",
+        label: isPortugues ? "Experiências ativas" : "Experiencias activas",
         value: totalActivas.toString(),
         icon: Star,
         iconColor: "text-amber-500",
         bgColor: "bg-amber-50 border-amber-100",
       },
       {
-        label: "Beneficiarios totales",
+        label: isPortugues ? "Beneficiários totais" : "Beneficiarios totales",
         value: beneficiariosFormateados.toString(),
         icon: Users,
         iconColor: "text-slate-600",
         bgColor: "bg-slate-50 border-slate-100",
       },
       {
-        label: "Replicables",
+        label: isPortugues ? "Replicáveis" : "Replicables",
         value: replicables.toString(),
         icon: Copy,
         iconColor: "text-blue-600",
         bgColor: "bg-blue-50 border-blue-100",
       },
       {
-        label: "Alto Impacto",
+        label: isPortugues ? "Alto Impacto" : "Alto Impacto",
         value: altoImpacto.toString(),
         icon: Rocket,
         iconColor: "text-purple-600",
@@ -256,28 +265,28 @@ function ExperienciasPage() {
 
     return [
       {
-        title: "Innovación Social",
+        title: isPortugues ? "Inovação Social" : "Innovación Social",
         count: innovacion.toString(),
         icon: Lightbulb,
         iconColor: "text-amber-500 bg-amber-50 border-amber-100",
         barColor: "bg-blue-600",
       },
       {
-        title: "Economía Solidaria",
+        title: isPortugues ? "Economia Solidária" : "Economía Solidaria",
         count: economia.toString(),
         icon: Handshake,
         iconColor: "text-emerald-600 bg-emerald-50 border-emerald-100",
         barColor: "bg-emerald-500",
       },
       {
-        title: "Digital para Todos",
+        title: isPortugues ? "Digital para Todos" : "Digital para Todos",
         count: digital.toString(),
         icon: Monitor,
         iconColor: "text-purple-600 bg-purple-50 border-purple-100",
         barColor: "bg-purple-500",
       },
       {
-        title: "Salud Comunitaria",
+        title: isPortugues ? "Saúde Comunitária" : "Salud Comunitaria",
         count: salud.toString(),
         icon: Activity,
         iconColor: "text-pink-600 bg-pink-50 border-pink-100",
@@ -293,17 +302,22 @@ function ExperienciasPage() {
         <div>
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <Star className="w-5 h-5 text-amber-500 animate-pulse" />
-            <span>Experiencias Estructurantes</span>
+            <span>
+              {isPortugues
+                ? "Experiências Estruturantes"
+                : "Experiencias Estructurantes"}
+            </span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Iniciativas exitosas replicables y proyectos comunitarios de alto
-            impacto en Florianópolis
+            {isPortugues
+              ? "Iniciativas de sucesso replicáveis e projetos comunitários de alto impacto em Florianópolis"
+              : "Iniciativas exitosas replicables y proyectos comunitarios de alto impacto en Florianópolis"}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
           <div className="flex items-center gap-2 bg-white border border-slate-200 px-3.5 py-2 rounded-lg shadow-xs w-full sm:w-auto justify-between sm:justify-start">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">
-              Impacto:
+              {isPortugues ? "Impacto:" : "Impacto:"}
             </span>
             <select
               value={impactFilter}
@@ -311,9 +325,15 @@ function ExperienciasPage() {
               className="bg-transparent text-xs font-bold text-slate-700 cursor-pointer focus:outline-none select-none"
             >
               <option value="Todos">Todos</option>
-              <option value="Alto Impacto">Alto Impacto</option>
-              <option value="Impacto medio">Impacto medio</option>
-              <option value="Bajo impacto">Bajo impacto</option>
+              <option value={isPortugues ? "Alto Impacto" : "Alto Impacto"}>
+                {isPortugues ? "Alto Impacto" : "Alto Impacto"}
+              </option>
+              <option value={isPortugues ? "Impacto médio" : "Impacto medio"}>
+                {isPortugues ? "Impacto médio" : "Impacto medio"}
+              </option>
+              <option value={isPortugues ? "Baixo impacto" : "Bajo impacto"}>
+                {isPortugues ? "Baixo impacto" : "Bajo impacto"}
+              </option>
             </select>
           </div>
           <button
@@ -321,7 +341,9 @@ function ExperienciasPage() {
             className="flex items-center justify-center gap-1.5 bg-[#2563eb] hover:bg-blue-600 text-white font-medium text-xs px-4 py-2.5 rounded-lg transition-all active:scale-[0.98] cursor-pointer shadow-sm w-full sm:w-auto"
           >
             <Plus className="w-4 h-4" />
-            <span>Registrar experiencia</span>
+            <span>
+              {isPortugues ? "Registrar experiência" : "Registrar experiencia"}
+            </span>
           </button>
         </div>
       </div>
@@ -332,7 +354,9 @@ function ExperienciasPage() {
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center flex items-center justify-center gap-2 text-xs text-red-600 font-semibold shadow-xs">
           <AlertCircle className="w-4 h-4 text-red-500" />
           <span>
-            Error al sincronizar datos de experiencias con el servidor
+            {isPortugues
+              ? "Erro ao sincronizar dados de experiências com o servidor"
+              : "Error al sincronizar datos de experiencias con el servidor"}
           </span>
         </div>
       ) : (
@@ -390,7 +414,9 @@ function ExperienciasPage() {
                       {item.count}
                     </span>
                     <p className="text-[10px] text-slate-400 font-semibold mt-0.5">
-                      Iniciativas activas
+                      {isPortugues
+                        ? "Iniciativas ativas"
+                        : "Iniciativas activas"}
                     </p>
                   </div>
                   {/* Bottom Colored Indicator Line */}
@@ -411,11 +437,14 @@ function ExperienciasPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-800">
-              Experiencias Destacadas
+              {isPortugues
+                ? "Experiências Destacadas"
+                : "Experiencias Destacadas"}
             </h3>
             <span className="text-[10px] text-slate-400 font-bold uppercase">
-              Mostrando {filteredExperiences.length} de {experienceList.length}{" "}
-              experiencias
+              {isPortugues
+                ? `Mostrando ${filteredExperiences.length} de ${experienceList.length} experiências`
+                : `Mostrando ${filteredExperiences.length} de ${experienceList.length} experiencias`}
             </span>
           </div>
 
@@ -439,7 +468,9 @@ function ExperienciasPage() {
                       {experience.replicable && (
                         <span className="flex items-center gap-1 text-[10px] text-slate-400 font-semibold bg-slate-50 px-2 py-0.5 rounded border border-slate-150">
                           <Copy className="w-3 h-3" />
-                          <span>Replicable</span>
+                          <span>
+                            {isPortugues ? "Replicável" : "Replicable"}
+                          </span>
                         </span>
                       )}
                     </div>
@@ -466,18 +497,22 @@ function ExperienciasPage() {
                       </div>
                       <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
                         <User className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Liderado por {experience.leader}</span>
+                        <span>
+                          {isPortugues
+                            ? `Liderado por ${experience.leader}`
+                            : `Liderado por ${experience.leader}`}
+                        </span>
                       </div>
                     </div>
                   </div>
-
                 </div>
               ))}
             </div>
           ) : (
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center text-slate-400 font-medium">
-              No se encontraron experiencias registradas que coincidan con la
-              búsqueda o filtro.
+              {isPortugues
+                ? "Nenhuma experiência registrada foi encontrada que corresponda à pesquisa ou filtro."
+                : "No se encontraron experiencias registradas que coincidan con la búsqueda o filtro."}
             </div>
           )}
         </div>
