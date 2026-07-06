@@ -38,7 +38,8 @@ public class BrechaServiceImpl implements BrechasService {
 		if (DayPeriod.fromString(periodo) == null) {
 			throw new BadRequestException("El valor de 'periodo' debe ser MADRUGADA / MANHA / TARDE / NOITE.");
 		}
-		if (incomeCluster == null || !CLUSTER_VALIDOS.contains(incomeCluster.toUpperCase())) {
+      
+		if (incomeCluster != null && !CLUSTER_VALIDOS.contains(incomeCluster.toUpperCase())) {
 			throw new BadRequestException(
 					"El valor de cluster debe ser A / B / C / D");
 		}
