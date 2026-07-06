@@ -40,8 +40,10 @@ import {
 import { BlockMap } from "../components/BlockMap";
 import { useMapsIndicators } from "../hooks/useMaps";
 import { formatClusterName } from "@/shared/utils/format";
+import { useLanguage } from "@/context/useLenguage";
 
 function DashboardPage({ onTabChange, onClusterSelect }) {
+  const { language } = useLanguage();
   const [messages, setMessages] = useState([
     {
       sender: "ai",
@@ -451,16 +453,19 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
     ];
   }, [rawEmpleo, rawEducacion, rawSaludMental]);
 
+  const isPortugues = language === "pt";
   return (
     <div className="space-y-6">
       {/* Title & Filters Row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-800 leading-tight">
-            Panel Principal
+            {isPortugues ? "Painel Principal" : "Panel Principal"}
           </h2>
           <p className="text-xs text-slate-500">
-            Actualizado: 10 dic 2024, 09:42 - 9 regiones analizadas
+            {isPortugues
+              ? "Atualizado: 10 de dezembro de 2024, 09:42 – 9 regiões analisadas"
+              : "Actualizado: 10 dic 2024, 09:42 - 9 regiones analizadas"}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -468,9 +473,6 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
             <span>Últimos 12 meses</span>
           </button>
-         
-         
-
         </div>
       </div>
 
