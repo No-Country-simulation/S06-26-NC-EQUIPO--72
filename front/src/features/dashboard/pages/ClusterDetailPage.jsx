@@ -293,28 +293,28 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
   }
 
   // Preparar valores para mostrar
-  const displayName = formatClusterName;
+  const displayName = formatClusterName(clusterName);
   const populationValue = selectedRegion.n_usuarios
     ? selectedRegion.n_usuarios >= 1000000
       ? `${(selectedRegion.n_usuarios / 1000000).toFixed(1)}M`
       : `${(selectedRegion.n_usuarios / 1000).toFixed(1)}K`
     : "0";
 
-  const empleoValue = regionIndicators.empleo
+  const empleoValue = regionIndicators.empleo !== undefined && regionIndicators.empleo !== null
     ? `${regionIndicators.empleo.toFixed(0)}%`
-    : "60%";
+    : (isPortugues ? "Sem dados" : "Sin datos");
 
-  const conectividadValue = selectedRegion.congestionamento_medio
+  const conectividadValue = selectedRegion.congestionamento_medio !== undefined && selectedRegion.congestionamento_medio !== null
     ? `${Math.round(100 - selectedRegion.congestionamento_medio * 100)}%`
-    : "50%";
+    : (isPortugues ? "Sem dados" : "Sin datos");
 
-  const saludMentalValue = regionIndicators.saludMental
+  const saludMentalValue = regionIndicators.saludMental !== undefined && regionIndicators.saludMental !== null
     ? `${Math.min(5, Math.max(0, (regionIndicators.saludMental / 15) * 4.8)).toFixed(1)}/5`
-    : "3.0/5";
+    : (isPortugues ? "Sem dados" : "Sin datos");
 
-  const inclusionValue = regionIndicators.inclusion
+  const inclusionValue = regionIndicators.inclusion !== undefined && regionIndicators.inclusion !== null
     ? `${regionIndicators.inclusion.toFixed(0)}%`
-    : "50%";
+    : (isPortugues ? "Sem dados" : "Sin datos");
 
   const hasAlerts =
     selectedRegion.congestionamento_medio &&
