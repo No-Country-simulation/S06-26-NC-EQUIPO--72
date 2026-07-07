@@ -451,62 +451,64 @@ function ExperienciasPage() {
           {loadingExperiencias ? (
             <ExperienciasSkeletons />
           ) : filteredExperiences.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredExperiences.map((experience) => (
-                <div
-                  key={experience.id}
-                  className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between hover:shadow-xs transition-shadow"
-                >
-                  <div>
-                    {/* Badges Row */}
-                    <div className="flex items-center justify-between">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${experience.impactColor}`}
-                      >
-                        {experience.impact}
-                      </span>
-                      {experience.replicable && (
-                        <span className="flex items-center gap-1 text-[10px] text-slate-400 font-semibold bg-slate-50 px-2 py-0.5 rounded border border-slate-150">
-                          <Copy className="w-3 h-3" />
-                          <span>
-                            {isPortugues ? "Replicável" : "Replicable"}
+            <div className="max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredExperiences.map((experience) => (
+                  <div
+                    key={experience.id}
+                    className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col justify-between hover:shadow-xs transition-shadow"
+                  >
+                    <div>
+                      {/* Badges Row */}
+                      <div className="flex items-center justify-between">
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${experience.impactColor}`}
+                        >
+                          {experience.impact}
+                        </span>
+                        {experience.replicable && (
+                          <span className="flex items-center gap-1 text-[10px] text-slate-400 font-semibold bg-slate-50 px-2 py-0.5 rounded border border-slate-150">
+                            <Copy className="w-3 h-3" />
+                            <span>
+                              {isPortugues ? "Replicável" : "Replicable"}
+                            </span>
                           </span>
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Title */}
-                    <h4 className="text-sm font-bold text-slate-800 mt-3.5 leading-snug">
-                      {experience.title}
-                    </h4>
-
-                    {/* Description */}
-                    <p className="text-[11px] text-slate-500 font-medium mt-2 line-clamp-2 leading-relaxed">
-                      {experience.description}
-                    </p>
-
-                    {/* Details List */}
-                    <div className="mt-4 space-y-2">
-                      <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="capitalize">{experience.region}</span>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-                        <Users className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{experience.beneficiarios}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-                        <User className="w-3.5 h-3.5 text-slate-400" />
-                        <span>
-                          {isPortugues
-                            ? `Liderado por ${experience.leader}`
-                            : `Liderado por ${experience.leader}`}
-                        </span>
+
+                      {/* Title */}
+                      <h4 className="text-sm font-bold text-slate-800 mt-3.5 leading-snug">
+                        {experience.title}
+                      </h4>
+
+                      {/* Description */}
+                      <p className="text-[11px] text-slate-500 font-medium mt-2 line-clamp-2 leading-relaxed">
+                        {experience.description}
+                      </p>
+
+                      {/* Details List */}
+                      <div className="mt-4 space-y-2">
+                        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="capitalize">{experience.region}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                          <Users className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{experience.beneficiarios}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                          <User className="w-3.5 h-3.5 text-slate-400" />
+                          <span>
+                            {isPortugues
+                              ? `Liderado por ${experience.leader}`
+                              : `Liderado por ${experience.leader}`}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           ) : (
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center text-slate-400 font-medium">
