@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import MentoriasService from "../services/mentorias.service";
 
-export function useMentoriasBrechas(servicio = "MENTORIA") {
+export function useMentorias(servicio = "MENTORIAS") {
   return useQuery({
-    queryKey: ["mentorias-brechas", servicio],
-    queryFn: () => MentoriasService.getBrechas(servicio),
+    queryKey: ["mentorias", servicio],
+    queryFn: () => MentoriasService.getProgramas(servicio),
   });
 }
