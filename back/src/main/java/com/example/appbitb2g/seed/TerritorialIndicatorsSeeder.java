@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -19,121 +20,87 @@ public class TerritorialIndicatorsSeeder {
     public void seed() {
         if (repo.count() > 0) return;
 
-        LocalDate ref = LocalDate.of(2024, 1, 1);
+        // { municipio, cluster, empleo_formal, desempleo, evasao, conclusao_medio, internacao_psiq, cobertura_basica }
+        Object[][] clusters = {
 
-        repo.saveAll(List.of(
-            build("Florianopolis","SC401_CORREDOR","EMPLEO","taxa_emprego_formal",65.4321,"%","MOCK-EMP-001",ref),
-            build("Florianopolis","SC401_CORREDOR","EMPLEO","taxa_desemprego",8.7654,"%","MOCK-EMP-002",ref),
-            build("Florianopolis","SC401_CORREDOR","EDUCACION","evasao_escolar",12.3456,"%","MOCK-EDU-001",ref),
-            build("Florianopolis","SC401_CORREDOR","EDUCACION","taxa_conclusao_ensino_medio",78.9012,"%","MOCK-EDU-002",ref),
-            build("Florianopolis","SC401_CORREDOR","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.1234,"por 1000 hab","MOCK-SM-001",ref),
-            build("Florianopolis","SC401_CORREDOR","SALUD_MENTAL","cobertura_atencao_basica",45.6789,"%","MOCK-SM-002",ref),
+            {"Florianopolis", "SC401_CORREDOR",        65.4321,  8.7654, 12.3456, 78.9012, 2.1234, 45.6789},
+            {"Florianopolis", "ESTREITO_CAPOEIRAS",    60.1234,  9.8765, 14.5678, 75.4321, 2.5678, 42.3456},
+            {"Florianopolis", "NORTE_ILHA",            70.9876,  7.1234, 10.9876, 82.3456, 1.9876, 48.7654},
+            {"Florianopolis", "TRINDADE",              75.4321,  6.5432,  9.1234, 86.7890, 1.7654, 52.3456},
+            {"Florianopolis", "UFSC",                  80.1234,  5.6789,  7.6543, 90.1234, 1.5432, 55.6789},
+            {"Florianopolis", "CANASVIEIRAS",          68.7654,  8.2345, 11.4567, 79.5678, 2.0123, 47.8901},
+            {"Florianopolis", "AEROPORTO_HLZ",         72.3456,  7.5678, 10.1234, 81.2345, 1.8765, 49.1234},
+            {"Florianopolis", "CBD_BEIRAMAR",          78.9012,  5.9876,  8.7654, 87.6543, 1.6543, 53.4567},
+            {"Florianopolis", "RESIDENCIAL_NORTE",     66.5432,  8.9012, 13.2345, 77.8901, 2.2345, 44.5678},
+            {"Florianopolis", "CENTRO_HISTORICO",      73.2109,  7.3456, 10.5678, 83.1234, 1.8234, 50.3456},
+            {"Florianopolis", "LAGOA_CONCEICAO",       69.4567,  8.0123, 11.8901, 80.4567, 1.9512, 48.1234},
+            {"Florianopolis", "CAMPECHE",              67.8901,  8.5678, 12.6789, 78.2345, 2.0876, 46.7890},
+            {"Florianopolis", "COQUEIROS",             71.2345,  7.8901, 10.3456, 82.6789, 1.9123, 49.5678},
+            {"Florianopolis", "JURERE",                76.5432,  6.2345,  8.9012, 88.3456, 1.7123, 54.2345},
+            {"Florianopolis", "INGLESES",              64.7890,  9.1234, 13.4567, 76.8901, 2.1890, 43.8901},
+            {"Florianopolis", "VIA_EXPRESSA_CORREDOR", 74.1234,  7.0123,  9.7890, 84.5678, 1.7901, 51.6789},
 
-            build("Florianopolis","ESTREITO_CAPOEIRAS","EMPLEO","taxa_emprego_formal",60.1234,"%","MOCK-EMP-003",ref),
-            build("Florianopolis","ESTREITO_CAPOEIRAS","EMPLEO","taxa_desemprego",9.8765,"%","MOCK-EMP-004",ref),
-            build("Florianopolis","ESTREITO_CAPOEIRAS","EDUCACION","evasao_escolar",14.5678,"%","MOCK-EDU-003",ref),
-            build("Florianopolis","ESTREITO_CAPOEIRAS","EDUCACION","taxa_conclusao_ensino_medio",75.4321,"%","MOCK-EDU-004",ref),
-            build("Florianopolis","ESTREITO_CAPOEIRAS","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.5678,"por 1000 hab","MOCK-SM-003",ref),
-            build("Florianopolis","ESTREITO_CAPOEIRAS","SALUD_MENTAL","cobertura_atencao_basica",42.3456,"%","MOCK-SM-004",ref),
+            {"Sao Jose",      "SAO_JOSE_KOBRASOL",     62.3456,  9.4567, 13.8765, 76.1234, 2.3456, 41.2345},
+            {"Sao Jose",      "SAO_JOSE_CENTRO",       64.1234,  8.7654, 12.3456, 77.6543, 2.2345, 43.4567},
+            {"Sao Jose",      "SAO_JOSE_ROÇADO",       61.2345,  9.8765, 14.1234, 74.9876, 2.4567, 40.1234},
+            {"Sao Jose",      "SAO_JOSE_BARREIROS",    63.4567,  9.2345, 13.5678, 76.7890, 2.3456, 41.8901},
+            {"Sao Jose",      "ESTREITO_CAPOEIRAS",    59.8901, 10.2345, 14.9876, 74.1234, 2.4123, 39.7890},
 
-            build("Florianopolis","NORTE_ILHA","EMPLEO","taxa_emprego_formal",70.9876,"%","MOCK-EMP-005",ref),
-            build("Florianopolis","NORTE_ILHA","EMPLEO","taxa_desemprego",7.1234,"%","MOCK-EMP-006",ref),
-            build("Florianopolis","NORTE_ILHA","EDUCACION","evasao_escolar",10.9876,"%","MOCK-EDU-005",ref),
-            build("Florianopolis","NORTE_ILHA","EDUCACION","taxa_conclusao_ensino_medio",82.3456,"%","MOCK-EDU-006",ref),
-            build("Florianopolis","NORTE_ILHA","SALUD_MENTAL","taxa_internacao_psiquiatrica",1.9876,"por 1000 hab","MOCK-SM-005",ref),
-            build("Florianopolis","NORTE_ILHA","SALUD_MENTAL","cobertura_atencao_basica",48.7654,"%","MOCK-SM-006",ref),
+            {"Palhoca",       "PALHOCA_CENTRO",        58.1234, 11.2345, 16.3456, 71.4567, 2.7654, 38.5678},
+            {"Palhoca",       "PALHOCA_PEDRA_BRANCA",  57.6543, 11.7654, 16.7890, 70.9876, 2.8901, 37.8901},
+            {"Palhoca",       "SAO_JOSE_BARREIROS",    59.2345, 10.5678, 15.4321, 72.3456, 2.5678, 39.6789},
 
-            build("Florianopolis","TRINDADE","EMPLEO","taxa_emprego_formal",75.4321,"%","MOCK-EMP-007",ref),
-            build("Florianopolis","TRINDADE","EMPLEO","taxa_desemprego",6.5432,"%","MOCK-EMP-008",ref),
-            build("Florianopolis","TRINDADE","EDUCACION","evasao_escolar",9.1234,"%","MOCK-EDU-007",ref),
-            build("Florianopolis","TRINDADE","EDUCACION","taxa_conclusao_ensino_medio",86.7890,"%","MOCK-EDU-008",ref),
-            build("Florianopolis","TRINDADE","SALUD_MENTAL","taxa_internacao_psiquiatrica",1.7654,"por 1000 hab","MOCK-SM-007",ref),
-            build("Florianopolis","TRINDADE","SALUD_MENTAL","cobertura_atencao_basica",52.3456,"%","MOCK-SM-008",ref),
+            {"Biguacu",       "BIGUACU_BR101_NORTE",   56.9876, 12.1234, 17.2345, 70.1234, 2.9876, 36.9876},
+        };
 
-            build("Florianopolis","UFSC","EMPLEO","taxa_emprego_formal",80.1234,"%","MOCK-EMP-009",ref),
-            build("Florianopolis","UFSC","EMPLEO","taxa_desemprego",5.6789,"%","MOCK-EMP-010",ref),
-            build("Florianopolis","UFSC","EDUCACION","evasao_escolar",7.6543,"%","MOCK-EDU-009",ref),
-            build("Florianopolis","UFSC","EDUCACION","taxa_conclusao_ensino_medio",90.1234,"%","MOCK-EDU-010",ref),
-            build("Florianopolis","UFSC","SALUD_MENTAL","taxa_internacao_psiquiatrica",1.5432,"por 1000 hab","MOCK-SM-009",ref),
-            build("Florianopolis","UFSC","SALUD_MENTAL","cobertura_atencao_basica",55.6789,"%","MOCK-SM-010",ref),
+        // delta mensual acumulado sobre el valor base (índice 0 = enero, sin cambio)
+        double[][] monthlyDelta = {
+            // empF    desemp  evasao  conclus interp  cobrt
+            {  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000 }, // ene
+            {  0.2134, -0.1234, -0.2345,  0.1789, -0.0512,  0.3456 }, // feb
+            {  0.4567, -0.2789, -0.5123,  0.3456, -0.0923,  0.6789 }, // mar
+            {  0.7890, -0.4123, -0.8901,  0.5678, -0.1234,  1.0234 }, // abr
+            {  1.1234, -0.5678, -1.2345,  0.7890, -0.1545,  1.4567 }, // may
+            {  1.3456, -0.6789, -1.4567,  0.9123, -0.1823,  1.7890 }, // jun
+            {  1.2345, -0.6123, -1.3456,  0.8567, -0.1634,  1.6789 }, // jul
+            {  0.9876, -0.4789, -1.1234,  0.7234, -0.1345,  1.3456 }, // ago
+            {  0.6789, -0.3456, -0.7890,  0.5123, -0.0934,  0.9876 }, // sep
+            {  0.4567, -0.2345, -0.5678,  0.3456, -0.0623,  0.6789 }, // oct
+            {  0.2345, -0.1123, -0.3456,  0.1789, -0.0312,  0.3456 }, // nov
+            {  0.1234, -0.0567, -0.1234,  0.0890, -0.0123,  0.1234 }, // dic
+        };
 
-            build("Florianopolis","CANASVIEIRAS","EMPLEO","taxa_emprego_formal",68.7654,"%","MOCK-EMP-011",ref),
-            build("Florianopolis","CANASVIEIRAS","EMPLEO","taxa_desemprego",8.2345,"%","MOCK-EMP-012",ref),
-            build("Florianopolis","CANASVIEIRAS","EDUCACION","evasao_escolar",11.4567,"%","MOCK-EDU-011",ref),
-            build("Florianopolis","CANASVIEIRAS","EDUCACION","taxa_conclusao_ensino_medio",79.5678,"%","MOCK-EDU-012",ref),
-            build("Florianopolis","CANASVIEIRAS","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.0123,"por 1000 hab","MOCK-SM-011",ref),
-            build("Florianopolis","CANASVIEIRAS","SALUD_MENTAL","cobertura_atencao_basica",47.8901,"%","MOCK-SM-012",ref),
+        List<TerritorialIndicators> all = new ArrayList<>();
+        int seq = 1;
 
-            build("Florianopolis","AEROPORTO_HLZ","EMPLEO","taxa_emprego_formal",72.3456,"%","MOCK-EMP-013",ref),
-            build("Florianopolis","AEROPORTO_HLZ","EMPLEO","taxa_desemprego",7.5678,"%","MOCK-EMP-014",ref),
-            build("Florianopolis","AEROPORTO_HLZ","EDUCACION","evasao_escolar",10.1234,"%","MOCK-EDU-013",ref),
-            build("Florianopolis","AEROPORTO_HLZ","EDUCACION","taxa_conclusao_ensino_medio",81.2345,"%","MOCK-EDU-014",ref),
-            build("Florianopolis","AEROPORTO_HLZ","SALUD_MENTAL","taxa_internacao_psiquiatrica",1.8765,"por 1000 hab","MOCK-SM-013",ref),
-            build("Florianopolis","AEROPORTO_HLZ","SALUD_MENTAL","cobertura_atencao_basica",49.1234,"%","MOCK-SM-014",ref),
+        for (Object[] c : clusters) {
+            String municipio  = (String) c[0];
+            String cluster    = (String) c[1];
+            double baseEmpF   = (double) c[2];
+            double baseDesemp = (double) c[3];
+            double baseEvasao = (double) c[4];
+            double baseConcl  = (double) c[5];
+            double baseInter  = (double) c[6];
+            double baseCobrt  = (double) c[7];
 
-            build("Florianopolis","CBD_BEIRAMAR","EMPLEO","taxa_emprego_formal",78.9012,"%","MOCK-EMP-015",ref),
-            build("Florianopolis","CBD_BEIRAMAR","EMPLEO","taxa_desemprego",5.9876,"%","MOCK-EMP-016",ref),
-            build("Florianopolis","CBD_BEIRAMAR","EDUCACION","evasao_escolar",8.7654,"%","MOCK-EDU-015",ref),
-            build("Florianopolis","CBD_BEIRAMAR","EDUCACION","taxa_conclusao_ensino_medio",87.6543,"%","MOCK-EDU-016",ref),
-            build("Florianopolis","CBD_BEIRAMAR","SALUD_MENTAL","taxa_internacao_psiquiatrica",1.6543,"por 1000 hab","MOCK-SM-015",ref),
-            build("Florianopolis","CBD_BEIRAMAR","SALUD_MENTAL","cobertura_atencao_basica",53.4567,"%","MOCK-SM-016",ref),
+            for (int m = 0; m < 12; m++) {
+                LocalDate ref = LocalDate.of(2024, m + 1, 1);
+                double[] d = monthlyDelta[m];
 
-            build("Florianopolis","RESIDENCIAL_NORTE","EMPLEO","taxa_emprego_formal",66.5432,"%","MOCK-EMP-017",ref),
-            build("Florianopolis","RESIDENCIAL_NORTE","EMPLEO","taxa_desemprego",8.9012,"%","MOCK-EMP-018",ref),
-            build("Florianopolis","RESIDENCIAL_NORTE","EDUCACION","evasao_escolar",13.2345,"%","MOCK-EDU-017",ref),
-            build("Florianopolis","RESIDENCIAL_NORTE","EDUCACION","taxa_conclusao_ensino_medio",77.8901,"%","MOCK-EDU-018",ref),
-            build("Florianopolis","RESIDENCIAL_NORTE","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.2345,"por 1000 hab","MOCK-SM-017",ref),
-            build("Florianopolis","RESIDENCIAL_NORTE","SALUD_MENTAL","cobertura_atencao_basica",44.5678,"%","MOCK-SM-018",ref),
+                all.add(build(municipio, cluster, "EMPLEO",       "taxa_emprego_formal",          round(baseEmpF   + d[0]), "%",            String.format("MOCK-EMP-%03d", seq++), ref));
+                all.add(build(municipio, cluster, "EMPLEO",       "taxa_desemprego",              round(baseDesemp + d[1]), "%",            String.format("MOCK-EMP-%03d", seq++), ref));
+                all.add(build(municipio, cluster, "EDUCACION",    "evasao_escolar",               round(baseEvasao + d[2]), "%",            String.format("MOCK-EDU-%03d", seq++), ref));
+                all.add(build(municipio, cluster, "EDUCACION",    "taxa_conclusao_ensino_medio",  round(baseConcl  + d[3]), "%",            String.format("MOCK-EDU-%03d", seq++), ref));
+                all.add(build(municipio, cluster, "SALUD_MENTAL", "taxa_internacao_psiquiatrica", round(baseInter  + d[4]), "por 1000 hab", String.format("MOCK-SM-%03d",  seq++), ref));
+                all.add(build(municipio, cluster, "SALUD_MENTAL", "cobertura_atencao_basica",     round(baseCobrt  + d[5]), "%",            String.format("MOCK-SM-%03d",  seq++), ref));
+            }
+        }
 
-            build("Sao Jose","SAO_JOSE_KOBRASOL","EMPLEO","taxa_emprego_formal",62.3456,"%","MOCK-EMP-019",ref),
-            build("Sao Jose","SAO_JOSE_KOBRASOL","EMPLEO","taxa_desemprego",9.4567,"%","MOCK-EMP-020",ref),
-            build("Sao Jose","SAO_JOSE_KOBRASOL","EDUCACION","evasao_escolar",13.8765,"%","MOCK-EDU-019",ref),
-            build("Sao Jose","SAO_JOSE_KOBRASOL","EDUCACION","taxa_conclusao_ensino_medio",76.1234,"%","MOCK-EDU-020",ref),
-            build("Sao Jose","SAO_JOSE_KOBRASOL","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.3456,"por 1000 hab","MOCK-SM-019",ref),
-            build("Sao Jose","SAO_JOSE_KOBRASOL","SALUD_MENTAL","cobertura_atencao_basica",41.2345,"%","MOCK-SM-020",ref),
+        repo.saveAll(all);
+    }
 
-            build("Sao Jose","SAO_JOSE_CENTRO","EMPLEO","taxa_emprego_formal",64.1234,"%","MOCK-EMP-021",ref),
-            build("Sao Jose","SAO_JOSE_CENTRO","EMPLEO","taxa_desemprego",8.7654,"%","MOCK-EMP-022",ref),
-            build("Sao Jose","SAO_JOSE_CENTRO","EDUCACION","evasao_escolar",12.3456,"%","MOCK-EDU-021",ref),
-            build("Sao Jose","SAO_JOSE_CENTRO","EDUCACION","taxa_conclusao_ensino_medio",77.6543,"%","MOCK-EDU-022",ref),
-            build("Sao Jose","SAO_JOSE_CENTRO","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.2345,"por 1000 hab","MOCK-SM-021",ref),
-            build("Sao Jose","SAO_JOSE_CENTRO","SALUD_MENTAL","cobertura_atencao_basica",43.4567,"%","MOCK-SM-022",ref),
-
-            build("Sao Jose","SAO_JOSE_ROÇADO","EMPLEO","taxa_emprego_formal",61.2345,"%","MOCK-EMP-023",ref),
-            build("Sao Jose","SAO_JOSE_ROÇADO","EMPLEO","taxa_desemprego",9.8765,"%","MOCK-EMP-024",ref),
-            build("Sao Jose","SAO_JOSE_ROÇADO","EDUCACION","evasao_escolar",14.1234,"%","MOCK-EDU-023",ref),
-            build("Sao Jose","SAO_JOSE_ROÇADO","EDUCACION","taxa_conclusao_ensino_medio",74.9876,"%","MOCK-EDU-024",ref),
-            build("Sao Jose","SAO_JOSE_ROÇADO","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.4567,"por 1000 hab","MOCK-SM-023",ref),
-            build("Sao Jose","SAO_JOSE_ROÇADO","SALUD_MENTAL","cobertura_atencao_basica",40.1234,"%","MOCK-SM-024",ref),
-
-            build("Palhoca","PALHOCA_CENTRO","EMPLEO","taxa_emprego_formal",58.1234,"%","MOCK-EMP-025",ref),
-            build("Palhoca","PALHOCA_CENTRO","EMPLEO","taxa_desemprego",11.2345,"%","MOCK-EMP-026",ref),
-            build("Palhoca","PALHOCA_CENTRO","EDUCACION","evasao_escolar",16.3456,"%","MOCK-EDU-025",ref),
-            build("Palhoca","PALHOCA_CENTRO","EDUCACION","taxa_conclusao_ensino_medio",71.4567,"%","MOCK-EDU-026",ref),
-            build("Palhoca","PALHOCA_CENTRO","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.7654,"por 1000 hab","MOCK-SM-025",ref),
-            build("Palhoca","PALHOCA_CENTRO","SALUD_MENTAL","cobertura_atencao_basica",38.5678,"%","MOCK-SM-026",ref),
-
-            build("Palhoca","PALHOCA_PEDRA_BRANCA","EMPLEO","taxa_emprego_formal",57.6543,"%","MOCK-EMP-027",ref),
-            build("Palhoca","PALHOCA_PEDRA_BRANCA","EMPLEO","taxa_desemprego",11.7654,"%","MOCK-EMP-028",ref),
-            build("Palhoca","PALHOCA_PEDRA_BRANCA","EDUCACION","evasao_escolar",16.7890,"%","MOCK-EDU-027",ref),
-            build("Palhoca","PALHOCA_PEDRA_BRANCA","EDUCACION","taxa_conclusao_ensino_medio",70.9876,"%","MOCK-EDU-028",ref),
-            build("Palhoca","PALHOCA_PEDRA_BRANCA","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.8901,"por 1000 hab","MOCK-SM-027",ref),
-            build("Palhoca","PALHOCA_PEDRA_BRANCA","SALUD_MENTAL","cobertura_atencao_basica",37.8901,"%","MOCK-SM-028",ref),
-
-            build("Palhoca","SAO_JOSE_BARREIROS","EMPLEO","taxa_emprego_formal",59.2345,"%","MOCK-EMP-029",ref),
-            build("Palhoca","SAO_JOSE_BARREIROS","EMPLEO","taxa_desemprego",10.5678,"%","MOCK-EMP-030",ref),
-            build("Palhoca","SAO_JOSE_BARREIROS","EDUCACION","evasao_escolar",15.4321,"%","MOCK-EDU-029",ref),
-            build("Palhoca","SAO_JOSE_BARREIROS","EDUCACION","taxa_conclusao_ensino_medio",72.3456,"%","MOCK-EDU-030",ref),
-            build("Palhoca","SAO_JOSE_BARREIROS","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.5678,"por 1000 hab","MOCK-SM-029",ref),
-            build("Palhoca","SAO_JOSE_BARREIROS","SALUD_MENTAL","cobertura_atencao_basica",39.6789,"%","MOCK-SM-030",ref),
-
-            build("Biguacu","BIGUACU_BR101_NORTE","EMPLEO","taxa_emprego_formal",56.9876,"%","MOCK-EMP-031",ref),
-            build("Biguacu","BIGUACU_BR101_NORTE","EMPLEO","taxa_desemprego",12.1234,"%","MOCK-EMP-032",ref),
-            build("Biguacu","BIGUACU_BR101_NORTE","EDUCACION","evasao_escolar",17.2345,"%","MOCK-EDU-031",ref),
-            build("Biguacu","BIGUACU_BR101_NORTE","EDUCACION","taxa_conclusao_ensino_medio",70.1234,"%","MOCK-EDU-032",ref),
-            build("Biguacu","BIGUACU_BR101_NORTE","SALUD_MENTAL","taxa_internacao_psiquiatrica",2.9876,"por 1000 hab","MOCK-SM-031",ref),
-            build("Biguacu","BIGUACU_BR101_NORTE","SALUD_MENTAL","cobertura_atencao_basica",36.9876,"%","MOCK-SM-032",ref)
-        ));
+    private double round(double value) {
+        return Math.round(value * 10000.0) / 10000.0;
     }
 
     private TerritorialIndicators build(String municipio, String cluster, String categoria,
