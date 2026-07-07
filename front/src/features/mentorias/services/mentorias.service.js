@@ -1,8 +1,10 @@
 class MentoriasService {
   API = import.meta.env.VITE_API_URL;
 
-  async getBrechas(servicio = "MENTORIA") {
-    const response = await fetch(`${this.API}brechas?servicio=${servicio}`);
+  async getProgramas(servicio = "MENTORIAS") {
+    const response = await fetch(
+      `${this.API}programas?page=0&size=10&tipo=${servicio}&activo=true`,
+    );
 
     const result = await response.json();
     if (!response.ok) {
@@ -11,7 +13,7 @@ class MentoriasService {
       );
     }
 
-    return result;
+    return result.content;
   }
 }
 
