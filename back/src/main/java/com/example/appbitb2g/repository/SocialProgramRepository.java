@@ -41,7 +41,7 @@ List<Object[]> countSocialProgramRaw();
 @Query("""
        SELECT avg(p.replicable)
         FROM SocialProgram p 
-        GROUP by p.cluster;
+        GROUP by p.cluster
        """)
 Double getEfectividadMediaNacional();
 }
