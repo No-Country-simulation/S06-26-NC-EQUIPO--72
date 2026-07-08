@@ -10,16 +10,14 @@ import java.util.List;
  * Record inmutable que define la estructura exacta del contrato JSON
  * exigido por el Frontend para GET /indicadores/evolucion.
  */
-@Schema(description = "Respuesta con la evolución temporal de un indicador territorial y datos por cluster")
+@Schema(description = "Respuesta con la evolución temporal de un indicador territorial")
 public record IndicadorEvolucionResponseDTO(
         @Schema(description = "Nombre del indicador", example = "taxa_emprego_formal")
         String indicador,
         @Schema(description = "Categoría del indicador", example = "EMPLEO")
         String categoria,
         @Schema(description = "Evolución temporal del indicador")
-        List<EvolucionDetalleRecord> evolucion,
-        @Schema(description = "Datos del indicador por cluster")
-        @JsonProperty("por_cluster") List<ClusterDetalleRecord> porCluster
+        List<EvolucionDetalleRecord> evolucion
 ) {
 
     /**
@@ -33,20 +31,4 @@ public record IndicadorEvolucionResponseDTO(
             @JsonProperty("valor_promedio") BigDecimal valorPromedio
     ) {}
 
-    /**
-     * Record anidado para representar datos del indicador por cluster.
-     */
-    @Schema(description = "Detalle del indicador por cluster")
-    public record ClusterDetalleRecord(
-            @Schema(description = "Nombre del cluster", example = "UFSC")
-            String cluster,
-            @Schema(description = "Municipio del cluster", example = "Florianopolis")
-            String municipio,
-            @Schema(description = "Valor del indicador en el cluster", example = "80.25")
-            BigDecimal valor,
-            @Schema(description = "Cantidad de usuarios en el cluster", example = "12400")
-            @JsonProperty("n_usuarios") Integer nUsuarios,
-            @Schema(description = "Fecha de referencia", example = "2024-12-01")
-            @JsonProperty("fecha_referencia") String fechaReferencia
-    ) {}
 }

@@ -34,7 +34,7 @@ public interface TerritorialIndicatorsRepository extends JpaRepository<Territori
             JOIN ultimo_dia u ON c.day_date = u.day_date
             GROUP BY c.cluster
         ),
-        -- Indicadores territoriales agregados a un solo array JSON por cluster (evita subquery repetida por fila)
+        -- Indicadores territoriales agregados a un solo array JSON por cluster
         indicadores_agg AS (
             SELECT ind.cluster,
                 JSON_ARRAYAGG(
@@ -47,10 +47,17 @@ public interface TerritorialIndicatorsRepository extends JpaRepository<Territori
                         'fecha_referencia', ind.fecha_referencia
                     )
                 ) AS indicadores
-            FROM indicadores_territoriales ind
-            -- UPPER en ambos lados por las dudas de que la data no esté normalizada en mayúsculas
-            WHERE UPPER(ind.categoria) = UPPER(:categoria)
-            AND (:indicador IS NULL OR ind.indicador = :indicador)
+            FROM (
+                SELECT it.*,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY it.cluster, it.municipio, it.indicador
+                        ORDER BY it.fecha_referencia DESC
+                    ) AS rn
+                FROM indicadores_territoriales it
+                WHERE UPPER(it.categoria) = UPPER(:categoria)
+                AND (:indicador IS NULL OR it.indicador = :indicador)
+            ) ind
+            WHERE ind.rn = 1
             GROUP BY ind.cluster
         )
         SELECT JSON_OBJECT(
@@ -84,8 +91,6 @@ public interface TerritorialIndicatorsRepository extends JpaRepository<Territori
         SELECT JSON_OBJECT(
             'indicador', :indicador,
             'categoria', :categoria,
-
-            -- Evolución nacional: promedio mensual de los últimos 12 meses
             'evolucion', COALESCE(
                 (SELECT JSON_ARRAYAGG(
                     JSON_OBJECT(
@@ -107,36 +112,6 @@ public interface TerritorialIndicatorsRepository extends JpaRepository<Territori
                     GROUP BY fecha_referencia
                     ORDER BY fecha_referencia ASC
                 ) sub),
-                JSON_ARRAY()
-            ),
-
-            -- Último valor por cluster (snapshot más reciente) + n_usuarios de concentracao
-            'por_cluster', COALESCE(
-                (SELECT JSON_ARRAYAGG(
-                    JSON_OBJECT(
-                        'cluster', ranked.cluster,
-                        'municipio', ranked.municipio,
-                        'valor', ranked.valor,
-                        'fecha_referencia', ranked.fecha_referencia,
-                        'n_usuarios', COALESCE(conc.n_usuarios, 0)
-                    )
-                )
-                FROM (
-                    SELECT cluster, municipio, valor, fecha_referencia,
-                        ROW_NUMBER() OVER (PARTITION BY cluster, municipio
-                                        ORDER BY fecha_referencia DESC) AS rn
-                    FROM indicadores_territoriales
-                    WHERE UPPER(categoria) = UPPER(:categoria)
-                    AND indicador = :indicador
-                    AND (:municipio IS NULL OR municipio = :municipio)
-                ) ranked
-                LEFT JOIN (
-                    SELECT cluster, municipio, SUM(n_usuarios) AS n_usuarios
-                    FROM concentracao
-                    WHERE day_date = (SELECT MAX(day_date) FROM concentracao)
-                    GROUP BY cluster, municipio
-                ) conc ON conc.cluster = ranked.cluster AND conc.municipio = ranked.municipio
-                WHERE ranked.rn = 1),
                 JSON_ARRAY()
             )
         )

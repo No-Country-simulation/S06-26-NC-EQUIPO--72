@@ -119,17 +119,8 @@ Extiende `/mapa` con capas de indicadores territoriales.
   "indicador": "taxa_emprego_formal",
   "categoria": "EMPLEO",
   "evolucion": [
-    { "fecha_referencia": "2024-01-01", "valor_promedio": 63.45 },
-    { "fecha_referencia": "2024-02-01", "valor_promedio": 64.12 }
-  ],
-  "por_cluster": [
-    {
-      "cluster": "UFSC",
-      "municipio": "Florianopolis",
-      "valor": 80.25,
-      "n_usuarios": 12400,
-      "fecha_referencia": "2024-12-01"
-    }
+    { "fecha_referencia": "2024-01-01", "valor_promedio": 67.1572 },
+    { "fecha_referencia": "2024-02-01", "valor_promedio": 67.3724 }
   ]
 }
 ```
