@@ -23,12 +23,12 @@ public interface SocialProgramRepository extends JpaRepository<SocialProgram, In
                          AND (:activo IS NULL OR p.activo = :activo)
 
                         """)
-        Page<SocialProgram> findWithDynamicFilters(
+        List<SocialProgram> findWithDynamicFilters(
                         @Param("tipo") String tipo,
                         @Param("municipio") String municipio,
                         @Param("cluster") String cluster,
-                        @Param("activo") Boolean activo,
-                        Pageable pageable);
+                        @Param("activo") Boolean activo
+                        );
 
       @Query("""
        SELECT p.cluster AS cluster, COUNT(p) AS total
@@ -39,9 +39,10 @@ public interface SocialProgramRepository extends JpaRepository<SocialProgram, In
 List<Object[]> countSocialProgramRaw();
 
 @Query("""
-       SELECT avg(p.replicable)
+       SELECT avg(p.replicable) 
         FROM SocialProgram p 
-        GROUP by p.cluster
+        where p.tipo = 'MENTORIA' 
+      
        """)
 Double getEfectividadMediaNacional();
 }

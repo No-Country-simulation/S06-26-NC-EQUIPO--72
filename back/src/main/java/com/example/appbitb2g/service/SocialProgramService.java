@@ -1,5 +1,7 @@
 package com.example.appbitb2g.service;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -11,7 +13,7 @@ import com.example.appbitb2g.dto.responseDTO.socialProgram.SocialProgramResponse
 public interface SocialProgramService {
     SocialProgramListResponseDTO listarProgramas(String tipo, String municipio, String cluster, Boolean activo);
     SocialProgramResponseDTO createProgram(SocialProgramRequestDTO socialProgramRequestDTO);
-    Page<SocialProgramResponseDTO.ProgramDetail> programs(Pageable pageable, SocialProgramFilterDTO filtro);
+    List<SocialProgramResponseDTO.ProgramDetail> programs( SocialProgramFilterDTO filtro);
     SocialProgramResponseDTO deleteProgram(Integer id);
     SocialProgramResponseDTO updateProgram(Integer id, SocialProgramRequestDTO requestDto);
 }
