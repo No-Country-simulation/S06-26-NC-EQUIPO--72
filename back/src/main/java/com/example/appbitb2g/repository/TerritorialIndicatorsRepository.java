@@ -82,8 +82,8 @@ public interface TerritorialIndicatorsRepository extends JpaRepository<Territori
 
 	@Query(value = """
 			SELECT JSON_OBJECT(
-			            'indicador', :indicador,
-			            'promedio', ROUND(AVG(valor), 2)
+			            'indicator', :indicador,
+			            'avgValue', ROUND(AVG(valor), 2)
 			        )
 			        FROM indicadores_territoriales
 			        WHERE indicador = :indicador
