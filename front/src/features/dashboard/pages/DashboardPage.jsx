@@ -459,8 +459,8 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
           : "Cobertura Atención Básica",
         value: saludVal,
         change: isPortugues
-          ? "-0.5% vs. mês anterior"
-          : "-0.5% vs. mes anterior",
+          ? "0.5% vs. mês anterior"
+          : "0.5% vs. mes anterior",
         badge: isPortugues ? "Alerta" : "Alerta",
         badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
         icon: Heart,
