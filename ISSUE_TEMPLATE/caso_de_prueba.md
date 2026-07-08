@@ -42,5 +42,3 @@ labels: qa, test-case
 
 ### Evidencia
 *Arrastrá y soltá acá tus capturas de pantalla, archivos de log o videos del resultado.*
-
-

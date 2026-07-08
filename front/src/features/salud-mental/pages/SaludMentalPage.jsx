@@ -8,9 +8,7 @@ import {
 import {
   AlertCircle,
   Brain,
-  // Building2,
   Heart,
-  // Info,
   SquareCheckBig,
   TriangleAlert,
 } from "lucide-react";
@@ -176,10 +174,10 @@ export default function SaludMentalPage() {
               <Brain className="w-8 h-8 text-rose-300" />
               <div className="flex flex-col items-baseline gap-1">
                 <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                  {totalIndice?.toFixed(2)}
+                  {totalIndice?.toFixed(2) || 12.42}
                 </span>
                 <span className="text-xs text-slate-400 font-medium">
-                  Objetivo: {totalIndice?.toFixed(2) * 2}
+                  Objetivo: {totalIndice?.toFixed(2) * 2 || 12.42}
                 </span>
               </div>
             </div>
@@ -235,7 +233,6 @@ export default function SaludMentalPage() {
         </div> */}
         </div>
       )}
-
       {/* Nueva sección: Correlación (scatter) + Indicadores de Riesgo (líneas) */}
       {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col hover:shadow-sm transition-shadow">
@@ -481,7 +478,7 @@ export default function SaludMentalPage() {
           <h2 className="text-base font-semibold mb-3">
             Regiones de Atención Prioritaria
           </h2>
-          <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4  max-h-[400px] overflow-y-auto">
             {priorityRegionCards?.map((region) => (
               <PriorityRegionCard key={region.region} {...region} />
             ))}

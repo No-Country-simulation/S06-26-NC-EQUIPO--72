@@ -1,10 +1,13 @@
 class MapsService {
   API = import.meta.env.VITE_API_URL;
 
-  async getMapsIndicators(category) {
-    const response = await fetch(
-      `${this.API}mapa/indicadores?categoria=${category}`,
-    );
+  async getMapsIndicators(category, indicator = null) {
+    const url = new URL(`${this.API}mapa/indicadores`);
+    url.searchParams.set("categoria", category);
+    if (indicator) {
+      url.searchParams.set("indicador", indicator);
+    }
+    const response = await fetch(url.toString());
 
     const result = await response.json();
     if (!response.ok) {

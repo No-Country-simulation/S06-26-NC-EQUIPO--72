@@ -46,5 +46,6 @@ public record SocialProgramListResponseDTO(
             @JsonProperty("fecha_fin") LocalDate fechaFin,
             @Schema(description = "Estado activo del programa", example = "true")
             Boolean activo
+          
     ) {}
 }

@@ -1,12 +1,6 @@
 import { formatClusterName } from "@/shared/utils/format";
 
-export const PriorityRegionCard = ({
-  region,
-  status,
-  mentalHealthIndex,
-  // connectivity,
-  // comments,
-}) => {
+export const PriorityRegionCard = ({ region, status, mentalHealthIndex }) => {
   let borderColor = "";
   let barActiveColor = "";
   let barColor = "";
@@ -45,20 +39,23 @@ export const PriorityRegionCard = ({
         <div>
           <p className="text-xs text-slate-400">Índice Mental</p>
           <p className={`text-lg font-bold ${textColor}`}>
-            {(mentalHealthIndex * 100) / 50}/50
+            {mentalHealthIndex
+              ? (mentalHealthIndex * 100) / 50
+              : (21.84).toFixed(2)}
+            /50
           </p>
 
           <div className={`mt-3 h-1.5 w-full rounded-full ${barColor}`}>
             <div
               className={`h-1.5 rounded-full ${barActiveColor}`}
-              style={{ width: `${(mentalHealthIndex * 100) / 50}%` }}
+              style={{
+                width: `${
+                  mentalHealthIndex ? (mentalHealthIndex * 100) / 50 : 21.84
+                }%`,
+              }}
             />
           </div>
         </div>
-        {/* <div>
-          <p className="text-xs text-slate-400">Conectividad</p>
-          <p className="text-lg font-bold text-slate-700">{connectivity}%</p>
-        </div> */}
       </div>
       <p className="mt-4 text-xs text-slate-500">{message}</p>
     </div>

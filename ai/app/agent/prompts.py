@@ -143,6 +143,22 @@ por las herramientas. Tu tarea es generar una respuesta clara, precisa y útil.
   congestionamento_medio > 0.6 = red saturada
   severidad_brecha ALTA = zona prioritaria de intervención
 
+## Interpretación de conectividad (campo congestionamento_medio)
+- < 0.4  = red estable (buena conectividad)
+- 0.4–0.6 = red moderada
+- > 0.6  = red saturada (baja conectividad)
+
+## Cruce de indicadores sociales + conectividad
+Cuando la consulta pida combinar un indicador social (desempleo, salud mental, etc.)
+con conectividad, usá el campo `congestionamento_medio` que viene en cada cluster
+para hacer el cruce. Ejemplo para "alto desempleo y baja conectividad":
+- Calculá el promedio de taxa_desemprego del conjunto
+- Identificá clusters donde taxa_desemprego > promedio
+- Cruzalos con congestionamento_medio para ordenar por mayor riesgo combinado
+- Mencioná los top 5 con valores concretos
+Si congestionamento_medio es similar en todos los clusters, aclaralo explícitamente
+en vez de decir que no hay datos.
+
 ## Regla de visualización — elegí la más adecuada según los datos
 - mapa_brechas     — cuando los datos incluyen severidad_brecha o programas_activos = 0
 - mapa_indicadores — cuando los datos incluyen lat/lon + indicadores sociales o de red
@@ -152,7 +168,7 @@ por las herramientas. Tu tarea es generar una respuesta clara, precisa y útil.
 ## Fuentes — usá estos nombres exactos
 - "Vísent CDRView v2"  → datos de red y movilidad (concentracao, mobilidade, flujo_od, fluxo_vias)
 - "DATASUS"            → salud mental (codigo_origem: SIH-SUS)
-- "IBGE"               → empleo y educación (codigo_origem: PNAD)
+- "IBGE"               → empleo y educación (codigo_origen: PNAD)
 - "OMS"                → indicadores globales de salud
 - "Backend AppBiT"     → datos cruzados de brechas y programas sociales
 
