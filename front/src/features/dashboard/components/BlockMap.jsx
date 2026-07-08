@@ -13,7 +13,11 @@ const tabs = [
   { key: "EDUCACION", label: "Educacion" },
 ];
 
-// const labelByKey = new Map(tabs.map((t) => [t.key, t.label]));
+const indicadorPorCategoria = {
+  EMPLEO: "taxa_emprego_formal",
+  SALUD_MENTAL: "cobertura_atencao_basica",
+  EDUCACION: "taxa_conclusao_ensino_medio",
+};
 
 const fillColors = {
   critico: "#f87171",
@@ -22,11 +26,20 @@ const fillColors = {
   optimo: "#93c5fd",
 };
 
-const getStatusFromCongestion = (value) => {
-  if (value > 85) return fillColors.critico;
-  if (value > 35) return fillColors.alerta;
-  if (value > 15) return fillColors.bueno;
-  return fillColors.optimo;
+// Función para obtener color según tab y valor (mayor es mejor para empleo, salud, educación; conectividad es menor congestionamiento)
+const getStatusFromValue = (tab, value) => {
+  if (tab === "CONECTIVIDAD") {
+    if (value > 85) return fillColors.critico;
+    if (value > 35) return fillColors.alerta;
+    if (value > 15) return fillColors.bueno;
+    return fillColors.optimo;
+  } else {
+    // Para indicadores donde mayor es mejor
+    if (value < 30) return fillColors.critico;
+    if (value < 50) return fillColors.alerta;
+    if (value < 75) return fillColors.bueno;
+    return fillColors.optimo;
+  }
 };
 
 const tabButtonClass = (isActive) =>
@@ -45,7 +58,11 @@ export const BlockMap = ({ onClusterSelect }) => {
     region: null,
   });
 
-  const filterRegiones = useMapsIndicators(activeTab);
+  // Obtenemos el indicador correspondiente para la categoría activa (si aplica)
+  const indicadorActivo =
+    activeTab !== "CONECTIVIDAD" ? indicadorPorCategoria[activeTab] : null;
+
+  const filterRegiones = useMapsIndicators(activeTab, indicadorActivo);
   const regiones = useMapData();
 
   const isConectividad = activeTab === "CONECTIVIDAD";
@@ -55,6 +72,8 @@ export const BlockMap = ({ onClusterSelect }) => {
 
   const dataNormalizada = normalizarRegiones(rawData);
   const regionesCompletas = generarMapaOrganico(dataNormalizada);
+  
+  // Añadimos el valor del indicador a cada región
   const regionTextCenter = regionesCompletas.map((region) => {
     const coords = region.points
       .split(" ")
@@ -63,7 +82,20 @@ export const BlockMap = ({ onClusterSelect }) => {
       coords.reduce((sum, [x]) => sum + x, 0) / coords.length;
     const centerPositionY =
       coords.reduce((sum, [, y]) => sum + y, 0) / coords.length;
-    return { ...region, centerPositionX, centerPositionY };
+
+    // Obtener el valor para la categoría activa
+    let valorDisplay;
+    if (isConectividad) {
+      valorDisplay = (region.congestionamento_medio * 100).toFixed(0);
+    } else {
+      // Buscar el indicador correspondiente en el array de indicadores
+      const indicadorEncontrado = region.indicadores?.find(
+        (i) => i.indicador === indicadorActivo
+      );
+      valorDisplay = indicadorEncontrado?.valor ? indicadorEncontrado.valor.toFixed(0) : 0;
+    }
+
+    return { ...region, centerPositionX, centerPositionY, valorDisplay };
   });
 
   const viewBoxWidth = useMemo(() => {
@@ -177,9 +209,7 @@ export const BlockMap = ({ onClusterSelect }) => {
               >
                 <polygon
                   points={region.points}
-                  fill={getStatusFromCongestion(
-                    (region.congestionamento_medio * 100).toFixed(0),
-                  )}
+                  fill={getStatusFromValue(activeTab, Number(region.valorDisplay))}
                   stroke="#fff"
                   strokeWidth="3"
                   className="transition-all hover:opacity-80"
@@ -204,7 +234,7 @@ export const BlockMap = ({ onClusterSelect }) => {
                   fontWeight="800"
                   fill="#111827"
                 >
-                  {(region.congestionamento_medio * 100).toFixed(0)}%
+                  {region.valorDisplay}%
                 </text>
               </g>
             ))}
@@ -231,11 +261,14 @@ export const BlockMap = ({ onClusterSelect }) => {
               </div>
               <div className="mt-3">
                 <p className="text-sm text-slate-400 lowercase">
-                  congestionamento medio
+                  {activeTab === "CONECTIVIDAD" ? "congestionamento medio" : 
+                   activeTab === "EMPLEO" ? "tasa empleo formal" :
+                   activeTab === "EDUCACION" ? "tasa conclusão ensino médio" : 
+                   "cobertura atenção básica"}
                 </p>
 
                 <p className="text-sm font-bold text-blue-600">
-                  {(tooltip.region.congestionamento_medio * 100).toFixed(0)}%
+                  {tooltip.region.valorDisplay}%
                 </p>
               </div>
 

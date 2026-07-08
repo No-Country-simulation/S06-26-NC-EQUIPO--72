@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import MapsService from "../services/maps.service";
 
-export function useMapsIndicators(category) {
+export function useMapsIndicators(category, indicator = null) {
   return useQuery({
-    queryKey: ["maps-indicators", category],
-    queryFn: () => MapsService.getMapsIndicators(category),
+    queryKey: ["maps-indicators", category, indicator],
+    queryFn: () => MapsService.getMapsIndicators(category, indicator),
     enabled: !!category,
   });
 }
