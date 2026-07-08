@@ -20,4 +20,9 @@ public class MentalHealthController {
 	public ResponseEntity<ServiceAccessDTO> getAvgServiceAccess() {
 		return ResponseEntity.ok(mentalHealthService.getAvgServiceAccess());
 	}
+
+	@GetMapping("/cluster-data")
+	public ResponseEntity<Object> getClusterData() {
+		return ResponseEntity.ok(mentalHealthService.getClusterData());
+	}
 }
