@@ -15,6 +15,21 @@ class MentoriasService {
 
     return result.content || result || [];
   }
+
+  async getBrechas(servicio = "MENTORIA", municipio = "Florianopolis") {
+    const response = await fetch(
+      `${this.API}brechas?servicio=${servicio}&municipio=${municipio}`
+    );
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(
+        result.mensaje || "Error al obtener las brechas territoriales",
+      );
+    }
+
+    return result;
+  }
 }
 
 export default new MentoriasService();

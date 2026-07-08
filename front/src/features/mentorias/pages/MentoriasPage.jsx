@@ -6,14 +6,14 @@ import {
 } from "@/components/ui/chart";
 import {
   AlertCircle,
-  ChevronRight,
   MapPin,
   SquareCheckBig,
+  Star,
   User,
   Users,
 } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { useMentorias } from "../hooks/useMentorias";
+import { useMentorias, useMentoriasBrechas } from "../hooks/useMentorias";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   BarChartDataSkeleton,
@@ -26,7 +26,29 @@ export default function MentoriasPage() {
   const { lenguage } = useLanguage();
   const isPortugues = lenguage === "pt";
 
-  const { data, isLoading, isError } = useMentorias();
+  const { data, isLoading: loadingProgramas, isError: errorProgramas } = useMentorias();
+  const { data: brechasData, isLoading: loadingBrechas, isError: errorBrechas } = useMentoriasBrechas();
+
+  const isLoading = loadingProgramas || loadingBrechas;
+  const isError = errorProgramas || errorBrechas;
+
+  const allPerson = useMemo(() => {
+    if (!brechasData?.brechas) return 0;
+    return brechasData.brechas.reduce((sum, item) => sum + (item.n_usuarios || 0), 0);
+  }, [brechasData]);
+
+  const allPersonFormatted = useMemo(() => {
+    if (allPerson >= 1000) {
+      return Math.round(allPerson / 1000) + "K";
+    }
+    return allPerson.toString();
+  }, [allPerson]);
+
+  const avgEffectiveness = useMemo(() => {
+    if (!data || data.length === 0) return "0.0";
+    const totalEffectiveness = data.reduce((sum, r) => sum + (r.efectividad || 0), 0);
+    return (totalEffectiveness / data.length).toFixed(1);
+  }, [data]);
 
   const barChartConfig = {
     mentorias: {
@@ -54,7 +76,7 @@ export default function MentoriasPage() {
       name: r.nombre,
       region: formatClusterName(r.cluster) || r.cluster || "Sin definir",
       status: r.impactoEstimado || "MEDIO",
-      effectiveness: r.indicador_social?.valor,
+      effectiveness: r.efectividad,
     }));
   }, [data]);
 
@@ -110,7 +132,7 @@ export default function MentoriasPage() {
               <User className="w-8 h-8 text-gray-600" />
               <div className="flex flex-col items-baseline gap-1">
                 <span className="text-2xl font-bold text-slate-800 tracking-tight">
-                  42
+                  {allPersonFormatted}
                 </span>
               </div>
             </div>
@@ -129,6 +151,19 @@ export default function MentoriasPage() {
             </div>
             <p className="text-xs text-slate-500 font-medium">
               {isPortugues ? "Programas Ativos" : "Programas Activos"}
+            </p>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3 hover:shadow-sm transition-shadow">
+            <div className="flex items-center gap-4">
+              <Star className="w-8 h-8 text-yellow-400 fill-yellow-400" />
+              <div className="flex flex-col items-baseline gap-1">
+                <span className="text-2xl font-bold text-slate-800 tracking-tight">
+                  {avgEffectiveness}/5
+                </span>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 font-medium">
+              {isPortugues ? "Eficácia Média" : "Efectividad Media"}
             </p>
           </div>
         </div>
@@ -225,7 +260,7 @@ export default function MentoriasPage() {
                       </section>
                     </td>
                     <td className="whitespace-nowrap py-4 pr-4 text-center">
-                      <section className="flex items-center gap-3">
+                      <section className="flex items-center gap-4 justify-end">
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${
                             program.status === "ALTO"
@@ -237,9 +272,18 @@ export default function MentoriasPage() {
                         >
                           {program.status}
                         </span>
-                        <button className="p-1 rounded hover:bg-slate-100">
-                          <ChevronRight className="w-4 h-4 text-slate-400" />
-                        </button>
+
+                        <div className="flex flex-col items-center min-w-[50px]">
+                          <span className="font-bold text-slate-800 flex items-center gap-0.5 text-xs">
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            {program.effectiveness !== undefined && program.effectiveness !== null
+                              ? parseFloat(program.effectiveness).toFixed(1)
+                              : "0.0"}
+                          </span>
+                          <span className="text-[10px] text-slate-400 capitalize">
+                            {isPortugues ? "eficácia" : "efectividad"}
+                          </span>
+                        </div>
                       </section>
                     </td>
                   </tr>
