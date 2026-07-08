@@ -8,10 +8,13 @@ import java.util.stream.Collectors;
 
 import com.example.appbitb2g.dto.responseDTO.socialProgram.SocialProgramListResponseDTO;
 import com.example.appbitb2g.service.SocialProgramService;
+
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.ModelAttribute;
 
 import com.example.appbitb2g.dto.requestDTO.socialProgram.SocialProgramFilterDTO;
 import com.example.appbitb2g.dto.requestDTO.socialProgram.SocialProgramRequestDTO;
@@ -51,17 +54,17 @@ public class SocialProgramServiceImpl implements SocialProgramService {
         }
 
         @Transactional(readOnly = true)
-        public Page<SocialProgramResponseDTO.ProgramDetail> programs(Pageable pageable, SocialProgramFilterDTO filtro) {
+        public List<SocialProgramResponseDTO.ProgramDetail> programs(SocialProgramFilterDTO filtro) {
 
                 SocialProgramFilterDTO f = (filtro != null) ? filtro
                                 : new SocialProgramFilterDTO(null, null, null, true);
 
-                Page<SocialProgram> socialProgramDetailPag = socialProgramRepository.findWithDynamicFilters(
+        List<SocialProgram> socialProgramDetailPag = socialProgramRepository.findWithDynamicFilters(
                                 f.tipo(),
                                 f.municipio(),
                                 f.cluster(),
-                                f.activo(),
-                                pageable);
+                                f.activo()
+                                );
 
                 List<Object[]> rawTotals = socialProgramRepository.countSocialProgramRaw();
 
@@ -70,12 +73,12 @@ public class SocialProgramServiceImpl implements SocialProgramService {
                                                 fila -> (String) fila[0],
                                                 fila -> (Long) fila[1]));
 
-                return socialProgramDetailPag.map(sp -> {
+                return socialProgramDetailPag.stream().map(sp -> {
 
                         Long totalParaEsteCluster = clusterTotalsMap.getOrDefault(sp.getCluster(), 0L);
 
                         return this.socialProgramMapper.toProgramDetailDto(sp, totalParaEsteCluster);
-                });
+                }).collect(Collectors.toList());
         }
 
         public SocialProgramResponseDTO deleteProgram(Integer id) {

@@ -20,6 +20,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import java.util.List;
+
 import org.springdoc.core.annotations.ParameterObject;
 
 import lombok.AllArgsConstructor;
@@ -65,13 +68,10 @@ public class SocialProgramController {
             @ApiResponse(responseCode = "200", description = "Página de programas recuperada correctamente")
         })
     @GetMapping
-    public ResponseEntity<Page<SocialProgramResponseDTO.ProgramDetail>> program(
-            @ParameterObject
-            @PageableDefault(page = 0, size = 5) Pageable pageable,
-            @ParameterObject
-            @ModelAttribute SocialProgramFilterDTO filtro) {
+    public ResponseEntity<List<SocialProgramResponseDTO.ProgramDetail>> program(
+            @ParameterObject @ModelAttribute  SocialProgramFilterDTO filtro) {
 
-        Page<SocialProgramResponseDTO.ProgramDetail> programPage = programService.programs(pageable, filtro);
+       List<SocialProgramResponseDTO.ProgramDetail> programPage = programService.programs(filtro);
         return ResponseEntity.ok(programPage);
     }
 
