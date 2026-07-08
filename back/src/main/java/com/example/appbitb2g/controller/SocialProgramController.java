@@ -124,39 +124,8 @@ public class SocialProgramController {
      * GET /programas?tipo=FORMACION
      * Retorna la lista de programas sociales activos o filtrados por tipo, municipio o clúster.
      */
-        @Operation(
-            summary = "Listar programas resumidos",
-            description = "Devuelve una lista consolidada de programas sociales para consumo del frontend."
-        )
-        @ApiResponses({
-            @ApiResponse(
-                responseCode = "200",
-                description = "Listado recuperado correctamente",
-                content = @Content(schema = @Schema(implementation = SocialProgramListResponseDTO.class))
-            )
-        })
-    @GetMapping("/list")
-    public ResponseEntity<SocialProgramListResponseDTO> obtenerProgramas(
-            @Parameter(description = "Tipo de programa", example = "FORMACION")
-            @RequestParam(name = "tipo", required = false) String tipo,
-            @Parameter(description = "Municipio a filtrar", example = "São José")
-            @RequestParam(name = "municipio", required = false) String municipio,
-            @Parameter(description = "Clúster a filtrar", example = "SAO_JOSE_KOBRASOL")
-            @RequestParam(name = "cluster", required = false) String cluster,
-            @Parameter(description = "Filtra por estado activo", example = "true")
-            @RequestParam(name = "activo", required = false, defaultValue = "true") Boolean activo
-    ) {
-        SocialProgramListResponseDTO response = programService.listarProgramas(tipo, municipio, cluster, activo);
-        return ResponseEntity.ok(response);
-    }
-      @GetMapping("/efectividad-media-nacional")
-    public ResponseEntity<Double> getEfectividadMediaNacional() {
-
-        var response = programService.getEfectividadMediaNacional();
-
-        return ResponseEntity.ok(response);
-
-    }
+        
+  
 
         
      

@@ -21,6 +21,7 @@ public interface SocialProgramRepository extends JpaRepository<SocialProgram, In
                          AND (:municipio IS NULL OR UPPER(p.municipio) = UPPER(:municipio))
                          AND (:cluster IS NULL OR UPPER(p.cluster) = UPPER(:cluster))
                          AND (:activo IS NULL OR p.activo = :activo)
+                         
 
                         """)
         List<SocialProgram> findWithDynamicFilters(
@@ -38,11 +39,5 @@ public interface SocialProgramRepository extends JpaRepository<SocialProgram, In
        """)
 List<Object[]> countSocialProgramRaw();
 
-@Query("""
-       SELECT avg(p.replicable) 
-        FROM SocialProgram p 
-        where p.tipo = 'MENTORIA' 
-      
-       """)
-Double getEfectividadMediaNacional();
+
 }

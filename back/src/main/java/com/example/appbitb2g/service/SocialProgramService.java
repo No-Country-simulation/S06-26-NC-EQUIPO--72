@@ -11,7 +11,7 @@ import com.example.appbitb2g.dto.responseDTO.socialProgram.SocialProgramListResp
 import com.example.appbitb2g.dto.responseDTO.socialProgram.SocialProgramResponseDTO;
 
 public interface SocialProgramService {
-    SocialProgramListResponseDTO listarProgramas(String tipo, String municipio, String cluster, Boolean activo);
+    
     SocialProgramResponseDTO createProgram(SocialProgramRequestDTO socialProgramRequestDTO);
     List<SocialProgramResponseDTO.ProgramDetail> programs( SocialProgramFilterDTO filtro);
     SocialProgramResponseDTO deleteProgram(Integer id);

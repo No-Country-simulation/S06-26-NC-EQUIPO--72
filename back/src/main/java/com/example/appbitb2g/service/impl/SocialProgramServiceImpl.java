@@ -59,12 +59,11 @@ public class SocialProgramServiceImpl implements SocialProgramService {
                 SocialProgramFilterDTO f = (filtro != null) ? filtro
                                 : new SocialProgramFilterDTO(null, null, null, true);
 
-        List<SocialProgram> socialProgramDetailPag = socialProgramRepository.findWithDynamicFilters(
+                List<SocialProgram> socialProgramDetailPag = socialProgramRepository.findWithDynamicFilters(
                                 f.tipo(),
                                 f.municipio(),
                                 f.cluster(),
-                                f.activo()
-                                );
+                                f.activo());
 
                 List<Object[]> rawTotals = socialProgramRepository.countSocialProgramRaw();
 
@@ -74,10 +73,17 @@ public class SocialProgramServiceImpl implements SocialProgramService {
                                                 fila -> (Long) fila[1]));
 
                 return socialProgramDetailPag.stream().map(sp -> {
+                           Long totalParaEsteCluster = clusterTotalsMap.getOrDefault(sp.getCluster(), 0L);
+                        double promedioReplicable = (sp.getReplicable() != null) ? sp.getReplicable() * 4.0 : 0.0;
+                        double bonusPorVolumen = totalParaEsteCluster * 0.1;
+                        double efectividadCalculada = Math.round((promedioReplicable + bonusPorVolumen) * 10.0) / 10.0;
 
-                        Long totalParaEsteCluster = clusterTotalsMap.getOrDefault(sp.getCluster(), 0L);
+                        // Forzamos el techo de 5 estrellas
+                        efectividadCalculada = Math.min(5.0, efectividadCalculada);
 
-                        return this.socialProgramMapper.toProgramDetailDto(sp, totalParaEsteCluster);
+                     
+
+                        return this.socialProgramMapper.toProgramDetailDto(sp, totalParaEsteCluster,efectividadCalculada);
                 }).collect(Collectors.toList());
         }
 
@@ -116,100 +122,5 @@ public class SocialProgramServiceImpl implements SocialProgramService {
          * SERVICIOS DE FORMACIONES
          * *
          */
-        @Override
-        public SocialProgramListResponseDTO listarProgramas(String tipo, String municipio, String cluster,
-                        Boolean activo) {
-                List<SocialProgramListResponseDTO.ProgramDetailRecord> programasMock = new ArrayList<>();
-
-                // --- REGISTRO MOCK 1: FORMACIÓN (Florianópolis) ---
-                programasMock.add(new SocialProgramListResponseDTO.ProgramDetailRecord(
-                                1,
-                                "Alfabetización Digital para Adultos Mayores",
-                                "FORMACION",
-                                "Clases presenciales de uso de smartphones y banca móvil en centros comunitarios.",
-                                "Florianópolis",
-                                "FLORIANOPOLIS_CENTRO",
-                                "Municipalidad de Florianópolis",
-                                "Isabela Martins",
-                                1,
-                                "ALTO",
-                                "https://florianopolis.sc.gov.br/alfabetizacion",
-                                LocalDate.of(2025, 2, 1),
-                                LocalDate.of(2025, 12, 31),
-                                true));
-
-                // --- REGISTRO MOCK 2: FORMACIÓN (São José) ---
-                programasMock.add(new SocialProgramListResponseDTO.ProgramDetailRecord(
-                                2,
-                                "Iniciación a la Programación Web",
-                                "FORMACION",
-                                "Curso intensivo online de desarrollo frontend (HTML, CSS y JavaScript) para jóvenes.",
-                                "São José",
-                                "SAO_JOSE_KOBRASOL",
-                                "ONG Conectar",
-                                "Carlos Souza",
-                                1,
-                                "MEDIO",
-                                "https://conectar.org/web-basic",
-                                LocalDate.of(2025, 4, 15),
-                                LocalDate.of(2025, 7, 15),
-                                true));
-
-                // --- REGISTRO MOCK 3: MENTORÍA (São José) ---
-                programasMock.add(new SocialProgramListResponseDTO.ProgramDetailRecord(
-                                3,
-                                "Mentores para el Futuro Tecnológico",
-                                "MENTORIA",
-                                "Acompañamiento personalizado y guía de carrera de programadores senior a estudiantes de secundaria.",
-                                "São José",
-                                "SAO_JOSE_KOBRASOL",
-                                "ONG Conectar",
-                                "Mateo Santos",
-                                0,
-                                "ALTO",
-                                "https://conectar.org/mentores",
-                                LocalDate.of(2025, 3, 10),
-                                null,
-                                true));
-
-                // --- PROCESAMIENTO DINÁMICO DE FILTROS EN MEMORIA ---
-                List<SocialProgramListResponseDTO.ProgramDetailRecord> resultadosFiltrados = new ArrayList<>(
-                                programasMock);
-
-                // 1. Filtrado por tipo (ej: FORMACION o MENTORIA)
-                if (tipo != null && !tipo.isBlank()) {
-                        resultadosFiltrados = resultadosFiltrados.stream()
-                                        .filter(p -> p.tipo().equalsIgnoreCase(tipo))
-                                        .toList();
-                }
-
-                // 2. Filtrado opcional por municipio
-                if (municipio != null && !municipio.isBlank()) {
-                        resultadosFiltrados = resultadosFiltrados.stream()
-                                        .filter(p -> p.municipio().equalsIgnoreCase(municipio))
-                                        .toList();
-                }
-
-                // 3. Filtrado opcional por clúster
-                if (cluster != null && !cluster.isBlank()) {
-                        resultadosFiltrados = resultadosFiltrados.stream()
-                                        .filter(p -> p.cluster().equalsIgnoreCase(cluster))
-                                        .toList();
-                }
-
-                // 4. Filtrado opcional por estado activo
-                if (activo != null) {
-                        resultadosFiltrados = resultadosFiltrados.stream()
-                                        .filter(p -> p.activo().equals(activo))
-                                        .toList();
-                }
-
-                // Devolvemos el DTO consolidado con la lista filtrada y el total de elementos
-                return new SocialProgramListResponseDTO(resultadosFiltrados, resultadosFiltrados.size());
-        }
-
-        public Double getEfectividadMediaNacional() {
-            return socialProgramRepository.getEfectividadMediaNacional();
-        }
 
 }

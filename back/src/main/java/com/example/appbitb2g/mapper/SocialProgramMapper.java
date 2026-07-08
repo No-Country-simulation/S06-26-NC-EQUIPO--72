@@ -17,7 +17,7 @@ public interface SocialProgramMapper {
     SocialProgram toEntity(SocialProgramRequestDTO dto);
 
 @Mapping(source = "totalRepo", target = "total")
-SocialProgramResponseDTO.ProgramDetail toProgramDetailDto(SocialProgram socialProgram, Long totalRepo);
+SocialProgramResponseDTO.ProgramDetail toProgramDetailDto(SocialProgram socialProgram, Long totalRepo , Double efectividad);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
