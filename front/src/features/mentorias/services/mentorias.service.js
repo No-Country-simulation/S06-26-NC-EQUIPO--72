@@ -13,7 +13,7 @@ class MentoriasService {
       );
     }
 
-    return result.content;
+    return result.content || result || [];
   }
 }
 
