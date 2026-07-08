@@ -1,7 +1,7 @@
 class MentoriasService {
   API = import.meta.env.VITE_API_URL;
 
-  async getProgramas(servicio = "MENTORIAS") {
+  async getProgramas(servicio = "MENTORIA") {
     const response = await fetch(
       `${this.API}programas?page=0&size=10&tipo=${servicio}&activo=true`,
     );
