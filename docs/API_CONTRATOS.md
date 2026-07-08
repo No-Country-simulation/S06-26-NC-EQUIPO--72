@@ -102,6 +102,40 @@ Extiende `/mapa` con capas de indicadores territoriales.
 
 ------------------------------------------------------------------------
 
+## GET /indicadores/evolucion
+
+### Query Params
+
+| Parámetro   | Tipo     | Requerido | Descripción |
+| ------------| -------- | :-------: | ----------- |
+| `categoria` | `string` | Sí | `SALUD_MENTAL` / `EMPLEO` / `EDUCACION` |
+| `indicador` | `string` | Sí | `taxa_emprego_formal` / `taxa_internacao_psiquiatrica` / etc |
+| `municipio` | `string` | No | Filtra por municipio |
+
+### Response `200`
+
+``` json
+{
+  "indicador": "taxa_emprego_formal",
+  "categoria": "EMPLEO",
+  "evolucion": [
+    { "fecha_referencia": "2024-01-01", "valor_promedio": 63.45 },
+    { "fecha_referencia": "2024-02-01", "valor_promedio": 64.12 }
+  ],
+  "por_cluster": [
+    {
+      "cluster": "UFSC",
+      "municipio": "Florianopolis",
+      "valor": 80.25,
+      "n_usuarios": 12400,
+      "fecha_referencia": "2024-12-01"
+    }
+  ]
+}
+```
+
+------------------------------------------------------------------------
+
 ## POST /datos
 
 Endpoint principal consumido por el frontend. El backend busca contexto en la DB con los filtros recibidos, luego delega al AI Service (`POST /consulta`) que usa ese contexto + tools propias para generar la respuesta.

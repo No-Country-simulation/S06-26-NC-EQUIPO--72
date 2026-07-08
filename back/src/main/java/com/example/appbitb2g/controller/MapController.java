@@ -3,6 +3,7 @@ package com.example.appbitb2g.controller;
 import com.example.appbitb2g.dto.responseDTO.socialProgram.MapIndicadoresResponseDTO;
 import com.example.appbitb2g.dto.responseDTO.socialProgram.MapResponseDTO;
 import com.example.appbitb2g.dto.responseDTO.socialProgram.MensajeResponseDTO;
+import com.example.appbitb2g.dto.responseDTO.territorialIndicator.IndicadorEvolucionResponseDTO;
 import com.example.appbitb2g.service.MapService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -120,6 +121,53 @@ public class MapController{
         // 3. Devolvemos el JSON estructurado/DTO al Frontend
       return ResponseEntity.ok(response);
 
+    }
+
+    // GET /mapa/indicadores/evolucion?categoria=EMPLEO
+    @Operation(
+            summary = "Obtener evolución de un indicador",
+            description = "Devuelve la evolución temporal de un indicador territorial."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Evolución calculada correctamente",
+                    content = @Content(schema = @Schema(implementation = IndicadorEvolucionResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Categoría inválida",
+                    content = @Content(schema = @Schema(implementation = MensajeResponseDTO.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "No hay resultados para los filtros",
+                    content = @Content(schema = @Schema(implementation = MensajeResponseDTO.class))
+            )
+    })
+    @GetMapping("/indicadores/evolucion")
+    public ResponseEntity<?> getIndicadoresEvolucionMap(
+            @Parameter(description = "Categoría de indicadores a consultar", example = "EMPLEO", required = true)
+            @RequestParam(name = "categoria") String categoria,
+            @Parameter(description = "Indicador específico opcional", example = "taxa_emprego_formal")
+            @RequestParam(name = "indicador", required = false) String indicador,
+            @Parameter(description = "Municipio a filtrar", example = "São José")
+            @RequestParam(name = "municipio", required = false) String municipio
+    ){
+        // Llamada al servicio que obtiene la evolución del indicador
+        IndicadorEvolucionResponseDTO response = mapService.obtenerEvolucionIndicador(categoria, indicador, municipio);
+        
+        if(response.evolucion().isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new MensajeResponseDTO(
+                            "SIN_RESULTADOS",
+                            "No se encontraron datos para los filtros aplicados."
+                    )
+            );
+        }
+
+        // Devolvemos el JSON estructurado/DTO al Frontend
+        return ResponseEntity.ok(response);
     }
 }
 

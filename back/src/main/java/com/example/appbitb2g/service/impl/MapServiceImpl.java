@@ -1,6 +1,7 @@
 package com.example.appbitb2g.service.impl;
 
 import com.example.appbitb2g.dto.responseDTO.socialProgram.MapIndicadoresResponseDTO;
+import com.example.appbitb2g.dto.responseDTO.territorialIndicator.IndicadorEvolucionResponseDTO;
 import com.example.appbitb2g.repository.AntenaRepository;
 import com.example.appbitb2g.repository.ConcentracaoRepository;
 import com.example.appbitb2g.repository.TerritorialIndicatorsRepository;
@@ -84,6 +85,33 @@ public class MapServiceImpl implements MapService {
                         antenaRepository.obtenerDatosMapaPrincipal(periodoFinal, filtroMunicipio, fechaFinal);
                 // Envolvemos la lista real en el DTO final y se lo mandamos al Frontend
                 return new MapResponseDTO(regionesReales);
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public IndicadorEvolucionResponseDTO obtenerEvolucionIndicador(String categoria, String indicador, String municipio) {
+                if (categoria==null || !CATEGORIAS_VALIDAS.contains(categoria.toUpperCase())) {
+                        throw new BadRequestException(
+                                        "El valor de Categoria debe ser SALUD_MENTAL / EMPLEO / EDUCACION");
+                }
+
+                // Establecer indicador por defecto si no viene
+                String indicadorFinal = indicador;
+                if (indicadorFinal == null || indicadorFinal.isBlank()) {
+                        indicadorFinal = switch (categoria.toUpperCase()) {
+                                case "EMPLEO" -> "taxa_emprego_formal";
+                                case "SALUD_MENTAL" -> "taxa_internacao_psiquiatrica";
+                                case "EDUCACION" -> "idhm_2010_educacion";
+                                default -> null;
+                        };
+                }
+
+                try {
+                        String rawJson = territorialIndicatorsRepository.getIndicatorEvolutionRawJson(categoria, indicadorFinal, municipio);
+                        return objectMapper.readValue(rawJson, IndicadorEvolucionResponseDTO.class);
+                } catch (Exception e) {
+                        throw new RuntimeException("Error al parsear el JSON de evolución del indicador", e);
+                }
         }
 }
  

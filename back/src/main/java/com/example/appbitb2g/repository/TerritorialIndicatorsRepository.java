@@ -79,4 +79,71 @@ public interface TerritorialIndicatorsRepository extends JpaRepository<Territori
         @Param("indicador") String indicador,
         @Param("municipio") String municipio
     );
+
+    @Query(value = """
+        SELECT JSON_OBJECT(
+            'indicador', :indicador,
+            'categoria', :categoria,
+
+            -- Evolución nacional: promedio mensual de los últimos 12 meses
+            'evolucion', COALESCE(
+                (SELECT JSON_ARRAYAGG(
+                    JSON_OBJECT(
+                        'fecha_referencia', sub.fecha_referencia,
+                        'valor_promedio', sub.valor_promedio
+                    )
+                )
+                FROM (
+                    SELECT fecha_referencia, ROUND(AVG(valor), 4) AS valor_promedio
+                    FROM indicadores_territoriales
+                    WHERE UPPER(categoria) = UPPER(:categoria)
+                    AND indicador = :indicador
+                    AND (:municipio IS NULL OR municipio = :municipio)
+                    AND fecha_referencia >= DATE_SUB(
+                        (SELECT MAX(fecha_referencia) FROM indicadores_territoriales
+                        WHERE UPPER(categoria) = UPPER(:categoria) AND indicador = :indicador),
+                        INTERVAL 11 MONTH
+                    )
+                    GROUP BY fecha_referencia
+                    ORDER BY fecha_referencia ASC
+                ) sub),
+                JSON_ARRAY()
+            ),
+
+            -- Último valor por cluster (snapshot más reciente) + n_usuarios de concentracao
+            'por_cluster', COALESCE(
+                (SELECT JSON_ARRAYAGG(
+                    JSON_OBJECT(
+                        'cluster', ranked.cluster,
+                        'municipio', ranked.municipio,
+                        'valor', ranked.valor,
+                        'fecha_referencia', ranked.fecha_referencia,
+                        'n_usuarios', COALESCE(conc.n_usuarios, 0)
+                    )
+                )
+                FROM (
+                    SELECT cluster, municipio, valor, fecha_referencia,
+                        ROW_NUMBER() OVER (PARTITION BY cluster, municipio
+                                        ORDER BY fecha_referencia DESC) AS rn
+                    FROM indicadores_territoriales
+                    WHERE UPPER(categoria) = UPPER(:categoria)
+                    AND indicador = :indicador
+                    AND (:municipio IS NULL OR municipio = :municipio)
+                ) ranked
+                LEFT JOIN (
+                    SELECT cluster, municipio, SUM(n_usuarios) AS n_usuarios
+                    FROM concentracao
+                    WHERE day_date = (SELECT MAX(day_date) FROM concentracao)
+                    GROUP BY cluster, municipio
+                ) conc ON conc.cluster = ranked.cluster AND conc.municipio = ranked.municipio
+                WHERE ranked.rn = 1),
+                JSON_ARRAY()
+            )
+        )
+        """, nativeQuery = true)
+    String getIndicatorEvolutionRawJson(
+        @Param("categoria") String categoria,
+        @Param("indicador") String indicador,
+        @Param("municipio") String municipio
+    );
 }
