@@ -55,6 +55,8 @@ public class SocialProgramResponseDTO {
         private LocalDate fechaInicio;
         @Schema(description = "Fecha de fin", type = "string", format = "date", example = "2025-12-31")
         private LocalDate fechaFin;
+        private Integer total;
+         private Double efectividad;
     }
 
 }

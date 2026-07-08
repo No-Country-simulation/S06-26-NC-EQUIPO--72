@@ -11,7 +11,7 @@ class FormacionesService {
       );
     }
 
-    return result.content || [];
+    return result.content || result || [];
   }
 
 

@@ -25,7 +25,7 @@ class ExperienciasService {
     }
 
     // Devolvemos el array 'content' que contiene los registros de la base de datos o un array vacío por seguridad
-    return result.content || [];
+    return result.content || result || [];
   }
 
   /**
