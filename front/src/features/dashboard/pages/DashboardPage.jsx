@@ -98,29 +98,28 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
     data: rawEmpleo,
     isLoading: loadingEmpleo,
     error: errorEmpleo,
-  } = useMapsIndicators("EMPLEO");
+  } = useMapsIndicators("EMPLEO", "taxa_emprego_formal");
 
   const {
     data: rawEducacion,
     isLoading: loadingEducacion,
     error: errorEducacion,
-  } = useMapsIndicators("EDUCACION");
+  } = useMapsIndicators("EDUCACION", "taxa_conclusao_ensino_medio");
 
   const {
     data: rawSaludMental,
     isLoading: loadingSaludMental,
     error: errorSaludMental,
-  } = useMapsIndicators("SALUD_MENTAL");
+  } = useMapsIndicators("SALUD_MENTAL", "cobertura_atencao_basica");
 
   // Mapear los datos de empleo y congestión desde el backend
   const barChartData = useMemo(() => {
     if (!rawEmpleo || !rawEmpleo.regiones) return [];
     return rawEmpleo.regiones.map((r) => {
       const cleanName = formatClusterName(r.cluster) || "Sin nombre";
-      const valDesempleo = r.indicadores?.[0]?.valor
-        ? parseFloat(r.indicadores[0].valor)
+      const empleo = r.indicadores?.[0]?.valor
+        ? Math.max(0, Math.min(100, Math.round(parseFloat(r.indicadores[0].valor))))
         : 0;
-      const empleo = Math.max(0, Math.min(100, Math.round(100 - valDesempleo)));
       const valCongestion = r.congestionamento_medio
         ? parseFloat(r.congestionamento_medio)
         : 0;
@@ -157,14 +156,13 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
     const regionesEducacion = rawEducacion?.regiones || [];
 
     if (regionesEmpleo.length) {
-      const sumDesempleo = regionesEmpleo.reduce(
+      const sumEmpleo = regionesEmpleo.reduce(
         (sum, r) =>
           sum +
           (r.indicadores?.[0]?.valor ? parseFloat(r.indicadores[0].valor) : 0),
         0,
       );
-      const avgDesempleo = sumDesempleo / regionesEmpleo.length;
-      avgEmpleo = Math.round(100 - avgDesempleo);
+      avgEmpleo = Math.round(sumEmpleo / regionesEmpleo.length);
 
       const sumCongestion = regionesEmpleo.reduce(
         (sum, r) =>
@@ -177,15 +175,15 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
     }
 
     if (regionesEducacion.length) {
-      const sumIdhm = regionesEducacion.reduce(
+      const sumIndicador = regionesEducacion.reduce(
         (sum, r) =>
           sum +
           (r.indicadores?.[0]?.valor ? parseFloat(r.indicadores[0].valor) : 0),
         0,
       );
-      const avgIdhm = sumIdhm / regionesEducacion.length;
-      const pctIdhm = avgIdhm < 2 ? avgIdhm * 100 : avgIdhm;
-      avgInclusion = Math.round(pctIdhm);
+      const avgIndicador = sumIndicador / regionesEducacion.length;
+      const pctIndicador = avgIndicador < 2 ? avgIndicador * 100 : avgIndicador;
+      avgInclusion = Math.round(pctIndicador);
     }
 
     return { avgEmpleo, avgConectividad, avgInclusion };
@@ -294,7 +292,7 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
     },
   };
 
-  // Mostrar los 4 peores clústeres reales con indicadores de salud mental severos, escalando las tasas a 0-5.
+  // Mostrar los 4 clústeres con cobertura de atención básica más baja (escala 0-5, 5 es mejor).
   const saludMentalData = useMemo(() => {
     const regionesSalud = rawSaludMental?.regiones || [];
     if (regionesSalud.length === 0) return [];
@@ -310,14 +308,15 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
       };
     });
 
-    // Ordenar de peor a mejor tasa de salud mental
-    list.sort((a, b) => b.rate - a.rate);
+    // Ordenar de menor a mayor cobertura (peor a mejor)
+    list.sort((a, b) => a.rate - b.rate);
 
     const top4 = list.slice(0, 4);
-    const globalMax = Math.max(...list.map((item) => item.rate), 15);
+    const globalMax = Math.max(...list.map((item) => item.rate), 100);
 
     return top4.map((item) => {
-      const score = Math.min(5, Math.max(0, (item.rate / globalMax) * 4.8));
+      // Cobertura 0% → score 0, 100% → score 5
+      const score = Math.min(5, Math.max(0, (item.rate / globalMax) * 5));
       const percentValue = Math.round((score / 5) * 100);
 
       let color = "bg-green-500";
@@ -349,7 +348,7 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
     const regionesSalud = rawSaludMental.regiones || [];
 
     //  Tasa de Empleo
-    const avgDesempleo = regionesEmpleo.length
+    const avgEmpleo = regionesEmpleo.length
       ? regionesEmpleo.reduce(
           (sum, r) =>
             sum +
@@ -358,8 +357,8 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
               : 0),
           0,
         ) / regionesEmpleo.length
-      : 8.3;
-    const tasaEmpleoVal = (100 - avgDesempleo).toFixed(1) + "%";
+      : 71.7;
+    const tasaEmpleoVal = avgEmpleo.toFixed(1) + "%";
 
     // Congestión de Red Promedio
     const avgCongestion = regionesEmpleo.length
@@ -390,7 +389,7 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
     const pctIdhm = avgIdhmVal < 2 ? avgIdhmVal * 100 : avgIdhmVal;
     const educacionVal = pctIdhm.toFixed(1) + "%";
 
-    //  Internación Psiquiátrica
+    //  Cobertura Atención Básica Salud Mental
     const avgSalud = regionesSalud.length
       ? regionesSalud.reduce(
           (sum, r) =>
@@ -400,7 +399,7 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
               : 0),
           0,
         ) / regionesSalud.length
-      : 14.3;
+      : 75.5;
     const saludVal = avgSalud.toFixed(1) + "%";
 
     // Usuarios de Red Totales
@@ -456,12 +455,12 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
       },
       {
         title: isPortugues
-          ? "Internação Psiquiátrica"
-          : "Internación Psiquiátrica",
+          ? "Cobertura Atenção Básica"
+          : "Cobertura Atención Básica",
         value: saludVal,
         change: isPortugues
-          ? "-0.5% vs. mês anterior"
-          : "-0.5% vs. mes anterior",
+          ? "0.5% vs. mês anterior"
+          : "0.5% vs. mes anterior",
         badge: isPortugues ? "Alerta" : "Alerta",
         badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
         icon: Heart,
