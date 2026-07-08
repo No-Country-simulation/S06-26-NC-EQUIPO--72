@@ -37,4 +37,11 @@ public interface SocialProgramRepository extends JpaRepository<SocialProgram, In
        GROUP BY p.cluster
        """)
 List<Object[]> countSocialProgramRaw();
+
+@Query("""
+       SELECT avg(p.replicable)
+        FROM SocialProgram p 
+        GROUP by p.cluster;
+       """)
+Double getEfectividadMediaNacional();
 }
