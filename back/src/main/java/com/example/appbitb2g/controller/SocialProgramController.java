@@ -149,7 +149,19 @@ public class SocialProgramController {
         SocialProgramListResponseDTO response = programService.listarProgramas(tipo, municipio, cluster, activo);
         return ResponseEntity.ok(response);
     }
+      @GetMapping("/efectividad-media-nacional")
+    public ResponseEntity<Double> getEfectividadMediaNacional() {
 
+        var response = programService.getEfectividadMediaNacional();
+
+        return ResponseEntity.ok(response);
+
+    }
+
+        
+     
+    
+    
   
 
 

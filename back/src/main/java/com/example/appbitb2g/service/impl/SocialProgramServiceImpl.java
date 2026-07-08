@@ -205,4 +205,8 @@ public class SocialProgramServiceImpl implements SocialProgramService {
                 return new SocialProgramListResponseDTO(resultadosFiltrados, resultadosFiltrados.size());
         }
 
+        public Double getEfectividadMediaNacional() {
+            return socialProgramRepository.getEfectividadMediaNacional();
+        }
+
 }
