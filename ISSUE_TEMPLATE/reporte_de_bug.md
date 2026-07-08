@@ -1,4 +1,4 @@
-----
+---
 name: "Reporte de Bug"
 about: Plantilla avanzada de QA con severidad, prioridad y datos de prueba.
 title: "[BUG] "
