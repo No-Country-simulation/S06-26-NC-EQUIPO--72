@@ -73,17 +73,16 @@ public class SocialProgramServiceImpl implements SocialProgramService {
                                                 fila -> (Long) fila[1]));
 
                 return socialProgramDetailPag.stream().map(sp -> {
-                           Long totalParaEsteCluster = clusterTotalsMap.getOrDefault(sp.getCluster(), 0L);
+                        Long totalParaEsteCluster = clusterTotalsMap.getOrDefault(sp.getCluster(), 0L);
                         double promedioReplicable = (sp.getReplicable() != null) ? sp.getReplicable() * 4.0 : 0.0;
                         double bonusPorVolumen = totalParaEsteCluster * 0.1;
                         double efectividadCalculada = Math.round((promedioReplicable + bonusPorVolumen) * 10.0) / 10.0;
 
-                        // Forzamos el techo de 5 estrellas
+                     
                         efectividadCalculada = Math.min(5.0, efectividadCalculada);
 
-                     
-
-                        return this.socialProgramMapper.toProgramDetailDto(sp, totalParaEsteCluster,efectividadCalculada);
+                        return this.socialProgramMapper.toProgramDetailDto(sp, totalParaEsteCluster,
+                                        efectividadCalculada);
                 }).collect(Collectors.toList());
         }
 
