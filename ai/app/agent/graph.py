@@ -162,20 +162,38 @@ async def formatter(state: AgentState) -> AgentState:
 
     # Resumir listas largas para no saturar el contexto del modelo light
     if isinstance(tool_results, list) and len(tool_results) > 8:
-        alta = [
-            {k: r[k] for k in ("cluster", "municipio", "programas_activos", "severidad_brecha", "n_usuarios") if k in r}
-            for r in tool_results if r.get("severidad_brecha") == "ALTA"
-        ]
-        media_count = sum(1 for r in tool_results if r.get("severidad_brecha") == "MEDIA")
-        baja_count  = sum(1 for r in tool_results if r.get("severidad_brecha") == "BAJA")
+        tiene_brecha = any("severidad_brecha" in r for r in tool_results)
 
-        datos_resumidos = {
-            "total_zonas": len(tool_results),
-            "zonas_alta_prioridad": alta,
-            "zonas_media_prioridad_count": media_count,
-            "zonas_baja_prioridad_count": baja_count,
-            "nota": "resumen generado para el formatter — datos completos disponibles en la respuesta"
-        }
+        if tiene_brecha:
+            
+            alta = [
+                {k: r[k] for k in ("cluster", "municipio", "programas_activos", "severidad_brecha", "n_usuarios") if k in r}
+                for r in tool_results if r.get("severidad_brecha") == "ALTA"
+            ]
+            media_count = sum(1 for r in tool_results if r.get("severidad_brecha") == "MEDIA")
+            baja_count  = sum(1 for r in tool_results if r.get("severidad_brecha") == "BAJA")
+            datos_resumidos = {
+                "total_zonas": len(tool_results),
+                "zonas_alta_prioridad": alta,
+                "zonas_media_prioridad_count": media_count,
+                "zonas_baja_prioridad_count": baja_count,
+                "nota": "resumen generado para el formatter — datos completos disponibles en la respuesta"
+            }
+        else:
+            datos_resumidos = {
+                "total_zonas": len(tool_results),
+                "zonas": [
+                    {
+                        "cluster": r.get("cluster"),
+                        "municipio": r.get("municipio"),
+                        "congestionamento_medio": r.get("congestionamento_medio"),
+                        "n_usuarios": r.get("n_usuarios"),
+                        "indicadores": r.get("indicadores", []),
+                    }
+                    for r in tool_results
+                ],
+                "nota": "datos de indicadores sociales con conectividad incluida"
+            }
     else:
         datos_resumidos = tool_results
 
