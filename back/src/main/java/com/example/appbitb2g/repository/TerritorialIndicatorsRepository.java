@@ -79,4 +79,14 @@ public interface TerritorialIndicatorsRepository extends JpaRepository<Territori
         @Param("indicador") String indicador,
         @Param("municipio") String municipio
     );
+
+	@Query(value = """
+			SELECT JSON_OBJECT(
+			            'indicador', :indicador,
+			            'promedio', ROUND(AVG(valor), 2)
+			        )
+			        FROM indicadores_territoriales
+			        WHERE indicador = :indicador
+			""", nativeQuery = true)
+	String getAvgHealthCoverageByIndicator(@Param("indicador") String indicador);
 }
