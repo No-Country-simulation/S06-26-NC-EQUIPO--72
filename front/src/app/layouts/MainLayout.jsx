@@ -37,9 +37,9 @@ function MainLayout({ children, currentTab, onTabChange }) {
     { id: "experiencias", label: "Experiencias", icon: Star },
     { id: "mentorias", label: "Mentorias", icon: Users },
     { id: "salud-mental", label: "Salud Mental", icon: Heart },
-    { id: "reportes", label: "Reportes", icon: BarChart3 },
+    /* { id: "reportes", label: "Reportes", icon: BarChart3 },
     { id: "alertas", label: "Alertas", icon: Bell },
-    { id: "configuracion", label: "Configuración", icon: Settings },
+    { id: "configuracion", label: "Configuración", icon: Settings }, */
   ];
 
   const { language, setLanguage } = useLanguage();
