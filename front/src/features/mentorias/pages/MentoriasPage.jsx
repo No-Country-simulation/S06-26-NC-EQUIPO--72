@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   ChartContainer,
   ChartTooltip,
@@ -19,6 +20,7 @@ import {
   ListMentorsSkeleton,
 } from "../skeletons/MentoriasPageSkeleton";
 import { useLanguage } from "@/context/useLenguage";
+import { formatClusterName } from "@/shared/utils/format";
 
 export default function MentoriasPage() {
   const { lenguage } = useLanguage();
@@ -33,17 +35,28 @@ export default function MentoriasPage() {
     },
   };
 
-  const barChartData = data?.map((r) => ({
-    region: r.municipio,
-    mentorias: 3,
-  }));
+  const barChartData = useMemo(() => {
+    if (!data) return [];
+    const counts = {};
+    data.forEach((r) => {
+      const name = formatClusterName(r.cluster) || r.cluster || "Sin definir";
+      counts[name] = (counts[name] || 0) + 1;
+    });
+    return Object.entries(counts).map(([region, count]) => ({
+      region,
+      mentorias: count,
+    }));
+  }, [data]);
 
-  const programs = data?.map((r) => ({
-    name: r.nombre,
-    region: r.municipio,
-    status: r.impactoEstimado,
-    effectiveness: r.indicador_social?.valor,
-  }));
+  const programs = useMemo(() => {
+    if (!data) return [];
+    return data.map((r) => ({
+      name: r.nombre,
+      region: formatClusterName(r.cluster) || r.cluster || "Sin definir",
+      status: r.impactoEstimado || "MEDIO",
+      effectiveness: r.indicador_social?.valor,
+    }));
+  }, [data]);
 
   return (
     <div className="space-y-6">
@@ -155,7 +168,7 @@ export default function MentoriasPage() {
                     axisLine={false}
                     tickMargin={8}
                     tick={{ fontSize: 9, fill: "#64748b" }}
-                    domain={[0, 10]}
+                    allowDecimals={false}
                   />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Bar
