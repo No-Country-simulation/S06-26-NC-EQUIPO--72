@@ -59,8 +59,8 @@ La API cuenta con documentación interactiva generada automáticamente con Swagg
 
 1. **Clonar el repositorio:**
    ```bash
-   git clone [https://github.com/ginaCapuchina/S06-26-NC-EQUIPO72.git](https://github.com/ginaCapuchina/S06-26-NC-EQUIPO72.git)
-   cd S06-26-NC-EQUIPO72/back
+   git clone https://github.com/No-Country-simulation/S06-26-NC-EQUIPO--72.git
+  
 
 2. **Configurar las variables de entorno:**
     ```bash
