@@ -492,11 +492,7 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
           <h2 className="text-xl font-bold text-slate-800 leading-tight">
             {isPortugues ? "Painel Principal" : "Panel Principal"}
           </h2>
-          <p className="text-xs text-slate-500">
-            {isPortugues
-              ? "Atualizado: 10 de dezembro de 2024, 09:42 – 9 regiões analisadas"
-              : "Actualizado: 10 dic 2024, 09:42 - 9 regiones analizadas"}
-          </p>
+          
         </div>
         <div className="flex items-center gap-2">
           <button className="flex items-center gap-1.5 bg-white border border-slate-200 text-xs font-semibold text-slate-700 px-3 py-2 rounded-lg hover:bg-slate-50 cursor-pointer">
