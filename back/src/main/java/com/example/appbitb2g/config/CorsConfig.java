@@ -23,7 +23,6 @@ public class CorsConfig {
 		return new WebMvcConfigurer() {
 			@Override
 			public void addCorsMappings(@NonNull CorsRegistry registry) {
-				//TODO despues solo agregar las rutas publicas
 				registry.addMapping("/**")
 						.allowedOriginPatterns(ALLOWED_ORIGINS)
 						.allowedMethods(ALLOWED_METHODS)
