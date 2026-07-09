@@ -18,12 +18,12 @@ Se identificaron **4 hallazgos**:
 
 | Archivo                 | Filas reales | Columnas reales | Estado                                      |
 | ----------------------- | -----------: | --------------: | ------------------------------------------- |
-| antenas_flp.csv         |          132 |               5 | ✅ Sin anomalías                             |
-| assinantes.csv          |      200.000 |               7 | ✅ Sin anomalías                             |
-| tensor_concentracao.csv |        7.920 |              16 | ✅ Sin anomalías (requiere transformación)   |
-| tensor_od.csv           |          506 |              13 | ⚠️ 44 nulos - causa identificada            |
-| tensor_fluxo_vias.csv   |       17.292 |              15 | ✅ Sin anomalías                             |
-| tensor_mobilidade.csv   |   16.798.060 |              29 | ✅ Sin anomalías (requiere mapeo de nombres) |
+| antenas_flp.csv         |          132 |               5 |  Sin anomalías                             |
+| assinantes.csv          |      200.000 |               7 |  Sin anomalías                             |
+| tensor_concentracao.csv |        7.920 |              16 |  Sin anomalías (requiere transformación)   |
+| tensor_od.csv           |          506 |              13 |  44 nulos - causa identificada            |
+| tensor_fluxo_vias.csv   |       17.292 |              15 |  Sin anomalías                             |
+| tensor_mobilidade.csv   |   16.798.060 |              29 |  Sin anomalías (requiere mapeo de nombres) |
 
 ---
 

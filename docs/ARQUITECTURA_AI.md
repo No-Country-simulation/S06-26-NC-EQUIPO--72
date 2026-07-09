@@ -200,4 +200,3 @@ graph TD
 
 Para más detalles:
 - [API_CONTRATOS.md](./API_CONTRATOS.md): Contratos entre frontend y backend
-- [AI_CONTRATOS.md](./AI_CONTRATOS.md): Contratos entre backend y AI Service
