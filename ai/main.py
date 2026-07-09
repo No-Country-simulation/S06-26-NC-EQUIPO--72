@@ -10,7 +10,7 @@ from app.vectorstore.indexer import init_vectorstore
 
 
 app = FastAPI(
-    title="App BiT — AI Service",
+    title="App BiT - AI Service",
     description="Agente de IA para consultas en lenguaje natural sobre datos de inclusión social.",
     version="1.0.0"
 )

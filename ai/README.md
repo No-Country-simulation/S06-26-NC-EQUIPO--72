@@ -186,36 +186,6 @@ El usuario de DB asignado al AI Service tiene **solo permisos de SELECT** — nu
 
 4. El servicio estará disponible en `http://localhost:8000`.
 
-## Ejecución local (sin Docker)
-
-Si prefieres correr el servicio sin Docker:
-
-1. Crear entorno virtual:
-    ```bash
-    python -m venv venv
-    ```
-
-2. Activar entorno virtual:
-    - Linux/macOS:
-        ```bash
-        source venv/bin/activate
-        ```
-    - Windows:
-        ```bash
-        venv\Scripts\activate
-        ```
-
-3. Instalar dependencias:
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-4. Asegúrate de tener la BD MySQL corriendo y configurada correctamente.
-
-5. Ejecutar el servicio:
-    ```bash
-    uvicorn main:app --reload
-    ```
 
 ## Scripts Útiles
 
@@ -223,3 +193,6 @@ Si prefieres correr el servicio sin Docker:
 - **`check_csv.py`**: Muestra las columnas y filas de cada CSV en la carpeta `data/`
 - **`analisis_preguntas_clave.py`**: Análisis de datos para las 3 preguntas clave del desafío
 
+## Documentación relacionada a data e ia
+- [Analisis del dataset](../docs/ANALISIS_DATASET.md)
+- [Arquitectura de integración de IA](../docs/ARQUITECTURA_AI.md)
