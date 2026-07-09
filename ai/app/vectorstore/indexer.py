@@ -24,7 +24,12 @@ _EMBEDDING_TASK_TYPE = "RETRIEVAL_DOCUMENT"
 
 
 def get_qdrant_client() -> QdrantClient:
-    return QdrantClient(url=settings.qdrant_url)
+    api_key = (
+        settings.qdrant_api_key.get_secret_value()
+        if settings.qdrant_api_key is not None
+        else None
+    )
+    return QdrantClient(url=settings.qdrant_url, api_key=api_key)
 
 
 def _embed(text: str) -> list[float]:

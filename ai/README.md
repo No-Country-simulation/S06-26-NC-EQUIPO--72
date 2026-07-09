@@ -171,6 +171,7 @@ El usuario de DB asignado al AI Service tiene **solo permisos de SELECT** — nu
     cp .env.example .env
     ```
     Edita `.env` con tus credenciales de OpenRouter y otras configuraciones.
+    Si usas Qdrant Cloud, define `QDRANT_URL` con una URL `https://...` y completa `QDRANT_API_KEY`.
 
 2. Configurar variables de entorno del proyecto raíz:
     ```bash

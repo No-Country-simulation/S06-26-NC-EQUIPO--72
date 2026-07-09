@@ -23,6 +23,7 @@ class Settings(BaseSettings):
 
     # Qdrant
     qdrant_url: str = "http://qdrant:6333"
+    qdrant_api_key: SecretStr | None = None
     qdrant_collection: str = "appbit"
 
     # MySQL
