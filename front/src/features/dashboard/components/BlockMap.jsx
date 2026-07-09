@@ -26,7 +26,6 @@ const fillColors = {
   optimo: "#93c5fd",
 };
 
-// Función para obtener color según tab y valor (mayor es mejor para empleo, salud, educación; conectividad es menor congestionamiento)
 const getStatusFromValue = (tab, value) => {
   if (tab === "CONECTIVIDAD") {
     if (value > 85) return fillColors.critico;
@@ -34,7 +33,6 @@ const getStatusFromValue = (tab, value) => {
     if (value > 15) return fillColors.bueno;
     return fillColors.optimo;
   } else {
-    // Para indicadores donde mayor es mejor
     if (value < 30) return fillColors.critico;
     if (value < 50) return fillColors.alerta;
     if (value < 75) return fillColors.bueno;
@@ -58,7 +56,6 @@ export const BlockMap = ({ onClusterSelect }) => {
     region: null,
   });
 
-  // Obtenemos el indicador correspondiente para la categoría activa (si aplica)
   const indicadorActivo =
     activeTab !== "CONECTIVIDAD" ? indicadorPorCategoria[activeTab] : null;
 
@@ -72,23 +69,16 @@ export const BlockMap = ({ onClusterSelect }) => {
 
   const dataNormalizada = normalizarRegiones(rawData);
   const regionesCompletas = generarMapaOrganico(dataNormalizada);
-  
-  // Añadimos el valor del indicador a cada región
-  const regionTextCenter = regionesCompletas.map((region) => {
-    const coords = region.points
-      .split(" ")
-      .map((p) => p.split(",").map(Number));
-    const centerPositionX =
-      coords.reduce((sum, [x]) => sum + x, 0) / coords.length;
-    const centerPositionY =
-      coords.reduce((sum, [, y]) => sum + y, 0) / coords.length;
 
-    // Obtener el valor para la categoría activa
+  const regionTextCenter = regionesCompletas.map((region) => {
+    const coords = region.points.split(" ").map((p) => p.split(",").map(Number));
+    const centerPositionX = coords.reduce((sum, [x]) => sum + x, 0) / coords.length;
+    const centerPositionY = coords.reduce((sum, [, y]) => sum + y, 0) / coords.length;
+
     let valorDisplay;
     if (isConectividad) {
       valorDisplay = (region.congestionamento_medio * 100).toFixed(0);
     } else {
-      // Buscar el indicador correspondiente en el array de indicadores
       const indicadorEncontrado = region.indicadores?.find(
         (i) => i.indicador === indicadorActivo
       );
@@ -100,27 +90,19 @@ export const BlockMap = ({ onClusterSelect }) => {
 
   const viewBoxWidth = useMemo(() => {
     let maxX = 600;
-
     regionTextCenter.forEach((region) => {
       if (region.points) {
-        const puntosX = region.points
-          .split(" ")
-          .map((p) => Number(p.split(",")[0]));
-
+        const puntosX = region.points.split(" ").map((p) => Number(p.split(",")[0]));
         const maxRegionX = Math.max(...puntosX);
-        if (maxRegionX > maxX) {
-          maxX = maxRegionX;
-        }
+        if (maxRegionX > maxX) maxX = maxRegionX;
       }
     });
-
     return Math.ceil(maxX + 30);
   }, [rawData]);
 
   const handleMouseEnter = (region, e) => {
     const svgElementRef = e.currentTarget.closest("svg");
-    const containerRefRect =
-      svgElementRef.parentElement.getBoundingClientRect();
+    const containerRefRect = svgElementRef.parentElement.getBoundingClientRect();
     setTooltip({
       visible: true,
       x: e.clientX - containerRefRect.left,
@@ -131,8 +113,7 @@ export const BlockMap = ({ onClusterSelect }) => {
 
   const handleMouseMove = (e) => {
     const svgElementRef = e.currentTarget.closest("svg");
-    const containerRefRect =
-      svgElementRef.parentElement.getBoundingClientRect();
+    const containerRefRect = svgElementRef.parentElement.getBoundingClientRect();
     setTooltip((prev) => ({
       ...prev,
       x: e.clientX - containerRefRect.left,
@@ -140,13 +121,11 @@ export const BlockMap = ({ onClusterSelect }) => {
     }));
   };
 
-  if (regiones.isLoading) {
-    return <BlockMapSkeleton />;
-  }
+  if (regiones.isLoading) return <BlockMapSkeleton />;
 
   if (regiones.error) {
     return (
-      <div className="bg-white border border-slate-200 rounded-xl p-5 lg:col-span-2 flex flex-col justify-between">
+      <div className="bg-white border border-slate-200 rounded-xl p-5 lg:col-span-3 flex flex-col justify-between">
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center flex items-center justify-center gap-2 text-xs text-red-600 font-semibold shadow-xs">
           <AlertCircle className="w-4 h-4 text-red-500" />
           <span>Error al sincronizar indicadores del mapa con el servidor</span>
@@ -156,56 +135,49 @@ export const BlockMap = ({ onClusterSelect }) => {
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 lg:col-span-2 flex flex-col justify-between">
+    <div className="bg-white border border-slate-200 rounded-xl p-5 lg:col-span-3 flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
             <ChartColumn height={18} width={18} className="text-blue-600" />
-            <h3 className="text-sm font-bold text-slate-800">
-              Mapa de Inclusión Social
-            </h3>
+            <h3 className="text-sm font-bold text-slate-800">Mapa de Inclusión Social</h3>
           </div>
           <button
-            onClick={() =>
-              onClusterSelect?.(regionTextCenter[0]?.cluster || "Norte")
-            }
+            onClick={() => onClusterSelect?.(regionTextCenter[0]?.cluster || "Norte", activeTab)}
             className="text-xs text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
           >
             Ver detalle →
           </button>
         </div>
+
         {/* Tabs */}
         <div className="flex flex-wrap items-center gap-2 mt-4">
           <Layers height={18} width={18} className="mr-2" />
           {tabs.map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className={tabButtonClass(activeTab === key)}
-            >
+            <button key={key} onClick={() => setActiveTab(key)} className={tabButtonClass(activeTab === key)}>
               {label}
             </button>
           ))}
         </div>
+
         {/* Organic Map */}
-        <div className="flex justify-center relative">
+        {/* 👇 min-h-[400px] + w-full sin max-w para que ocupe todo el ancho disponible */}
+        <div className="flex justify-center relative min-h-[400px]">
           <svg
             width="100%"
             height="100%"
             viewBox={`0 0 ${viewBoxWidth} 600`}
             preserveAspectRatio="xMidYMid meet"
-            className="w-full max-w-2xl"
+            className="w-full"
           >
             {regionTextCenter.map((region) => (
               <g
                 key={region.cluster}
                 className="cursor-pointer"
-                onClick={() => onClusterSelect?.(region.cluster)}
+                onClick={() => onClusterSelect?.(region.cluster, activeTab)}
                 onMouseEnter={(e) => handleMouseEnter(region, e)}
                 onMouseMove={handleMouseMove}
-                onMouseLeave={() =>
-                  setTooltip({ visible: false, x: 0, y: 0, region: null })
-                }
+                onMouseLeave={() => setTooltip({ visible: false, x: 0, y: 0, region: null })}
               >
                 <polygon
                   points={region.points}
@@ -214,26 +186,10 @@ export const BlockMap = ({ onClusterSelect }) => {
                   strokeWidth="3"
                   className="transition-all hover:opacity-80"
                 />
-
-                <text
-                  x={region.centerPositionX}
-                  y={region.centerPositionY - 8}
-                  textAnchor="middle"
-                  fontSize="12"
-                  fontWeight="700"
-                  fill="#111827"
-                >
+                <text x={region.centerPositionX} y={region.centerPositionY - 8} textAnchor="middle" fontSize="12" fontWeight="700" fill="#111827">
                   {formatClusterName(region.cluster)}
                 </text>
-
-                <text
-                  x={region.centerPositionX}
-                  y={region.centerPositionY + 15}
-                  textAnchor="middle"
-                  fontSize="14"
-                  fontWeight="800"
-                  fill="#111827"
-                >
+                <text x={region.centerPositionX} y={region.centerPositionY + 15} textAnchor="middle" fontSize="14" fontWeight="800" fill="#111827">
                   {region.valorDisplay}%
                 </text>
               </g>
@@ -244,39 +200,25 @@ export const BlockMap = ({ onClusterSelect }) => {
           {tooltip.visible && tooltip.region && (
             <div
               className="pointer-events-none absolute z-50 w-56 rounded-2xl bg-white border border-slate-200 shadow-xl p-4"
-              style={{
-                left: tooltip.x + 12,
-                top: tooltip.y - 10,
-                transform: "translateY(-100%)",
-              }}
+              style={{ left: tooltip.x + 12, top: tooltip.y - 10, transform: "translateY(-100%)" }}
             >
               <div className="flex items-start justify-between gap-1 flex-wrap">
-                <h4 className="text-xs font-bold text-slate-800">
-                  {formatClusterName(tooltip.region.cluster)}
-                </h4>
-
+                <h4 className="text-xs font-bold text-slate-800">{formatClusterName(tooltip.region.cluster)}</h4>
                 <span className="px-2 py-0.5 text-[11px] font-semibold rounded-md bg-slate-100 text-slate-500">
                   {tooltip.region.n_usuarios} hab.
                 </span>
               </div>
               <div className="mt-3">
                 <p className="text-sm text-slate-400 lowercase">
-                  {activeTab === "CONECTIVIDAD" ? "congestionamento medio" : 
+                  {activeTab === "CONECTIVIDAD" ? "congestionamento medio" :
                    activeTab === "EMPLEO" ? "tasa empleo formal" :
-                   activeTab === "EDUCACION" ? "tasa conclusão ensino médio" : 
+                   activeTab === "EDUCACION" ? "tasa conclusão ensino médio" :
                    "cobertura atenção básica"}
                 </p>
-
-                <p className="text-sm font-bold text-blue-600">
-                  {tooltip.region.valorDisplay}%
-                </p>
+                <p className="text-sm font-bold text-blue-600">{tooltip.region.valorDisplay}%</p>
               </div>
-
               <div className="mt-3 border-t border-slate-200 pt-3">
-                <p className="text-sm text-slate-400">
-                  Clic para ver detalle
-                  <span className="ml-1">→</span>
-                </p>
+                <p className="text-sm text-slate-400">Clic para ver detalle <span className="ml-1">→</span></p>
               </div>
             </div>
           )}
@@ -289,20 +231,16 @@ export const BlockMap = ({ onClusterSelect }) => {
           <span>Escala:</span>
           <div className="flex items-center gap-3 ml-2">
             <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 bg-red-400 border border-red-500 rounded-full inline-block" />{" "}
-              Crítico
+              <span className="w-2.5 h-2.5 bg-red-400 border border-red-500 rounded-full inline-block" /> Crítico
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 bg-amber-300 border border-amber-400 rounded-full inline-block" />{" "}
-              Alerta
+              <span className="w-2.5 h-2.5 bg-amber-300 border border-amber-400 rounded-full inline-block" /> Alerta
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 bg-green-200 border border-green-300 rounded-full inline-block" />{" "}
-              Bueno
+              <span className="w-2.5 h-2.5 bg-green-200 border border-green-300 rounded-full inline-block" /> Bueno
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 bg-blue-200 border border-blue-300 rounded-full inline-block" />{" "}
-              Óptimo
+              <span className="w-2.5 h-2.5 bg-blue-200 border border-blue-300 rounded-full inline-block" /> Óptimo
             </span>
           </div>
         </div>

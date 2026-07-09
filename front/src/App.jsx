@@ -15,9 +15,11 @@ import LandingPage from "./features/dashboard/pages/LandingPage";
 function App() {
   const [currentTab, setCurrentTab] = useState("landing");
   const [selectedCluster, setSelectedCluster] = useState(null);
+  const [selectedMapTab, setSelectedMapTab] = useState("EMPLEO");
 
-  const handleClusterSelect = (clusterName) => {
+  const handleClusterSelect = (clusterName, activeTab = "EMPLEO") => {
     setSelectedCluster(clusterName);
+    setSelectedMapTab(activeTab);
     setCurrentTab("cluster-detail");
   };
 
@@ -35,6 +37,7 @@ function App() {
       ) : currentTab === "cluster-detail" ? (
         <ClusterDetailPage
           clusterName={selectedCluster}
+          activeTab={selectedMapTab}
           onBack={() => {
             setCurrentTab("inicio");
             setSelectedCluster(null);

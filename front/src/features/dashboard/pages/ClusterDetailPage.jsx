@@ -95,9 +95,9 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
     isLoading: loadingMap,
     error: errorMap,
   } = useMapData();
-  const { data: empleoData } = useMapsIndicators("EMPLEO");
-  const { data: educacionData } = useMapsIndicators("EDUCACION");
-  const { data: saludData } = useMapsIndicators("SALUD_MENTAL");
+  const { data: empleoData } = useMapsIndicators("EMPLEO", "taxa_emprego_formal");
+  const { data: educacionData } = useMapsIndicators("EDUCACION", "taxa_conclusao_ensino_medio");
+  const { data: saludData } = useMapsIndicators("SALUD_MENTAL", "cobertura_atencao_basica");
   const { data: programsData } = usePrograms({ cluster: clusterName });
 
   // Mapeo de tabs a títulos y datos
@@ -107,7 +107,22 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
         ? "Emprego vs. Outras Regiões"
         : "Empleo vs. Otras Regiones",
       dataSource: empleoData,
-      getValue: (reg) => 100 - parseFloat(reg.indicadores?.[0]?.valor || 0),
+      getValue: (reg) => {
+        const indicador = reg.indicadores?.find(
+          (i) => i.indicador === "taxa_emprego_formal"
+        );
+        return parseFloat(indicador?.valor || 0);
+      },
+      displaySuffix: "%",
+    },
+    CONECTIVIDAD: {
+      title: isPortugues
+        ? "Conectividade vs. Outras Regiões"
+        : "Conectividad vs. Otras Regiones",
+      dataSource: mapData,
+      getValue: (reg) => {
+        return reg.congestionamento_medio ? Math.max(0, Math.min(100, 100 - reg.congestionamento_medio * 100)) : 0;
+      },
       displaySuffix: "%",
     },
     EDUCACION: {
@@ -116,7 +131,10 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
         : "Educación vs. Otras Regiones",
       dataSource: educacionData,
       getValue: (reg) => {
-        const val = parseFloat(reg.indicadores?.[0]?.valor || 0);
+        const indicador = reg.indicadores?.find(
+          (i) => i.indicador === "taxa_conclusao_ensino_medio"
+        );
+        const val = parseFloat(indicador?.valor || 0);
         return val < 2 ? val * 100 : val;
       },
       displaySuffix: "%",
@@ -127,10 +145,13 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
         : "Salud Mental vs. Otras Regiones",
       dataSource: saludData,
       getValue: (reg) => {
-        const val = parseFloat(reg.indicadores?.[0]?.valor || 0);
-        return Math.min(5, Math.max(0, (val / 15) * 4.8));
+        const indicador = reg.indicadores?.find(
+          (i) => i.indicador === "cobertura_atencao_basica"
+        );
+        const val = parseFloat(indicador?.valor || 0);
+        return val;
       },
-      displaySuffix: "/5",
+      displaySuffix: "%",
     },
   };
 
@@ -161,7 +182,26 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
     return found;
   }, [mapData, empleoData, educacionData, saludData, clusterName]);
 
-  // Obtener indicadores para esta región
+  // n_usuarios se lee desde useMapsIndicators (campo raíz del objeto región),
+  // buscando en cascada: saludData → empleoData → educacionData
+  const nUsuarios = useMemo(() => {
+    if (!clusterName) return null;
+    const sources = [
+      saludData?.regiones,
+      empleoData?.regiones,
+      educacionData?.regiones,
+    ];
+    for (const regiones of sources) {
+      if (!regiones) continue;
+      const reg = regiones.find(
+        (r) => r.cluster.toUpperCase() === clusterName.toUpperCase()
+      );
+      if (reg?.n_usuarios != null) return reg.n_usuarios;
+    }
+    return null;
+  }, [saludData, empleoData, educacionData, clusterName]);
+
+  // Obtener indicadores para esta región, buscando por nombre de indicador
   const regionIndicators = useMemo(() => {
     const indicators = {};
 
@@ -169,8 +209,11 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
       const reg = empleoData.regiones.find(
         (r) => r.cluster.toUpperCase() === clusterName?.toUpperCase(),
       );
-      if (reg?.indicadores?.[0]) {
-        indicators.empleo = 100 - parseFloat(reg.indicadores[0].valor);
+      const indicador = reg?.indicadores?.find(
+        (i) => i.indicador === "taxa_emprego_formal"
+      );
+      if (indicador) {
+        indicators.empleo = parseFloat(indicador.valor);
       }
     }
 
@@ -178,8 +221,11 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
       const reg = educacionData.regiones.find(
         (r) => r.cluster.toUpperCase() === clusterName?.toUpperCase(),
       );
-      if (reg?.indicadores?.[0]) {
-        const val = parseFloat(reg.indicadores[0].valor);
+      const indicador = reg?.indicadores?.find(
+        (i) => i.indicador === "taxa_conclusao_ensino_medio"
+      );
+      if (indicador) {
+        const val = parseFloat(indicador.valor);
         indicators.inclusion = val < 2 ? val * 100 : val;
       }
     }
@@ -188,8 +234,11 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
       const reg = saludData.regiones.find(
         (r) => r.cluster.toUpperCase() === clusterName?.toUpperCase(),
       );
-      if (reg?.indicadores?.[0]) {
-        indicators.saludMental = parseFloat(reg.indicadores[0].valor);
+      const indicador = reg?.indicadores?.find(
+        (i) => i.indicador === "cobertura_atencao_basica"
+      );
+      if (indicador) {
+        indicators.saludMental = parseFloat(indicador.valor);
       }
     }
 
@@ -198,7 +247,7 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
 
   // Contar programas por tipo
   const programCounts = useMemo(() => {
-    const programs = programsData?.programs || [];
+    const programs = Array.isArray(programsData) ? programsData : (programsData?.programs || []);
     return {
       courses: programs.filter((p) => p.tipo === "FORMACION").length,
       mentorings: programs.filter((p) => p.tipo === "MENTORIA").length,
@@ -228,11 +277,9 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
       ? Math.round(100 - selectedRegion.congestionamento_medio * 100)
       : 0;
     const inclusion = regionIndicators.inclusion || 0;
+
     const saludMentalPercent = regionIndicators.saludMental
-      ? Math.max(
-          0,
-          Math.min(100, Math.round((regionIndicators.saludMental / 15) * 100)),
-        )
+      ? Math.max(0, Math.min(100, Math.round(regionIndicators.saludMental)))
       : 0;
 
     const data = [
@@ -294,14 +341,15 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
 
   // Preparar valores para mostrar
   const displayName = formatClusterName(clusterName);
-  const populationValue = selectedRegion.n_usuarios
-    ? selectedRegion.n_usuarios >= 1000000
-      ? `${(selectedRegion.n_usuarios / 1000000).toFixed(1)}M`
-      : `${(selectedRegion.n_usuarios / 1000).toFixed(1)}K`
+
+  const populationValue = nUsuarios != null
+    ? nUsuarios >= 1000000
+      ? `${(nUsuarios / 1000000).toFixed(1)}M`
+      : `${(nUsuarios / 1000).toFixed(1)}K`
     : "0";
 
   const empleoValue = regionIndicators.empleo !== undefined && regionIndicators.empleo !== null
-    ? `${regionIndicators.empleo.toFixed(0)}%`
+    ? `${regionIndicators.empleo.toFixed(1)}%`
     : (isPortugues ? "Sem dados" : "Sin datos");
 
   const conectividadValue = selectedRegion.congestionamento_medio !== undefined && selectedRegion.congestionamento_medio !== null
@@ -309,11 +357,11 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
     : (isPortugues ? "Sem dados" : "Sin datos");
 
   const saludMentalValue = regionIndicators.saludMental !== undefined && regionIndicators.saludMental !== null
-    ? `${Math.min(5, Math.max(0, (regionIndicators.saludMental / 15) * 4.8)).toFixed(1)}/5`
+    ? `${regionIndicators.saludMental.toFixed(1)}%`
     : (isPortugues ? "Sem dados" : "Sin datos");
 
   const inclusionValue = regionIndicators.inclusion !== undefined && regionIndicators.inclusion !== null
-    ? `${regionIndicators.inclusion.toFixed(0)}%`
+    ? `${regionIndicators.inclusion.toFixed(1)}%`
     : (isPortugues ? "Sem dados" : "Sin datos");
 
   const hasAlerts =
@@ -687,7 +735,7 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
                 >
                   {isPortugues
                     ? `Onde faltam programas de formação na Região ${clusterName}?`
-                    : `¿Dónde faltan programas de formación en la Región ${clusterName}?`}
+                    : `¿Dónde faltan programas de formación en la Região ${clusterName}?`}
                 </button>
                 <button
                   onClick={() =>

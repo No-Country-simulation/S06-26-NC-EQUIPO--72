@@ -10,6 +10,7 @@ class MapsService {
     const response = await fetch(url.toString());
 
     const result = await response.json();
+    console.log("resultado de getMapsIndicators", result);
     if (!response.ok) {
       throw new Error("Error al obtener los indicadores", result.message);
     }
@@ -45,6 +46,7 @@ class MapsService {
     });
     const response = await fetch(url.toString());
     const result = await response.json();
+    console.log("resultado de getPrograms", result);
     if (!response.ok) {
       throw new Error("Error al obtener programas", result.message);
     }
