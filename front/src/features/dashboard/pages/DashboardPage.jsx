@@ -698,29 +698,29 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
                   onClick={() =>
                     handleSendMessage(
                       isPortugues
-                        ? "Quais zonas são prioridade para investimento social?"
-                        : "¿Qué zonas son prioridad para inversión social?",
+                      ? "Onde são necessários programas de saúde mental?"
+                      : "¿En donde hacen falta programas de salud mental?",
                     )
                   }
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
                   {isPortugues
-                    ? "Quais zonas são prioridade para investimento social?"
-                    : "¿Qué zonas son prioridad para inversión social?"}
+                    ? "Onde são necessários programas de saúde mental?"
+                    : "¿En donde hacen falta programas de salud mental?"}
                 </button>
                 <button
                   onClick={() =>
                     handleSendMessage(
                       isPortugues
-                        ? "Como a conectividade impacta a saúde mental?"
-                        : "¿Cómo impacta la conectividad en la salud mental?",
+                      ? "¿Os clusters com níveis de escolaridade mais baixos apresentam problemas de conectividade?"
+                      : "¿Los clusters con menos educacion presentan problemas de conectividad?",
                     )
                   }
                   className="w-full text-left text-[11px] text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 p-2 rounded-lg font-medium shadow-2xs transition-colors cursor-pointer leading-tight truncate"
                 >
                   {isPortugues
-                    ? "Como a conectividade impacta a saúde mental?"
-                    : "¿Cómo impacta la conectividad en la salud mental?"}
+                    ? "¡Os clusters com níveis de escolaridade mais baixos apresentam problemas de conectividade?"
+                    : "¿Los clusters con menos educacion presentan problemas de conectividad?"}
                 </button>
               </div>
             )}
