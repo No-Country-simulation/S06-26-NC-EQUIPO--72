@@ -16,6 +16,7 @@ import {
   Bot,
   Loader2,
   AlertCircle,
+  Star,
 } from "lucide-react";
 import {
   BarChart,
@@ -943,40 +944,40 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
         </button>
 
         <button
-          onClick={() => onTabChange?.("alertas")}
-          className="bg-[#fef2f2] hover:bg-[#fee2e2] border border-red-100 rounded-xl p-4 flex items-center justify-between text-left cursor-pointer transition-all duration-200 group"
+          onClick={() => onTabChange?.("experiencias")}
+          className="bg-amber-50 hover:bg-amber-100 border border-amber-100 rounded-xl p-4 flex items-center justify-between text-left cursor-pointer transition-all duration-200 group"
         >
           <div>
-            <h5 className="text-xs font-bold text-red-900">
-              {isPortugues ? "Alertas Ativos" : "Alertas Activas"}
+            <h5 className="text-xs font-bold text-amber-900">
+              {isPortugues ? "Experiências Ativas" : "Experiencias Activas"}
             </h5>
-            <p className="text-[10px] text-red-700/80 mt-1">
+            <p className="text-[10px] text-amber-800/80 mt-1">
               {isPortugues
-                ? "Alertas críticas do portal"
-                : "Alertas críticas del portal"}
+                ? "Experiências comunitárias ativas"
+                : "Experiencias comunitarias activas"}
             </p>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-            <Bell className="w-4 h-4" />
+          <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <Star className="w-4 h-4" />
           </div>
         </button>
 
         <button
-          onClick={() => onTabChange?.("reportes")}
+          onClick={() => onTabChange?.("mentorias")}
           className="bg-[#faf5ff] hover:bg-[#f3e8ff] border border-purple-100 rounded-xl p-4 flex items-center justify-between text-left cursor-pointer transition-all duration-200 group"
         >
           <div>
             <h5 className="text-xs font-bold text-purple-900">
-              {isPortugues ? "Gerar Relatório" : "Generar Reporte"}
+              {isPortugues ? "Programas de Mentoria" : "Programas de Mentoría"}
             </h5>
             <p className="text-[10px] text-purple-700/80 mt-1">
               {isPortugues
-                ? "Exportar relatório analítico"
-                : "Exportar informe analítico"}
+                ? "Apoio e mentorias regionais"
+                : "Apoyo y mentorías regionales"}
             </p>
           </div>
           <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-            <FileText className="w-4 h-4" />
+            <Users className="w-4 h-4" />
           </div>
         </button>
       </div>
