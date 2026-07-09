@@ -310,8 +310,8 @@ function ExperienciasPage() {
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             {isPortugues
-              ? "Iniciativas de sucesso replicáveis e projetos comunitários de alto impacto em Florianópolis"
-              : "Iniciativas exitosas replicables y proyectos comunitarios de alto impacto en Florianópolis"}
+              ? "Iniciativas de sucesso replicáveis e projetos comunitários de alto impacto"
+              : "Iniciativas exitosas replicables y proyectos comunitarios de alto impacto"}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
