@@ -65,14 +65,14 @@ function ClusterDetailPage({ clusterName, onBack, activeTab = "EMPLEO" }) {
             { sender: "ai", text: data.respuesta_ia },
           ]);
         },
-        onError: () => {
+        onError: (error) => {
           setMessages((prev) => [
             ...prev,
             {
               sender: "ai",
-              text: isPortugues
+              text: error.message || (isPortugues
                 ? "Desculpe, ocorreu um erro ao processar sua consulta. Por favor, tente novamente mais tarde."
-                : "Lo siento, ocurrió un error al procesar tu consulta. Por favor, intenta de nuevo más tarde.",
+                : "Lo siento, ocurrió un error al procesar tu consulta. Por favor, intenta de nuevo más tarde."),
             },
           ]);
         },
