@@ -16,6 +16,7 @@ import {
   Bot,
   Loader2,
   AlertCircle,
+  Star,
 } from "lucide-react";
 import {
   BarChart,
@@ -71,14 +72,14 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
             { sender: "ai", text: data.respuesta_ia },
           ]);
         },
-        onError: () => {
+        onError: (error) => {
           setMessages((prev) => [
             ...prev,
             {
               sender: "ai",
-              text: isPortugues
+              text: error.message || (isPortugues
                 ? "Desculpe, ocorreu um erro ao processar sua consulta. Por favor, tente novamente mais tarde."
-                : "Lo siento, ocurrió un error al procesar tu consulta. Por favor, intenta de nuevo más tarde.",
+                : "Lo siento, ocurrió un error al procesar tu consulta. Por favor, intenta de nuevo más tarde."),
             },
           ]);
         },
@@ -492,11 +493,7 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
           <h2 className="text-xl font-bold text-slate-800 leading-tight">
             {isPortugues ? "Painel Principal" : "Panel Principal"}
           </h2>
-          <p className="text-xs text-slate-500">
-            {isPortugues
-              ? "Atualizado: 10 de dezembro de 2024, 09:42 – 9 regiões analisadas"
-              : "Actualizado: 10 dic 2024, 09:42 - 9 regiones analizadas"}
-          </p>
+          
         </div>
         <div className="flex items-center gap-2">
           <button className="flex items-center gap-1.5 bg-white border border-slate-200 text-xs font-semibold text-slate-700 px-3 py-2 rounded-lg hover:bg-slate-50 cursor-pointer">
@@ -947,40 +944,40 @@ function DashboardPage({ onTabChange, onClusterSelect }) {
         </button>
 
         <button
-          onClick={() => onTabChange?.("alertas")}
-          className="bg-[#fef2f2] hover:bg-[#fee2e2] border border-red-100 rounded-xl p-4 flex items-center justify-between text-left cursor-pointer transition-all duration-200 group"
+          onClick={() => onTabChange?.("experiencias")}
+          className="bg-amber-50 hover:bg-amber-100 border border-amber-100 rounded-xl p-4 flex items-center justify-between text-left cursor-pointer transition-all duration-200 group"
         >
           <div>
-            <h5 className="text-xs font-bold text-red-900">
-              {isPortugues ? "Alertas Ativos" : "Alertas Activas"}
+            <h5 className="text-xs font-bold text-amber-900">
+              {isPortugues ? "Experiências Ativas" : "Experiencias Activas"}
             </h5>
-            <p className="text-[10px] text-red-700/80 mt-1">
+            <p className="text-[10px] text-amber-800/80 mt-1">
               {isPortugues
-                ? "Alertas críticas do portal"
-                : "Alertas críticas del portal"}
+                ? "Experiências comunitárias ativas"
+                : "Experiencias comunitarias activas"}
             </p>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-            <Bell className="w-4 h-4" />
+          <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <Star className="w-4 h-4" />
           </div>
         </button>
 
         <button
-          onClick={() => onTabChange?.("reportes")}
+          onClick={() => onTabChange?.("mentorias")}
           className="bg-[#faf5ff] hover:bg-[#f3e8ff] border border-purple-100 rounded-xl p-4 flex items-center justify-between text-left cursor-pointer transition-all duration-200 group"
         >
           <div>
             <h5 className="text-xs font-bold text-purple-900">
-              {isPortugues ? "Gerar Relatório" : "Generar Reporte"}
+              {isPortugues ? "Programas de Mentoria" : "Programas de Mentoría"}
             </h5>
             <p className="text-[10px] text-purple-700/80 mt-1">
               {isPortugues
-                ? "Exportar relatório analítico"
-                : "Exportar informe analítico"}
+                ? "Apoio e mentorias regionais"
+                : "Apoyo y mentorías regionales"}
             </p>
           </div>
           <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-            <FileText className="w-4 h-4" />
+            <Users className="w-4 h-4" />
           </div>
         </button>
       </div>

@@ -15,7 +15,7 @@ class AiService {
 
     const result = await response.json();
     if (!response.ok) {
-      throw new Error(result.message || "Error al realizar la consulta al asistente de IA");
+      throw new Error(result.mensaje || result.message || "Error al realizar la consulta al asistente de IA");
     }
     return result;
   }
