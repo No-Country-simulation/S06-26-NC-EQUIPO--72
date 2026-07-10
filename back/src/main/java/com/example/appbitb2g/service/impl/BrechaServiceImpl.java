@@ -23,7 +23,10 @@ public class BrechaServiceImpl implements BrechasService {
 	@Override
 	public GapsResponseDTO analizarBrechas(String servicio, String municipio, String periodo, String incomeCluster) {
 		if (servicio == null || servicio.isBlank() || servicio.trim().isEmpty()) {
-			throw new BadRequestException("El parámetro 'servicio' es obligatorio en la consulta.");
+			throw new BadRequestException(
+					"FILTRO_INVALIDO",
+					"El parámetro 'servicio' es obligatorio en la consulta."
+			);
 		}
 
 		// normalización parámetros 'servicio' y 'periodo'
@@ -32,15 +35,20 @@ public class BrechaServiceImpl implements BrechasService {
 
 		if (ServiceType.fromString(servicio) == null) {
 			throw new BadRequestException(
+					"FILTRO_INVALIDO",
 					"El valor de 'servicio' debe ser MENTORIA / FORMACION / EXPERIENCIA / SALUD_MENTAL / EMPLEO");
 		}
 
 		if (DayPeriod.fromString(periodo) == null) {
-			throw new BadRequestException("El valor de 'periodo' debe ser MADRUGADA / MANHA / TARDE / NOITE.");
+			throw new BadRequestException(
+					"FILTRO_INVALIDO",
+					"El valor de 'periodo' debe ser MADRUGADA / MANHA / TARDE / NOITE."
+			);
 		}
-      
+
 		if (incomeCluster != null && !CLUSTER_VALIDOS.contains(incomeCluster.toUpperCase())) {
 			throw new BadRequestException(
+					"FILTRO_INVALIDO",
 					"El valor de cluster debe ser A / B / C / D");
 		}
 
