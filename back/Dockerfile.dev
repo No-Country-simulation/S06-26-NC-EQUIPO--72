@@ -1,0 +1,22 @@
+FROM eclipse-temurin:21-jdk-jammy
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+COPY .mvn .mvn
+COPY mvnw pom.xml ./
+
+RUN chmod +x mvnw
+RUN ./mvnw --version || true
+
+ENV MAVEN_OPTS="-Dmaven.repo.local=/root/.m2/repository"
+
+RUN ./mvnw dependency:go-offline
+
+EXPOSE 8080
+
+COPY watch-and-compile.sh /usr/local/bin/watch-and-compile.sh
+RUN chmod +x /usr/local/bin/watch-and-compile.sh
+
+CMD ["bash", "-c", "watch-and-compile.sh & ./mvnw spring-boot:run"]

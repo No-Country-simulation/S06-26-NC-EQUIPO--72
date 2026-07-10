@@ -1,0 +1,160 @@
+services:
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: Appbitb2g_PhpMyAdmin
+    restart: always
+
+    ports:
+      - "8081:80"
+
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USER}
+      PMA_PASSWORD: ${DB_PASSWORD}
+
+    depends_on:
+      - db
+
+    networks:
+      - app-network
+
+  db:
+    image: mysql:8.0
+    container_name: Appbitb2g_Mysql
+    restart: always
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --local-infile=1
+      --innodb-redo-log-capacity=4294967296
+      --innodb-log-buffer-size=256M
+      --innodb-flush-log-at-trx-commit=2
+      --innodb-buffer-pool-size=1G
+      --slow_query_log=1
+      --long_query_time=0
+      --log_queries_not_using_indexes=1
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      DB_READONLY_USER: ${DB_READONLY_USER}
+      DB_READONLY_PASSWORD: ${DB_READONLY_PASSWORD}
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER}", "-p${DB_PASSWORD}"]
+      timeout: 5s
+      retries: 10
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./back
+      dockerfile: Dockerfile.dev
+    container_name: Appbitb2g
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./back:/app
+      - /app/target
+      - ~/.m2:/root/.m2
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/${DB_NAME}?createDatabaseIfNotExist=true&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_JPA_SHOW_SQL=true
+      - SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
+      - LOGGING_LEVEL_ORG_HIBERNATE_ORM_RESULTS_BASIC=TRACE
+      - AI_SERVICE_URL=${AI_SERVICE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8080/api/actuator/health | grep UP || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
+    networks:
+      - app-network
+
+
+
+  react-frontend:
+    container_name: react_app
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    restart: always
+
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+      - HOST=0.0.0.0
+      - NODE_ENV=development
+
+    volumes:
+      - ./front:/app
+      - /app/node_modules  
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  qdrant:
+    image: qdrant/qdrant:v1.18.0
+    container_name: Appbitb2g_Qdrant
+    restart: always
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - app-network
+
+  ai:
+    build:
+      context: ./ai
+      dockerfile: Dockerfile
+    container_name: Appbitb2g_AI
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./ai:/app
+      - /app/__pycache__
+      - ./ai/data:/app/data
+    env_file:
+      - ./ai/.env  # Usa el .env del directorio ai/
+    environment:
+      - DB_READONLY_USER=${DB_READONLY_USER}
+      - DB_READONLY_PASSWORD=${DB_READONLY_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    networks:
+      - app-network
+
+
+volumes:
+  mysql_data:
+  qdrant_data:
+
+networks:
+  app-network:
+    driver: bridge
+
