@@ -24,7 +24,7 @@ public class DataServiceImp implements DataService {
 	public AiQueryResponseDTO aiQueryAgent(AiQueryRequestDTO requestDto) {
 		if (requestDto.consulta() == null || requestDto.consulta().isBlank()) {
 			throw new IrrelevantQueryException(
-					"CONSULTA_IRRELEVANTE",
+					"CONSULTA_VACIA",
 					"El campo 'consulta' es obligatorio."
 			);
 		}
