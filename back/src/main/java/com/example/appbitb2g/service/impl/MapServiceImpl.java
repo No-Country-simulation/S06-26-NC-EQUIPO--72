@@ -3,8 +3,10 @@ package com.example.appbitb2g.service.impl;
 import com.example.appbitb2g.dto.responseDTO.socialProgram.MapIndicadoresResponseDTO;
 import com.example.appbitb2g.dto.responseDTO.socialProgram.MapResponseDTO;
 import com.example.appbitb2g.dto.responseDTO.territorialIndicator.IndicadorEvolucionResponseDTO;
+import com.example.appbitb2g.enums.DayPeriod;
 import com.example.appbitb2g.enums.ServiceType;
 import com.example.appbitb2g.exception.BadRequestException;
+import com.example.appbitb2g.exception.NotFoundException;
 import com.example.appbitb2g.repository.AntenaRepository;
 import com.example.appbitb2g.repository.ConcentracaoRepository;
 import com.example.appbitb2g.repository.TerritorialIndicatorsRepository;
@@ -48,16 +50,34 @@ public class MapServiceImpl implements MapService {
 					"El valor de Categoria debe ser SALUD_MENTAL / EMPLEO / EDUCACION");
 		}
 
+		String rawJson = territorialIndicatorsRepository.getIndicatorsRawJson(categoria, indicador, municipio);
+		MapIndicadoresResponseDTO responseDTO;
+
 		try {
-			String rawJson = territorialIndicatorsRepository.getIndicatorsRawJson(categoria, indicador, municipio);
-			return objectMapper.readValue(rawJson, MapIndicadoresResponseDTO.class);
+			responseDTO = objectMapper.readValue(rawJson, MapIndicadoresResponseDTO.class);
 		} catch (Exception e) {
 			throw new RuntimeException("Error al parsear el JSON por categoría", e);
 		}
+
+		if (responseDTO.regiones().isEmpty()) {
+			throw new NotFoundException(
+					"SIN_RESULTADOS",
+					"No se encontraron datos para los filtros aplicados."
+			);
+		}
+
+		return responseDTO;
 	}
 
 	@Override
 	public MapResponseDTO obtenerMapa(String periodo, String municipio, String fecha) {
+		if (DayPeriod.fromString(periodo) == null) {
+			throw new BadRequestException(
+					"FILTRO_INVALIDO",
+					"El valor de ´periodo´ debe ser MADRUGADA / MANHA / TARDE / NOITE"
+			);
+		}
+
 		// Si los filtros vienen vacion de Front asignamos valores por defecto
 		String periodoFinal = (periodo != null && !periodo.isBlank()) ? periodo.toUpperCase() : "TARDE";
 		LocalDate fechaFinal = (fecha != null && !fecha.isBlank())
@@ -95,11 +115,22 @@ public class MapServiceImpl implements MapService {
 			};
 		}
 
+		String rawJson = territorialIndicatorsRepository.getIndicatorEvolutionRawJson(categoria, indicadorFinal, municipio);
+		IndicadorEvolucionResponseDTO responseDTO;
+
 		try {
-			String rawJson = territorialIndicatorsRepository.getIndicatorEvolutionRawJson(categoria, indicadorFinal, municipio);
-			return objectMapper.readValue(rawJson, IndicadorEvolucionResponseDTO.class);
+			responseDTO = objectMapper.readValue(rawJson, IndicadorEvolucionResponseDTO.class);
 		} catch (Exception e) {
 			throw new RuntimeException("Error al parsear el JSON de evolución del indicador", e);
 		}
+
+		if (responseDTO.evolucion().isEmpty()) {
+			throw new NotFoundException(
+					"SIN_RESULTADOS",
+					"No se encontraron datos para los filtros aplicados."
+			);
+		}
+
+		return responseDTO;
 	}
 }
