@@ -45,7 +45,7 @@ public class BrechaServiceImpl implements BrechasService {
 			);
 		}
 
-		if (ClusterValue.fromString(incomeCluster) == null) {
+		if (incomeCluster != null && ClusterValue.fromString(incomeCluster) == null) {
 			throw new BadRequestException(
 					"FILTRO_INVALIDO",
 					"El valor de cluster debe ser A / B / C / D");
