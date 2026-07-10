@@ -1,125 +1,111 @@
 package com.example.appbitb2g.service.impl;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import com.example.appbitb2g.dto.responseDTO.socialProgram.SocialProgramListResponseDTO;
-import com.example.appbitb2g.service.SocialProgramService;
-
-import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.ModelAttribute;
-
 import com.example.appbitb2g.dto.requestDTO.socialProgram.SocialProgramFilterDTO;
 import com.example.appbitb2g.dto.requestDTO.socialProgram.SocialProgramRequestDTO;
 import com.example.appbitb2g.dto.responseDTO.socialProgram.SocialProgramResponseDTO;
-import com.example.appbitb2g.mapper.ClusterCount;
+import com.example.appbitb2g.exception.NotFoundException;
 import com.example.appbitb2g.mapper.SocialProgramMapper;
 import com.example.appbitb2g.model.SocialProgram;
 import com.example.appbitb2g.repository.SocialProgramRepository;
-
+import com.example.appbitb2g.service.SocialProgramService;
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class SocialProgramServiceImpl implements SocialProgramService {
 
-        private final SocialProgramRepository socialProgramRepository;
-        private final SocialProgramMapper socialProgramMapper;
+	private final SocialProgramRepository socialProgramRepository;
+	private final SocialProgramMapper socialProgramMapper;
 
-        @Transactional
-        public SocialProgramResponseDTO createProgram(SocialProgramRequestDTO socialProgramRequestDTO) {
-                if (socialProgramRequestDTO.getFechaInicio() == null) {
-                        socialProgramRequestDTO.setFechaInicio(LocalDate.now());
-                }
+	@Transactional
+	public SocialProgramResponseDTO createProgram(SocialProgramRequestDTO socialProgramRequestDTO) {
+		if (socialProgramRequestDTO.getFechaInicio() == null) {
+			socialProgramRequestDTO.setFechaInicio(LocalDate.now());
+		}
 
-                socialProgramRequestDTO.setActivo(true);
+		socialProgramRequestDTO.setActivo(true);
 
-                SocialProgram socialProgram = socialProgramMapper.toEntity(socialProgramRequestDTO);
+		SocialProgram socialProgram = socialProgramMapper.toEntity(socialProgramRequestDTO);
 
-                var socialProgramdb = socialProgramRepository.save(socialProgram);
+		var socialProgramdb = socialProgramRepository.save(socialProgram);
 
-                var socialDto = SocialProgramResponseDTO.builder()
-                                .id(socialProgramdb.getId())
-                                .mensaje("Programa registrado correctamente.")
-                                .build();
+		var socialDto = SocialProgramResponseDTO.builder()
+				.id(socialProgramdb.getId())
+				.mensaje("Programa registrado correctamente.")
+				.build();
 
-                return socialDto;
-        }
+		return socialDto;
+	}
 
-        @Transactional(readOnly = true)
-        public List<SocialProgramResponseDTO.ProgramDetail> programs(SocialProgramFilterDTO filtro) {
+	@Transactional(readOnly = true)
+	public List<SocialProgramResponseDTO.ProgramDetail> programs(SocialProgramFilterDTO filtro) {
 
-                SocialProgramFilterDTO f = (filtro != null) ? filtro
-                                : new SocialProgramFilterDTO(null, null, null, true);
+		SocialProgramFilterDTO f = (filtro != null) ? filtro
+				: new SocialProgramFilterDTO(null, null, null, true);
 
-                List<SocialProgram> socialProgramDetailPag = socialProgramRepository.findWithDynamicFilters(
-                                f.tipo(),
-                                f.municipio(),
-                                f.cluster(),
-                                f.activo());
+		List<SocialProgram> socialProgramDetailPag = socialProgramRepository.findWithDynamicFilters(
+				f.tipo(),
+				f.municipio(),
+				f.cluster(),
+				f.activo());
 
-                List<Object[]> rawTotals = socialProgramRepository.countSocialProgramRaw();
+		List<Object[]> rawTotals = socialProgramRepository.countSocialProgramRaw();
 
-                Map<String, Long> clusterTotalsMap = rawTotals.stream()
-                                .collect(Collectors.toMap(
-                                                fila -> (String) fila[0],
-                                                fila -> (Long) fila[1]));
+		Map<String, Long> clusterTotalsMap = rawTotals.stream()
+				.collect(Collectors.toMap(
+						fila -> (String) fila[0],
+						fila -> (Long) fila[1]));
 
-                return socialProgramDetailPag.stream().map(sp -> {
-                        Long totalParaEsteCluster = clusterTotalsMap.getOrDefault(sp.getCluster(), 0L);
-                        double promedioReplicable = (sp.getReplicable() != null) ? sp.getReplicable() * 4.0 : 0.0;
-                        double bonusPorVolumen = totalParaEsteCluster * 0.1;
-                        double efectividadCalculada = Math.round((promedioReplicable + bonusPorVolumen) * 10.0) / 10.0;
+		return socialProgramDetailPag.stream().map(sp -> {
+			Long totalParaEsteCluster = clusterTotalsMap.getOrDefault(sp.getCluster(), 0L);
+			double promedioReplicable = (sp.getReplicable() != null) ? sp.getReplicable() * 4.0 : 0.0;
+			double bonusPorVolumen = totalParaEsteCluster * 0.1;
+			double efectividadCalculada = Math.round((promedioReplicable + bonusPorVolumen) * 10.0) / 10.0;
 
-                     
-                        efectividadCalculada = Math.min(5.0, efectividadCalculada);
 
-                        return this.socialProgramMapper.toProgramDetailDto(sp, totalParaEsteCluster,
-                                        efectividadCalculada);
-                }).collect(Collectors.toList());
-        }
+			efectividadCalculada = Math.min(5.0, efectividadCalculada);
 
-        public SocialProgramResponseDTO deleteProgram(Integer id) {
+			return this.socialProgramMapper.toProgramDetailDto(sp, totalParaEsteCluster,
+					efectividadCalculada);
+		}).collect(Collectors.toList());
+	}
 
-                SocialProgram program = socialProgramRepository.findById(id).orElseThrow(
-                                () -> new com.example.appbitb2g.exception.NotFoundException(
-                                                "No existe un programa con el id indicado."));
+	public SocialProgramResponseDTO deleteProgram(Integer id) {
 
-                socialProgramRepository.deleteById(program.getId());
+		SocialProgram program = socialProgramRepository.findById(id).orElseThrow(
+				() -> new NotFoundException(
+						"PROGRAMA_NO_ENCONTRADO",
+						"No existe un programa con el id indicado."));
 
-                return SocialProgramResponseDTO.builder()
-                                .id(id)
-                                .mensaje("Programa desactivado correctamente.")
-                                .build();
-        }
+		socialProgramRepository.deleteById(program.getId());
 
-        public SocialProgramResponseDTO updateProgram(Integer id, SocialProgramRequestDTO requestDto) {
+		return SocialProgramResponseDTO.builder()
+				.id(id)
+				.mensaje("Programa desactivado correctamente.")
+				.build();
+	}
 
-                SocialProgram program = socialProgramRepository.findById(id).orElseThrow(
-                                () -> new com.example.appbitb2g.exception.NotFoundException(
-                                                "No existe un programa con el id indicado."));
+	public SocialProgramResponseDTO updateProgram(Integer id, SocialProgramRequestDTO requestDto) {
 
-                socialProgramMapper.updateEntityFromDto(requestDto, program);
+		SocialProgram program = socialProgramRepository.findById(id).orElseThrow(
+				() -> new NotFoundException(
+						"PROGRAMA_NO_ENCONTRADO",
+						"No existe un programa con el id indicado."));
 
-                SocialProgram updatedProgram = socialProgramRepository.save(program);
+		socialProgramMapper.updateEntityFromDto(requestDto, program);
 
-                return SocialProgramResponseDTO.builder()
-                                .id(updatedProgram.getId())
-                                .mensaje("Programa actualizado correctamente.")
-                                .build();
-        }
+		SocialProgram updatedProgram = socialProgramRepository.save(program);
 
-        /*
-         *
-         * SERVICIOS DE FORMACIONES
-         * *
-         */
-
+		return SocialProgramResponseDTO.builder()
+				.id(updatedProgram.getId())
+				.mensaje("Programa actualizado correctamente.")
+				.build();
+	}
 }
