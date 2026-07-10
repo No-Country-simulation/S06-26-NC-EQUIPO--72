@@ -1,6 +1,7 @@
 package com.example.appbitb2g.service.impl;
 
 import com.example.appbitb2g.dto.responseDTO.socialProgram.GapsResponseDTO;
+import com.example.appbitb2g.enums.ClusterValue;
 import com.example.appbitb2g.enums.DayPeriod;
 import com.example.appbitb2g.enums.ServiceType;
 import com.example.appbitb2g.exception.BadRequestException;
@@ -9,12 +10,10 @@ import com.example.appbitb2g.service.BrechasService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class BrechaServiceImpl implements BrechasService {
 	private final GapsDashboardRepository gapsDashboardRepository;
-	private static final Set<String> CLUSTER_VALIDOS = Set.of("A", "B", "C", "D");
 
 	public BrechaServiceImpl(GapsDashboardRepository gapsDashboardRepository) {
 		this.gapsDashboardRepository = gapsDashboardRepository;
@@ -46,7 +45,7 @@ public class BrechaServiceImpl implements BrechasService {
 			);
 		}
 
-		if (incomeCluster != null && !CLUSTER_VALIDOS.contains(incomeCluster.toUpperCase())) {
+		if (ClusterValue.fromString(incomeCluster) == null) {
 			throw new BadRequestException(
 					"FILTRO_INVALIDO",
 					"El valor de cluster debe ser A / B / C / D");
