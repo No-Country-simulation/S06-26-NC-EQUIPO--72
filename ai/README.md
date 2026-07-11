@@ -1,3 +1,4 @@
+
 # App BiT - AI Service
 
 Agente de IA para consultas en lenguaje natural sobre datos de inclusión social, con pipeline ETL integrado para cargar datos desde CSVs.
