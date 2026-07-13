@@ -49,7 +49,7 @@ App BiT es una plataforma B2G (Business to Government) diseñada para transforma
 
 ### El problema que resuelve
 
-Los equipos técnicos y analistas pierden horas buscando datos dispersos, mientras que los decisores políticos no pueden consultarlos sin intermediarios. App BiT elimina esta fricción: permite a un gestor preguntar en lenguaje natural (ej: "¿Cuál es el índice de movilidad en esta región?") y obtener una respuesta precisa en segundos, apoyada por el cruce de datos reales.
+Los equipos técnicos y analistas pierden horas buscando datos dispersos, mientras que los decisores políticos no pueden consultarlos sin intermediarios. App BiT elimina esta fricción: permite a un gestor preguntar en lenguaje natural (ej: "¿Hay relación entre el nivel de conectividad y el nivel de educación?") y obtener una respuesta precisa en segundos, apoyada por el cruce de datos reales.
 
 ### Contexto del MVP
 
