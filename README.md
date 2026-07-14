@@ -45,11 +45,11 @@ Panel de Datos Públicos - App BiT (B2G)
 
 ### ¿Qué es App BiT?
 
-App BiT es una plataforma B2G (Business to Government) diseñada para transformar la gestión de políticas públicas de movilidad en ciudades inteligentes. Nace de la necesidad de los gestores públicos de acceder a datos complejos (más de 7.7 millones de filas de movilidad y datos de salud mental) que hoy están atrapados en archivos inaccesibles (PDFs o Excels).
+App BiT es una plataforma B2G (Business to Government) diseñada para transformar la gestión de políticas públicas de movilidad en ciudades inteligentes. Nace de la necesidad de los gestores públicos de acceder a datos complejos (más de 18 millones de datos) que hoy están atrapados en archivos dificiles de analizar (Excels).
 
 ### El problema que resuelve
 
-Los equipos técnicos y analistas pierden horas buscando datos dispersos, mientras que los decisores políticos no pueden consultarlos sin intermediarios. App BiT elimina esta fricción: permite a un gestor preguntar en lenguaje natural (ej: "¿Cuál es el índice de movilidad en esta región?") y obtener una respuesta precisa en segundos, apoyada por el cruce de datos reales.
+Los equipos técnicos y analistas pierden horas buscando datos dispersos, mientras que los decisores políticos no pueden consultarlos sin intermediarios. App BiT elimina esta fricción: permite a un gestor preguntar en lenguaje natural (ej: "¿Hay relación entre el nivel de conectividad y el nivel de educación?") y obtener una respuesta precisa en segundos, apoyada por el cruce de datos reales.
 
 ### Contexto del MVP
 
