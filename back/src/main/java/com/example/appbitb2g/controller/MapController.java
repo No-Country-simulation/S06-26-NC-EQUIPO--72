@@ -58,6 +58,11 @@ public class MapController {
 		return ResponseEntity.ok(response);
 	}
 
+	@GetMapping("/test")
+	public ResponseEntity<?> test() { 
+		return ResponseEntity.ok("Test endpoint is working?? se");
+	}
+
 	// GET /mapa/indicadores?categoria=EDUCACION
 	@Operation(
 			summary = "Obtener indicadores por región",

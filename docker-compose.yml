@@ -27,10 +27,10 @@ services:
     command: >
       --default-authentication-plugin=mysql_native_password
       --local-infile=1
-      --innodb-redo-log-capacity=4294967296
-      --innodb-log-buffer-size=256M
+      --innodb-redo-log-capacity=512M
+      --innodb-log-buffer-size=64M
       --innodb-flush-log-at-trx-commit=2
-      --innodb-buffer-pool-size=1G
+      --innodb-buffer-pool-size=512M
       --slow_query_log=1
       --long_query_time=0
       --log_queries_not_using_indexes=1
@@ -61,8 +61,8 @@ services:
       - "8080:8080"
     volumes:
       - ./back:/app
-      - /app/target
       - ~/.m2:/root/.m2
+      - /app/target
     env_file:
       - .env
     environment:
