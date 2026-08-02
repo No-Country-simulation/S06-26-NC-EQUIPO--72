@@ -1,0 +1,396 @@
+[
+  {
+    "id": "eval_001",
+    "categoria": "brecha_servicio",
+    "consulta": "¿Dónde faltan programas de formación en Florianópolis?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "plan.servicio": "FORMACION",
+      "plan.municipio": "Florianópolis",
+      "schema_decision.endpoint": "/brechas",
+      "schema_decision.params.servicio": "FORMACION",
+      "tool_results_not_empty": true,
+      "visualizacion_sugerida": "mapa_brechas"
+    }
+  },
+  {
+    "id": "eval_002",
+    "categoria": "brecha_servicio",
+    "consulta": "¿Dónde faltan programas de mentoría en São José?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "plan.servicio": "MENTORIA",
+      "plan.municipio": "São José",
+      "schema_decision.endpoint": "/brechas",
+      "schema_decision.params.servicio": "MENTORIA",
+      "tool_results_not_empty": true,
+      "visualizacion_sugerida": "mapa_brechas"
+    }
+  },
+  {
+    "id": "eval_003",
+    "categoria": "brecha_servicio",
+    "consulta": "¿En qué zonas de Palhoça faltan experiencias estructurales?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "plan.servicio": "EXPERIENCIA",
+      "plan.municipio": "Palhoça",
+      "schema_decision.endpoint": "/brechas",
+      "schema_decision.params.servicio": "EXPERIENCIA",
+      "tool_results_not_empty": true,
+      "visualizacion_sugerida": "mapa_brechas"
+    }
+  },
+  {
+    "id": "eval_004",
+    "categoria": "brecha_servicio",
+    "consulta": "¿Qué zonas de Biguaçu no tienen programas de empleo?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "plan.servicio": "EMPLEO",
+      "plan.municipio": "Biguaçu",
+      "schema_decision.endpoint": "/brechas",
+      "schema_decision.params.servicio": "EMPLEO",
+      "tool_results_not_empty": true,
+      "visualizacion_sugerida": "mapa_brechas"
+    }
+  },
+  {
+    "id": "eval_005",
+    "categoria": "brecha_servicio",
+    "consulta": "¿Dónde hay brechas de salud mental en Florianópolis?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "plan.servicio": "SALUD_MENTAL",
+      "plan.municipio": "Florianópolis",
+      "schema_decision.endpoint": "/brechas",
+      "schema_decision.params.servicio": "SALUD_MENTAL",
+      "tool_results_not_empty": true,
+      "visualizacion_sugerida": "mapa_brechas"
+    }
+  },
+  {
+    "id": "eval_006",
+    "categoria": "indicador_simple",
+    "consulta": "¿Cuál es la tasa de desempleo en Florianópolis?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "plan.servicio": "EMPLEO",
+      "plan.indicador": "taxa_desemprego",
+      "plan.municipio": "Florianópolis",
+      "schema_decision.endpoint": "/mapa/indicadores",
+      "schema_decision.params.categoria": "EMPLEO",
+      "tool_results_not_empty": true,
+      "visualizacion_sugerida": "mapa_indicadores"
+    }
+  },
+  {
+    "id": "eval_007",
+    "categoria": "indicador_simple",
+    "consulta": "¿Cómo está la educación en São José?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "plan.servicio": "EDUCACION",
+      "plan.municipio": "São José",
+      "schema_decision.endpoint": "/mapa/indicadores",
+      "schema_decision.params.categoria": "EDUCACION",
+      "tool_results_not_empty": true,
+      "visualizacion_sugerida": "mapa_indicadores"
+    }
+  },
+  {
+    "id": "eval_008",
+    "categoria": "indicador_simple",
+    "consulta": "¿Cuál es la tasa de internación psiquiátrica en Palhoça?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "plan.servicio": "SALUD_MENTAL",
+      "plan.indicador": "taxa_internacao_psiquiatrica",
+      "plan.municipio": "Palhoça",
+      "schema_decision.endpoint": "/mapa/indicadores",
+      "schema_decision.params.categoria": "SALUD_MENTAL",
+      "tool_results_not_empty": true,
+      "visualizacion_sugerida": "mapa_indicadores"
+    }
+  },
+  {
+    "id": "eval_009",
+    "categoria": "indicador_simple",
+    "consulta": "¿Cuál es la cobertura de atención básica en Florianópolis?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "plan.servicio": "SALUD_MENTAL",
+      "plan.indicador": "cobertura_atencao_basica",
+      "plan.municipio": "Florianópolis",
+      "schema_decision.endpoint": "/mapa/indicadores",
+      "schema_decision.params.categoria": "SALUD_MENTAL",
+      "tool_results_not_empty": true,
+      "visualizacion_sugerida": "mapa_indicadores"
+    }
+  },
+  {
+    "id": "eval_010",
+    "categoria": "red_pura",
+    "consulta": "¿Cómo es la conectividad móvil en Florianópolis?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "schema_decision.endpoint": "/mapa",
+      "tool_results_not_empty": true,
+      "visualizacion_sugerida": "mapa_indicadores"
+    }
+  },
+  {
+    "id": "eval_011",
+    "categoria": "red_pura",
+    "consulta": "¿Qué zonas de São José tienen mayor congestión de red?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "plan.municipio": "São José",
+      "schema_decision.endpoint": "/mapa",
+      "tool_results_not_empty": true,
+      "visualizacion_sugerida": "mapa_indicadores"
+    }
+  },
+  {
+    "id": "eval_012",
+    "categoria": "red_pura",
+    "consulta": "¿Cuántos usuarios de red móvil hay en Trindade?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "plan.cluster": "TRINDADE",
+      "plan.municipio": "Florianópolis",
+      "schema_decision.endpoint": "/mapa",
+      "tool_results_not_empty": true,
+      "visualizacion_sugerida": "mapa_indicadores"
+    }
+  },
+  {
+    "id": "eval_013",
+    "categoria": "programas",
+    "consulta": "¿Qué programas sociales hay en São José?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "plan.municipio": "São José",
+      "schema_decision.endpoint": "/programas",
+      "tool_results_not_empty": true,
+      "visualizacion_sugerida": "tabla_datos"
+    }
+  },
+  {
+    "id": "eval_014",
+    "categoria": "programas",
+    "consulta": "¿Qué programas de formación hay en Florianópolis?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "plan.servicio": "FORMACION",
+      "plan.municipio": "Florianópolis",
+      "schema_decision.endpoint": "/programas",
+      "schema_decision.params.tipo": "FORMACION",
+      "tool_results_not_empty": true,
+      "visualizacion_sugerida": "tabla_datos"
+    }
+  },
+  {
+    "id": "eval_015",
+    "categoria": "compuesta",
+    "consulta": "¿Qué relación hay entre conectividad y educación en Florianópolis?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "compuesta",
+      "merge_strategy": "relacional",
+      "tool_results_not_empty": true
+    }
+  },
+  {
+    "id": "eval_016",
+    "categoria": "compuesta",
+    "consulta": "¿Dónde hay alto desempleo y baja conectividad?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "compuesta",
+      "tool_results_not_empty": true
+    }
+  },
+  {
+    "id": "eval_017",
+    "categoria": "compuesta",
+    "consulta": "¿Cómo se relaciona la salud mental con la congestión de red en São José?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "compuesta",
+      "merge_strategy": "relacional",
+      "tool_results_not_empty": true
+    }
+  },
+  {
+    "id": "eval_018",
+    "categoria": "compuesta",
+    "consulta": "¿Qué clusters con brechas de mentoría tienen mala conectividad?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "compuesta",
+      "tool_results_not_empty": true
+    }
+  },
+  {
+    "id": "eval_019",
+    "categoria": "compuesta",
+    "consulta": "¿Dónde faltan programas para jóvenes de bajos ingresos con mala red?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "compuesta",
+      "tool_results_not_empty": true
+    }
+  },
+  {
+    "id": "eval_020",
+    "categoria": "compuesta",
+    "consulta": "¿Cómo se compara el empleo entre Florianópolis y São José?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "compuesta",
+      "tool_results_not_empty": true
+    }
+  },
+  {
+    "id": "eval_021",
+    "categoria": "evolucion_temporal",
+    "consulta": "¿Cómo evolucionó la tasa de desempleo en Florianópolis en el último año?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.servicio": "EMPLEO",
+      "plan.indicador": "taxa_desemprego",
+      "schema_decision.endpoint": "/indicadores/evolucion",
+      "tool_results_not_empty": true
+    }
+  },
+  {
+    "id": "eval_022",
+    "categoria": "evolucion_temporal",
+    "consulta": "¿Cuál es la tendencia de la tasa de internación psiquiátrica?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.servicio": "SALUD_MENTAL",
+      "plan.indicador": "taxa_internacao_psiquiatrica",
+      "schema_decision.endpoint": "/indicadores/evolucion",
+      "tool_results_not_empty": true
+    }
+  },
+  {
+    "id": "eval_023",
+    "categoria": "fuera_dominio",
+    "consulta": "¿Cuánto es 2+2?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": true
+    }
+  },
+  {
+    "id": "eval_024",
+    "categoria": "fuera_dominio",
+    "consulta": "¿Cómo está el clima en Buenos Aires?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": true
+    }
+  },
+  {
+    "id": "eval_025",
+    "categoria": "fuera_dominio",
+    "consulta": "Hola, ¿cómo estás?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": true
+    }
+  },
+  {
+    "id": "eval_026",
+    "categoria": "fuera_dominio",
+    "consulta": "¿Cuál es la capital de Francia?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": true
+    }
+  },
+  {
+    "id": "eval_027",
+    "categoria": "fuera_dominio",
+    "consulta": "Contame un chiste",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": true
+    }
+  },
+  {
+    "id": "eval_028",
+    "categoria": "ambigua_dominio",
+    "consulta": "¿Cómo está Kobrasol?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "plan.cluster": "SAO_JOSE_KOBRASOL",
+      "tool_results_not_empty": true
+    }
+  },
+  {
+    "id": "eval_029",
+    "categoria": "ambigua_dominio",
+    "consulta": "¿Qué zonas de Florianópolis tienen problemas?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "plan.municipio": "Florianópolis",
+      "tool_results_not_empty": true
+    }
+  },
+  {
+    "id": "eval_030",
+    "categoria": "ambigua_dominio",
+    "consulta": "¿Cómo está la conectividad en la región?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "query_type": "simple",
+      "schema_decision.endpoint": "/mapa",
+      "tool_results_not_empty": true
+    }
+  }
+]

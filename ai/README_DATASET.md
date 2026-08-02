@@ -1,4 +1,4 @@
-# App BiT — Base de Datos v2
+# App BiT- Base de Datos v2
 ## CDRView · Región Metropolitana de Florianópolis · jun/2026
 
 ---
@@ -7,9 +7,9 @@
 
 Se agregaron dos archivos sin modificar los anteriores:
 
-- **tensor_sequencias.csv** — secuencia ordenada de antenas visitadas por cada suscriptor en cada día, con `arrival_time` y distancia recorrida. Permite el análisis de trayectos individuales e identificación de vías urbanas.
+- **tensor_sequencias.csv**- secuencia ordenada de antenas visitadas por cada suscriptor en cada día, con `arrival_time` y distancia recorrida. Permite el análisis de trayectos individuales e identificación de vías urbanas.
 
-- **tensor_fluxo_vias.csv** — pares de antenas consecutivas agregados con volumen de usuarios y porcentaje de flujo. Permite la visualización de corredores e identificación de cuellos de botella en vías.
+- **tensor_fluxo_vias.csv**- pares de antenas consecutivas agregados con volumen de usuarios y porcentaje de flujo. Permite la visualización de corredores e identificación de cuellos de botella en vías.
 
 Los archivos de la v1 (`tensor_mobilidade`, `trajetos_comuns`, etc.) **no fueron modificados**.
 
@@ -20,7 +20,7 @@ Los archivos de la v1 (`tensor_mobilidade`, `trajetos_comuns`, etc.) **no fueron
 | Archivo | Tamaño | Descripción |
 |---------|--------|-------------|
 | `CDRView_AppBiT_TechnicalReference.docx` | ~30 KB | **Léalo primero.** Esquema completo, glosario y consultas SQL. |
-| `tensor_mobilidade.csv` | ~2,7 GB | Base principal — 16,8M eventos de 200K suscriptores en 15 días. |
+| `tensor_mobilidade.csv` | ~2,7 GB | Base principal- 16,8M eventos de 200K suscriptores en 15 días. |
 | `tensor_sequencias.csv` | ~915 MB | Secuencia de antenas por suscriptor/día con arrival_time. **NUEVO** |
 | `bases_hackathon_bit.zip` | ~3 MB | Todos los demás CSVs (ver lista abajo). |
 
@@ -60,7 +60,7 @@ Los archivos de la v1 (`tensor_mobilidade`, `trajetos_comuns`, etc.) **no fueron
 ```python
 import pandas as pd
 
-# Archivos pequeños — cargar completo
+# Archivos pequeños- cargar completo
 antenas      = pd.read_csv("antenas_flp.csv", dtype={"ecgi": str})
 assinantes   = pd.read_csv("assinantes.csv")
 concentracao = pd.read_csv("tensor_concentracao.csv", dtype={"ecgi": str})
@@ -68,7 +68,7 @@ od           = pd.read_csv("tensor_od.csv")
 fluxo_vias   = pd.read_csv("tensor_fluxo_vias.csv", dtype={"ecgi_origem": str,
                                                              "ecgi_destino": str})
 
-# Archivos grandes — SIEMPRE en chunks
+# Archivos grandes- SIEMPRE en chunks
 for chunk in pd.read_csv("tensor_mobilidade.csv",
                           chunksize=500_000,
                           dtype={"ecgi": str, "assinante_hash": "int32"}):
@@ -114,7 +114,7 @@ ORDER BY seq_num;
 | `assinante_hash` | INT | Identificador del suscriptor |
 | `day_date` | DATE | Fecha (YYYY-MM-DD) |
 | `seq_num` | INT | Posición en la secuencia del día (1, 2, 3...) |
-| `ecgi` | STRING | Antena visitada — tratar siempre como string |
+| `ecgi` | STRING | Antena visitada- tratar siempre como string |
 | `cluster` | STRING | Zona geográfica de la antena |
 | `municipio` | STRING | Municipio de la antena |
 | `lat` | FLOAT | Latitud de la antena |
@@ -125,7 +125,7 @@ ORDER BY seq_num;
 | `distancia_km_anterior` | FLOAT | Distancia Haversine desde la antena anterior (0 en la 1ª) |
 | `n_sessoes` | INT | Volumen de sesiones de datos en esa antena en el día |
 
-> `arrival_time` es sintético — generado dentro de la ventana de `periodo_sessao`
+> `arrival_time` es sintético- generado dentro de la ventana de `periodo_sessao`
 > con una distribución que favorece el inicio del período.
 > En producción, CDRView lo reemplaza por el timestamp real del primer CDR de la celda.
 

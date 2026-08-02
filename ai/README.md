@@ -31,9 +31,9 @@ ai/
 ## Documentación de la API (Swagger UI)
 
 La documentación interactiva está disponible automáticamente con FastAPI
-- **Swagger UI**: `http://localhost:8000/docs` — Probar los endpoints directamente desde el navegador
-- **Redoc**: `http://localhost:8000/redoc` — Documentación más limpia
-- **OpenAPI Schema**: `http://localhost:8000/openapi.json` — Esquema JSON de la API
+- **Swagger UI**: `http://localhost:8000/docs`- Probar los endpoints directamente desde el navegador
+- **Redoc**: `http://localhost:8000/redoc`- Documentación más limpia
+- **OpenAPI Schema**: `http://localhost:8000/openapi.json`- Esquema JSON de la API
 
 ## Endpoints disponibles
 
@@ -95,27 +95,54 @@ Lo que hace:
 
 ## Arquitectura interna
 
-El AI Service implementa un grafo de nodos con LangGraph. Cada consulta pasa por cuatro nodos en secuencia:
+El AI Service implementa un **grafo multi-agente con LangGraph**. Cada consulta atraviesa un pipeline de nodos que sanitiza, clasifica, rutea, ejecuta tools, refleja sobre la respuesta y valida la salida:
 
 ```
-[planner] -> [schema_linker] -> [tool_caller] -> [formatter]
+Flujo simple:
+  input_guardrail → planner → query_classifier → schema_linker → tool_caller
+  ⇄ (react_reasoner si datos vacíos) → output_guardrail → formatter → reflector
+
+Flujo compuesto:
+  input_guardrail → planner → query_classifier → task_decomposer →
+  parallel_executor → result_merger → output_guardrail → formatter → reflector
+
+Fuera de dominio:
+  planner → fuera_de_dominio → END (respuesta 422 CONSULTA_IRRELEVANTE)
 ```
 
 ### Nodos del grafo
 
-**planner** - clasifica la intención de la consulta y determina qué tipo de dato se necesita (`SALUD_MENTAL`, `EMPLEO`, `FORMACION`, etc.).
+**input_guardrail** - sanitiza la consulta de entrada y valida que sea procesable.
 
-**schema_linker** - decide cómo obtener los datos usando embeddings semánticos de los endpoints y tablas disponibles (ver sección Schema Linking más abajo). Esto determina si se llama a un endpoint del backend o se genera Text-to-SQL.
+**planner** - clasifica la intención, detecta consultas fuera de dominio y extrae filtros (`servicio`, `municipio`, `indicador`, `periodo`). Usa el modelo ligero `llama-3.1-8b-instant`.
+
+**query_classifier** - decide si la consulta es *simple* (una fuente) o *compuesta* (varias fuentes que hay que combinar). Usa `llama-3.3-70b-versatile`.
+
+**task_decomposer / parallel_executor / result_merger** - (solo compuestas) dividen la consulta en sub-tareas, las ejecutan en paralelo y fusionan los resultados (join exacto o correlación relacional).
+
+**schema_linker** - decide cómo obtener los datos usando reglas determinísticas primero y embeddings semánticos como respaldo (ver sección Schema Linking). Determina si se llama a un endpoint del backend o se genera Text-to-SQL.
 
 **tool_caller** - ejecuta la decisión del schema_linker: llama al endpoint del backend correspondiente o, como fallback, genera y ejecuta una consulta SQL de solo lectura contra la DB.
 
-**formatter** - recibe los datos crudos retornados y genera la respuesta final en lenguaje natural con `respuesta_ia`, `datos`, `fuentes` y `visualizacion_sugerida`.
+**react_reasoner** - (ReAct loop) si el tool call devuelve datos vacíos, razona por qué y corrige la decisión (endpoint o params) hasta `MAX_RETRIES_LLM` reintentos.
+
+**output_guardrail** - valida el resultado antes de formatear (avisa si quedó vacío).
+
+**formatter** - recibe los datos crudos retornados y genera la respuesta final en lenguaje natural con `respuesta_ia`, `datos`, `fuentes` y `visualizacion_sugerida`. Usa el modelo ligero.
+
+**reflector** - (Reflexion) evalúa la calidad de la respuesta con un score; si es pobre y queda presupuesto de reintentos, vuelve al formatter con feedback explícito.
+
+### Modelos y fallback ante rate-limit
+
+Los nodos usan dos modelos de Groq: `llama-3.1-8b-instant` (ligero: planner, formatter) y `llama-3.3-70b-versatile` (primary: classifier, decomposer, reflector, SQL). Cada uno tiene su propio pool de límites (TPM/TPD).
+
+Ante un rate-limit o error transitorio de Groq, cualquier llamada LLM cae automáticamente a **`gemini-3.1-flash-lite`** (pool de límites separado en Google) en vez de esperar — ver `_llm_ainvoke_con_fallback()` en `graph.py` y `GEMINI_MODEL_FALLBACK` en config. Esto evita que un 429 deje la consulta sin resolver.
 
 ## Schema Linking con embeddings
 
 El schema_linker usa Qdrant para decidir cómo resolver cada consulta sin gastar tokens en esa decisión. Al levantar el servicio, se indexan embeddings de:
 
-- **Descripciones de endpoints** del backend (`GET /brechas`, `GET /mapa/indicadores`, `GET /programas`, etc.)
+- **Descripciones de endpoints** del backend (`GET /brechas`, `GET /mapa`, `GET /mapa/indicadores`, `GET /programas`, `GET /indicadores/evolucion`, etc.)
 - **Descripciones de tablas** de la DB (`concentracao`, `indicadores_territoriales`, `programas_sociales`, etc.)
 
 Cuando llega una consulta, el schema_linker busca similitud semántica en Qdrant y toma una decisión:
@@ -139,7 +166,7 @@ Se indexan solo las descripciones de las tablas y endpoints (~10 textos cortos),
 
 ```
 1. Primero: llamar a un endpoint existente del backend
-   (/brechas, /mapa, /mapa/indicadores, /programas)
+   (/brechas, /mapa, /mapa/indicadores, /programas, /indicadores/evolucion)
 
 2. Solo si ningún endpoint cubre la consulta:
    Text-to-SQL con permisos de solo lectura (SELECT)
@@ -153,7 +180,7 @@ Los endpoints del backend encapsulan lógica de negocio compleja (cruces entre V
 
 Cuando el schema_linker no encuentra un endpoint con suficiente similitud semántica, el agente genera SQL usando solo el schema mínimo relevante identificado por el schema_linker (no el schema completo de la DB). Esto reduce el consumo de tokens aproximadamente un 75% comparado con Text-to-SQL clásico.
 
-El usuario de DB asignado al AI Service tiene **solo permisos de SELECT** — nunca puede escribir, modificar ni eliminar datos.
+El usuario de DB asignado al AI Service tiene **solo permisos de SELECT**- nunca puede escribir, modificar ni eliminar datos.
 
 ## Configuración (Docker - Recomendado para desarrollo)
 
@@ -185,12 +212,25 @@ El usuario de DB asignado al AI Service tiene **solo permisos de SELECT** — nu
 | `GROQ_API_KEY_PRIMARY` | API key de Groq para `llama-3.3-70b-versatile` | - |
 | `GROQ_API_KEY_LIGHT` | API key de Groq para `llama-3.1-8b-instant` | - |
 | `GOOGLE_API_KEY` | API key de Google para embeddings y LLM fallback | - |
+| `GEMINI_MODEL_FALLBACK` | Modelo de Google usado como fallback ante rate-limit de Groq | `gemini-3.1-flash-lite` |
 | `BACKEND_URL` | URL del backend Spring Boot | `http://backend:8080/api` |
 | `QDRANT_URL` | URL del servicio Qdrant | `http://qdrant:6333` |
 | `QDRANT_COLLECTION` | Nombre de la colección en Qdrant | `appbit` |
 | `DB_*` | Credenciales de MySQL para el ETL | - |
 | `DB_READONLY_*` | Credenciales de usuario de solo lectura para SQL | - |
 | `SCHEMA_LINKER_THRESHOLD` | Umbral de similitud para schema linking | `0.67` |
+
+## Evaluaciones 
+
+- **`evals/golden_dataset.json`**: 30 consultas golden en 8 categorías (brechas, indicadores simples, red pura, programas, compuestas, evolución temporal, fuera de dominio, ambiguas), cada una con los checks esperados por nodo.
+- **`evals/run_evals.py`**: runner secuencial con timeout por consulta (90s), guardado incremental (`.partial`) con reanudación, y reporte de score por consulta, categoría y nodo (planner, classifier, schema_linker, formatter, reflector, end-to-end).
+
+```bash
+cd ai
+PYTHONUNBUFFERED=1 python evals/run_evals.py --json evals/reporte_full.json
+```
+
+Resultado del último run: **91.39%** (30/30). Las consultas de evolución temporal requieren el endpoint `GET /indicadores/evolucion` del backend.
 
 ## Scripts Útiles
 

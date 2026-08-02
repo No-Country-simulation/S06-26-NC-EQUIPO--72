@@ -14,7 +14,7 @@ client_genai = genai.Client(api_key=settings.google_api_key.get_secret_value())
 
 COLLECTION_NAME = settings.qdrant_collection
 
-# Qdrant exige IDs enteros sin signo o UUID — un string arbitrario como "__meta__"
+# Qdrant exige IDs enteros sin signo o UUID- un string arbitrario como "__meta__"
 # hace fallar el upsert con un error de validación. Usamos un UUID fijo y reservado.
 META_POINT_ID = "00000000-0000-0000-0000-000000000000"
 

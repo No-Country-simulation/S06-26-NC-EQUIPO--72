@@ -15,7 +15,7 @@ CLUSTERS = [
     "PALHOCA_CENTRO", "PALHOCA_PEDRA_BRANCA", "SAO_JOSE_BARREIROS", "BIGUACU_BR101_NORTE",
 ]
 
-# Indicadores válidos reales — deben coincidir EXACTO con TerritorialIndicatorsSeeder.
+# Indicadores válidos reales- deben coincidir EXACTO con TerritorialIndicatorsSeeder.
 # El planner puede alucinar variantes en español (ej. "taxa_empleo_formal" en vez de
 # "taxa_emprego_formal"), así que se validan acá igual que municipio/cluster.
 INDICADORES_VALIDOS = [
@@ -50,7 +50,22 @@ def _fuzzy_match(valor: str, opciones: list[str], cutoff: float = 0.6) -> str | 
     candidatos = difflib.get_close_matches(
         valor_norm, mapa_norm_a_original.keys(), n=1, cutoff=cutoff
     )
-    return mapa_norm_a_original[candidatos[0]] if candidatos else None
+    if candidatos:
+        return mapa_norm_a_original[candidatos[0]]
+
+    # Fallback de contención: si el valor es substring significativo de UNA
+    # única opción canónica (ej. "rocado" -> SAO_JOSE_ROÇADO), matchear.
+    # Solo si es inequívoco- si hay más de una opción que lo contiene,
+    # es ambiguo y se devuelve None para no corregir a lo pavote.
+    coincidencias = [
+        original
+        for norm, original in mapa_norm_a_original.items()
+        if len(valor_norm) >= 5 and valor_norm in norm
+    ]
+    if len(coincidencias) == 1:
+        return coincidencias[0]
+
+    return None
 
 
 def normalizar_plan(plan: dict) -> dict:
