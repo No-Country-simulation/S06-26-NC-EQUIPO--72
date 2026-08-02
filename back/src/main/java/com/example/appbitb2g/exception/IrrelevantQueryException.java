@@ -1,7 +1,14 @@
 package com.example.appbitb2g.exception;
 
 public class IrrelevantQueryException extends RuntimeException {
-    public IrrelevantQueryException(String message) {
+    private final String errorCode;
+
+    public IrrelevantQueryException(String errorCode, String message) {
         super(message);
+        this.errorCode = errorCode;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
     }
 }

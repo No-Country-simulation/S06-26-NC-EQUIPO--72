@@ -57,7 +57,7 @@ def search(query: str, top_k: int = 1, tipo: str | None = None, debug: bool = Fa
     )
 
     if best.score < threshold and not debug:
-        logger.info("Score por debajo del umbral — descartado (tipo=%s).", tipo)
+        logger.info("Score por debajo del umbral- descartado (tipo=%s).", tipo)
         return None
 
     return {**best.payload, "score": best.score, "paso_umbral": best.score >= threshold} 
