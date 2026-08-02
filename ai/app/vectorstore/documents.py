@@ -85,6 +85,23 @@ ENDPOINT_DOCUMENTS = [
             "programas de empleo, educación o salud mental disponibles en una región."
         ),
     },
+    {
+        "id": "ep_indicadores_evolucion",
+        "tipo": "endpoint",
+        "metodo": "GET",
+        "endpoint": "/indicadores/evolucion",
+        "params_disponibles": ["categoria", "indicador", "municipio"],
+        "texto": (
+            "Evolución histórica y tendencia temporal de un indicador social. "
+            "Cómo cambió un indicador mes a mes o año a año. "
+            "Responde: ¿el desempleo bajó el último año?, ¿cómo evolucionó la "
+            "tasa de internación psiquiátrica?, ¿cuál es la tendencia del empleo "
+            "formal en Florianópolis? "
+            "El filtro 'categoria' es OBLIGATORIO (SALUD_MENTAL, EMPLEO o EDUCACION). "
+            "El filtro 'indicador' es OBLIGATORIO para la serie de un indicador puntual. "
+            "Devuelve serie temporal con fecha_referencia y valor_promedio."
+        ),
+    },
 ]
 
 TABLE_DOCUMENTS = [

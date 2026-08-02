@@ -1,6 +1,6 @@
 import logging
 import json
-from app.agent.state import AgentState
+from app.agent.state import AgentState, get_plan
 from app.vectorstore.searcher import search
 
 logger = logging.getLogger(__name__)
@@ -28,8 +28,24 @@ _SERVICIO_TABLA_FALLBACK = {
 
 _PALABRAS_BRECHA = (
     "brecha", "falta", "no hay", "carenc", "desaten",
-    "sin programa", "sin cobertura", "sin oferta",
+    "sin programa", "sin cobertura", "sin oferta", "no tienen",
 )
+
+_PALABRAS_RED = (
+    "conectividad", "red", "señal", "antena", "cobertura",
+    "congestión", "congestionamento", "usuarios", "tráfico",
+    "descarga", "tecnología", "5g", "4g", "3g", "lte", "nr",
+    "wcdma", "hotspot", "densidad", "mapa",
+)
+
+_PALABRAS_EVOLUCION = (
+    "evolución", "evolucion", "tendencia", "histórico", "historico",
+    "tiempo", "meses", "años", "creció", "bajó", "cambió", "progreso",
+)
+
+# Categorías válidas para /mapa/indicadores. FORMACION/MENTORIA/EXPERIENCIA
+# son servicios válidos en /brechas pero NO como categoria aquí (Fix Bug E).
+_CATEGORIAS_VALIDAS_MAPA = {"SALUD_MENTAL", "EMPLEO", "EDUCACION"}
 
 
 def _route_por_plan(plan: dict, consulta_lower: str) -> dict | None:
@@ -52,7 +68,33 @@ def _route_por_plan(plan: dict, consulta_lower: str) -> dict | None:
             "score": 1.0,  # confianza determinística, no viene de Qdrant
         }
 
-    # 2. Si el planner ya identificó un indicador específico, siempre es /mapa/indicadores.
+    # 2. Catálogo de programas: la palabra "programa" sin señal de brecha
+    #    pide el catálogo (¿qué programas hay?), no las brechas. Las brechas
+    #    ("faltan programas", "no tienen programas") ya las capturó la regla 1.
+    if "programa" in consulta_lower:
+        return {
+            "id": "ep_programas",
+            "tipo": "endpoint",
+            "metodo": "GET",
+            "endpoint": "/programas",
+            "score": 1.0,
+        }
+
+    # 3. Evolución temporal con indicador -> /indicadores/evolucion.
+    #    se evalúa ANTES de las reglas de indicador/servicio, que
+    #    antes la sombreaban con /mapa/indicadores. "¿Cómo evolucionó la tasa
+    #    de desempleo?" pide la serie temporal, no el valor actual.
+    es_evolucion = any(p in consulta_lower for p in _PALABRAS_EVOLUCION)
+    if es_evolucion and plan.get("indicador"):
+        return {
+            "id": "ep_indicadores_evolucion",
+            "tipo": "endpoint",
+            "metodo": "GET",
+            "endpoint": "/indicadores/evolucion",
+            "score": 1.0,
+        }
+
+    # 4. Si el planner ya identificó un indicador específico, siempre es /mapa/indicadores.
     #    No importa si la consulta menciona además "conectividad" o "red" de pasada.
     if plan.get("indicador"):
         return {
@@ -63,7 +105,7 @@ def _route_por_plan(plan: dict, consulta_lower: str) -> dict | None:
             "score": 1.0,
         }
 
-    # 3. Si el servicio es uno de los que tienen indicador social (EMPLEO, SALUD_MENTAL)
+    # 5. Si el servicio es uno de los que tienen indicador social (EMPLEO, SALUD_MENTAL)
     #    y no es consulta de brecha, también es /mapa/indicadores.
     if plan.get("servicio") in ("EMPLEO", "SALUD_MENTAL"):
         return {
@@ -74,10 +116,23 @@ def _route_por_plan(plan: dict, consulta_lower: str) -> dict | None:
             "score": 1.0,
         }
 
+    # 6. Consultas de red pura sin servicio (Fix Bug D): conectividad,
+    #    señal, cobertura, etc. -> /mapa. Evita caer a la tabla SQL genérica
+    #    `concentracao` cuando el plan no tiene servicio y el score de
+    #    embeddings queda bajo el umbral.
+    if any(p in consulta_lower for p in _PALABRAS_RED) and not plan.get("servicio"):
+        return {
+            "id": "ep_mapa",
+            "tipo": "endpoint",
+            "metodo": "GET",
+            "endpoint": "/mapa",
+            "score": 1.0,
+        }
+
     return None  # sin señal clara -> vector search decide
 
 
-def _build_endpoint_decision(payload: dict, plan: dict) -> dict:
+def _build_endpoint_decision(payload: dict, plan: dict, request_id: str = "-") -> dict:
     """
     Construye los parámetros del endpoint a partir del payload (de Qdrant
     o del router determinístico) y el plan del planner.
@@ -100,7 +155,22 @@ def _build_endpoint_decision(payload: dict, plan: dict) -> dict:
             "fecha": plan.get("fecha"),
         }
     elif endpoint == "/mapa/indicadores":
-        # categoria usa los mismos valores que servicio para SALUD_MENTAL/EMPLEO/EDUCACION
+        if servicio not in _CATEGORIAS_VALIDAS_MAPA:
+            # FORMACION/MENTORIA/EXPERIENCIA no son categorias válidas
+            # para /mapa/indicadores- redirigir a /brechas
+            logger.warning(
+                "[%s] Servicio '%s' inválido para /mapa/indicadores "
+                "— redirigiendo a /brechas", request_id, servicio
+            )
+            # Sin mutar el payload de entrada- copia con endpoint corregido
+            payload = {**payload, "endpoint": "/brechas"}
+            return _build_endpoint_decision(payload, plan, request_id)
+        params = {
+            "categoria": servicio,
+            "indicador": plan.get("indicador"),
+            "municipio": plan.get("municipio"),
+        }
+    elif endpoint == "/indicadores/evolucion":
         params = {
             "categoria": servicio,
             "indicador": plan.get("indicador"),
@@ -159,20 +229,21 @@ async def schema_linker(state: AgentState) -> AgentState:
     ya extrajo (servicio/indicador/palabras clave), y solo si no hay
     señal clara cae a búsqueda semántica en Qdrant.
     """
+    request_id = state.get("request_id", "-")
     consulta = state["consulta"]
-    plan = state.get("plan", {})
+    plan = get_plan(state)
     consulta_lower = consulta.lower()
 
-    print("\n" + "="*80, flush=True)
-    print("=== TEST SCHEMA LINKING Y EMBEDDINGS ===", flush=True)
-    print(f"Consulta: {consulta}", flush=True)
-    print(f"Plan del planner: {json.dumps(plan, ensure_ascii=False, indent=2)}", flush=True)
+    logger.debug("[%s] SCHEMA_LINKER | consulta=%s | plan=%s",
+                 request_id, consulta,
+                 json.dumps(plan, ensure_ascii=False))
 
     # Paso 1: router determinístico por plan (más confiable que embeddings)
     result = _route_por_plan(plan, consulta_lower)
 
     if result:
-        print(f"\nRuteo determinístico por plan -> {result['id']}", flush=True)
+        logger.info("[%s] SCHEMA_LINKER | ruteo determinístico -> %s",
+                    request_id, result["id"])
     else:
         # Paso 2: fallback a embeddings, separando endpoint vs sql
         partes = [consulta]
@@ -182,27 +253,24 @@ async def schema_linker(state: AgentState) -> AgentState:
             partes.append(f"indicador: {plan['indicador']}")
         query_enriquecida = " | ".join(partes)
 
-        print("\nSin señal determinística. Buscando entre ENDPOINTS...", flush=True)
+        logger.debug("[%s] SCHEMA_LINKER | sin señal determinística- buscando endpoints",
+                     request_id)
         result = search(query_enriquecida, top_k=1, tipo="endpoint")
 
         if not result:
-            print("Sin match de endpoint. Buscando entre TABLAS SQL...", flush=True)
+            logger.debug("[%s] SCHEMA_LINKER | sin match de endpoint- buscando tablas SQL",
+                         request_id)
             result = search(query_enriquecida, top_k=1, tipo="sql")
 
-    print("\nResultado del schema linker:", flush=True)
-    if result:
-        print(json.dumps(result, ensure_ascii=False, indent=2), flush=True)
-    else:
-        print("No se encontró ningún resultado (fallback a SQL genérico)", flush=True)
-
     if result and result["tipo"] == "endpoint":
-        decision = _build_endpoint_decision(result, plan)
+        decision = _build_endpoint_decision(result, plan, request_id)
     else:
         decision = _build_sql_decision(result, plan)
 
-    print("\nDecisión final del schema linker:", flush=True)
-    print(json.dumps(decision, ensure_ascii=False, indent=2), flush=True)
-    print("="*80 + "\n", flush=True)
+    logger.info("[%s] SCHEMA_LINKER | tipo=%s | endpoint=%s | score=%.4f",
+                request_id, decision["tipo"],
+                decision.get("endpoint", "sql"), decision.get("score", 0.0))
+    logger.debug("[%s] SCHEMA_LINKER | decision=%s", request_id,
+                 json.dumps(decision, ensure_ascii=False, indent=2))
 
-    logger.info("Schema linker decision: %s", decision)
     return {**state, "schema_decision": decision}

@@ -13,8 +13,9 @@ Esta arquitectura describe la integración end-to-end del servicio de IA con el 
 |------------------|------------------|-------------------------------------------------------------------------------------------|
 | **Frontend**     | React            | Interfaz de usuario, envía consultas en lenguaje natural y visualiza resultados           |
 | **Backend**      | Spring Boot      | Proxy seguro, validación básica, orquestación de flujos y acceso a DB                     |
-| **AI Service**   | FastAPI + LangChain / LlamaIndex | Text-to-SQL, razonamiento, orquestación de tools (tool calling)                          |
+| **AI Service**   | FastAPI + LangGraph | Grafo multi-agente: clasificación, schema linking, tool calling (endpoints / Text-to-SQL), ReAct + reflexión. LLMs vía Groq (con fallback a Gemini) y embeddings en Qdrant |
 | **Base de Datos**| MySQL            | Almacenamiento de datos de Vísent, indicadores territoriales y programas sociales          |
+| **Qdrant**       | Qdrant           | Vector store con embeddings de endpoints y tablas para el schema linking                  |
 | **Docker**       | Docker Compose   | Orquestación de contenedores para entorno de desarrollo/producción                         |
 
 ---
@@ -22,7 +23,7 @@ Esta arquitectura describe la integración end-to-end del servicio de IA con el 
 ## 2. Principio Clave de la Integración
 
 **Regla de Prioridad para Obtener Datos:**
-1. **Primero**: Usar endpoints existentes del backend (como `/brechas`, `/mapa`, `/programas`)
+1. **Primero**: Usar endpoints existentes del backend (como `/brechas`, `/mapa`, `/programas`, `/indicadores/evolucion`)
 2. **Solo si no hay alternativa**: Usar Text-to-SQL para consultas sencillas
 
 ---
@@ -108,6 +109,28 @@ sequenceDiagram
    - El backend calcula `total_registros` (tamaño de la lista `datos`)
    - El backend devuelve la respuesta final al frontend
 
+### 3.1 Pipeline interno del AI Service (grafo multi-agente)
+
+Dentro de `POST /consulta`, la consulta atraviesa un grafo de nodos LangGraph que sanitiza, clasifica, rutea, obtiene datos y refleja sobre la respuesta:
+
+```
+Flujo simple:      input_guardrail → planner → query_classifier → schema_linker
+                   → tool_caller ⇄ react_reasoner (si datos vacíos)
+                   → output_guardrail → formatter → reflector
+Flujo compuesto:   input_guardrail → planner → query_classifier → task_decomposer
+                   → parallel_executor → result_merger → output_guardrail
+                   → formatter → reflector
+Fuera de dominio:  planner → fuera_de_dominio → END (422 CONSULTA_IRRELEVANTE)
+```
+
+- **planner**: clasifica la intención y extrae filtros (servicio, municipio, indicador, periodo). Modelo ligero.
+- **query_classifier**: decide simple vs compuesta.
+- **schema_linker**: decide endpoint del backend o Text-to-SQL usando reglas determinísticas + embeddings de Qdrant.
+- **tool_caller / react_reasoner**: ejecuta la decisión; si el tool devuelve datos vacíos, razona y reintenta (ReAct).
+- **formatter / reflector**: genera la respuesta final y evalúa su calidad, reformateando si es pobre (Reflexion).
+
+**Fallback de modelos:** los nodos usan dos modelos de Groq (`llama-3.1-8b-instant` y `llama-3.3-70b-versatile`). Ante rate-limit (TPM/TPD) o error transitorio de Groq, cada llamada cae automáticamente a `gemini-3.1-flash-lite` (pool de límites separado) en vez de esperar.
+
 ---
 
 ## 4. Flujo de Error (Consulta Irrelevante)
@@ -165,12 +188,14 @@ graph TD
     Backend[Spring Boot Backend]
     AIService[FastAPI AI Service]
     DB[(MySQL DB)]
+    Qdrant[Qdrant Vector Store]
     
     Frontend -- POST /datos --> Backend
     Backend -- POST /consulta --> AIService
-    AIService -- GET /brechas, GET /mapa, etc. --> Backend
+    AIService -- GET /brechas, /mapa, /indicadores/evolucion, etc. --> Backend
     AIService -- SQL Lectura --> DB
     Backend -- SQL --> DB
+    AIService -- embeddings --> Qdrant
 ```
 
 ---

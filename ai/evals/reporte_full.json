@@ -1,0 +1,1209 @@
+{
+  "resumen": {
+    "score_total": 0.9139,
+    "score_sin_evolucion": 0.9139,
+    "consultas": 30
+  },
+  "metricas_por_nodo": {
+    "PLANNER": {
+      "accuracy_servicio": {
+        "valor": 0.9167,
+        "pass": 11,
+        "total": 12
+      },
+      "accuracy_municipio": {
+        "valor": 1.0,
+        "pass": 14,
+        "total": 14
+      },
+      "fuera_dominio_precision": {
+        "valor": 1.0,
+        "pass": 5,
+        "total": 5
+      },
+      "fuera_dominio_recall": {
+        "valor": 1.0,
+        "pass": 5,
+        "total": 5
+      }
+    },
+    "QUERY_CLASSIFIER": {
+      "accuracy_query_type": {
+        "valor": 0.8261,
+        "pass": 19,
+        "total": 23
+      },
+      "accuracy_merge_strategy": {
+        "valor": 1.0,
+        "pass": 2,
+        "total": 2
+      }
+    },
+    "SCHEMA_LINKER": {
+      "endpoint_accuracy": {
+        "valor": 0.7647,
+        "pass": 13,
+        "total": 17
+      }
+    },
+    "FORMATTER": {
+      "visualizacion_accuracy": {
+        "valor": 0.9286,
+        "pass": 13,
+        "total": 14
+      }
+    },
+    "TOOL_CALLER": {
+      "empty_rate": {
+        "valor": 0.08,
+        "pass": 2,
+        "total": 25
+      },
+      "react_retry_count": 2,
+      "sub_agent_errors": 0
+    },
+    "REFLECTOR": {
+      "mean_quality_score": 1.0,
+      "retry_rate": 0.0,
+      "con_llm": 25
+    },
+    "END_TO_END": {
+      "latencia_p50": 3.91,
+      "latencia_p95": 15.32,
+      "errores_por_rate_limit": 0,
+      "queries": 30
+    }
+  },
+  "detalle": [
+    {
+      "id": "eval_001",
+      "categoria": "brecha_servicio",
+      "consulta": "¿Dónde faltan programas de formación en Florianópolis?",
+      "score": 1.0,
+      "passed": 8,
+      "total": 8,
+      "latencia": 3.42,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "simple",
+          "expected": "simple"
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "FORMACION",
+          "expected": "FORMACION"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Florianópolis",
+          "expected": "Florianópolis"
+        },
+        "schema_decision.endpoint": {
+          "pass": true,
+          "actual": "/brechas",
+          "expected": "/brechas"
+        },
+        "schema_decision.params.servicio": {
+          "pass": true,
+          "actual": "FORMACION",
+          "expected": "FORMACION"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        },
+        "visualizacion_sugerida": {
+          "pass": true,
+          "actual": "mapa_brechas",
+          "expected": "mapa_brechas"
+        }
+      }
+    },
+    {
+      "id": "eval_012",
+      "categoria": "red_pura",
+      "consulta": "¿Cuántos usuarios de red móvil hay en Trindade?",
+      "score": 1.0,
+      "passed": 7,
+      "total": 7,
+      "latencia": 3.43,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "simple",
+          "expected": "simple"
+        },
+        "plan.cluster": {
+          "pass": true,
+          "actual": "TRINDADE",
+          "expected": "TRINDADE"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Florianópolis",
+          "expected": "Florianópolis"
+        },
+        "schema_decision.endpoint": {
+          "pass": true,
+          "actual": "/mapa",
+          "expected": "/mapa"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        },
+        "visualizacion_sugerida": {
+          "pass": true,
+          "actual": "mapa_indicadores",
+          "expected": "mapa_indicadores"
+        }
+      }
+    },
+    {
+      "id": "eval_028",
+      "categoria": "ambigua_dominio",
+      "consulta": "¿Cómo está Kobrasol?",
+      "score": 0.75,
+      "passed": 3,
+      "total": 4,
+      "latencia": 14.73,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "simple",
+          "expected": "simple"
+        },
+        "plan.cluster": {
+          "pass": true,
+          "actual": "SAO_JOSE_KOBRASOL",
+          "expected": "SAO_JOSE_KOBRASOL"
+        },
+        "tool_results_not_empty": {
+          "pass": false,
+          "actual": false,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_023",
+      "categoria": "fuera_dominio",
+      "consulta": "¿Cuánto es 2+2?",
+      "score": 1.0,
+      "passed": 1,
+      "total": 1,
+      "latencia": 1.74,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_008",
+      "categoria": "indicador_simple",
+      "consulta": "¿Cuál es la tasa de internación psiquiátrica en Palhoça?",
+      "score": 1.0,
+      "passed": 9,
+      "total": 9,
+      "latencia": 3.86,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "simple",
+          "expected": "simple"
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "SALUD_MENTAL",
+          "expected": "SALUD_MENTAL"
+        },
+        "plan.indicador": {
+          "pass": true,
+          "actual": "taxa_internacao_psiquiatrica",
+          "expected": "taxa_internacao_psiquiatrica"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Palhoça",
+          "expected": "Palhoça"
+        },
+        "schema_decision.endpoint": {
+          "pass": true,
+          "actual": "/mapa/indicadores",
+          "expected": "/mapa/indicadores"
+        },
+        "schema_decision.params.categoria": {
+          "pass": true,
+          "actual": "SALUD_MENTAL",
+          "expected": "SALUD_MENTAL"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        },
+        "visualizacion_sugerida": {
+          "pass": true,
+          "actual": "mapa_indicadores",
+          "expected": "mapa_indicadores"
+        }
+      }
+    },
+    {
+      "id": "eval_018",
+      "categoria": "compuesta",
+      "consulta": "¿Qué clusters con brechas de mentoría tienen mala conectividad?",
+      "score": 1.0,
+      "passed": 3,
+      "total": 3,
+      "latencia": 4.17,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "compuesta",
+          "expected": "compuesta"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_013",
+      "categoria": "programas",
+      "consulta": "¿Qué programas sociales hay en São José?",
+      "score": 1.0,
+      "passed": 6,
+      "total": 6,
+      "latencia": 5.15,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "simple",
+          "expected": "simple"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "São José",
+          "expected": "São José"
+        },
+        "schema_decision.endpoint": {
+          "pass": true,
+          "actual": "/programas",
+          "expected": "/programas"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        },
+        "visualizacion_sugerida": {
+          "pass": true,
+          "actual": "tabla_datos",
+          "expected": "tabla_datos"
+        }
+      }
+    },
+    {
+      "id": "eval_003",
+      "categoria": "brecha_servicio",
+      "consulta": "¿En qué zonas de Palhoça faltan experiencias estructurales?",
+      "score": 1.0,
+      "passed": 8,
+      "total": 8,
+      "latencia": 3.47,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "simple",
+          "expected": "simple"
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "EXPERIENCIA",
+          "expected": "EXPERIENCIA"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Palhoça",
+          "expected": "Palhoça"
+        },
+        "schema_decision.endpoint": {
+          "pass": true,
+          "actual": "/brechas",
+          "expected": "/brechas"
+        },
+        "schema_decision.params.servicio": {
+          "pass": true,
+          "actual": "EXPERIENCIA",
+          "expected": "EXPERIENCIA"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        },
+        "visualizacion_sugerida": {
+          "pass": true,
+          "actual": "mapa_brechas",
+          "expected": "mapa_brechas"
+        }
+      }
+    },
+    {
+      "id": "eval_029",
+      "categoria": "ambigua_dominio",
+      "consulta": "¿Qué zonas de Florianópolis tienen problemas?",
+      "score": 0.75,
+      "passed": 3,
+      "total": 4,
+      "latencia": 15.47,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": false,
+          "actual": "compuesta",
+          "expected": "simple"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Florianópolis",
+          "expected": "Florianópolis"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_024",
+      "categoria": "fuera_dominio",
+      "consulta": "¿Cómo está el clima en Buenos Aires?",
+      "score": 1.0,
+      "passed": 1,
+      "total": 1,
+      "latencia": 1.75,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_009",
+      "categoria": "indicador_simple",
+      "consulta": "¿Cuál es la cobertura de atención básica en Florianópolis?",
+      "score": 1.0,
+      "passed": 9,
+      "total": 9,
+      "latencia": 3.53,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "simple",
+          "expected": "simple"
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "SALUD_MENTAL",
+          "expected": "SALUD_MENTAL"
+        },
+        "plan.indicador": {
+          "pass": true,
+          "actual": "cobertura_atencao_basica",
+          "expected": "cobertura_atencao_basica"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Florianópolis",
+          "expected": "Florianópolis"
+        },
+        "schema_decision.endpoint": {
+          "pass": true,
+          "actual": "/mapa/indicadores",
+          "expected": "/mapa/indicadores"
+        },
+        "schema_decision.params.categoria": {
+          "pass": true,
+          "actual": "SALUD_MENTAL",
+          "expected": "SALUD_MENTAL"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        },
+        "visualizacion_sugerida": {
+          "pass": true,
+          "actual": "mapa_indicadores",
+          "expected": "mapa_indicadores"
+        }
+      }
+    },
+    {
+      "id": "eval_019",
+      "categoria": "compuesta",
+      "consulta": "¿Dónde faltan programas para jóvenes de bajos ingresos con mala red?",
+      "score": 1.0,
+      "passed": 3,
+      "total": 3,
+      "latencia": 3.54,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "compuesta",
+          "expected": "compuesta"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_004",
+      "categoria": "brecha_servicio",
+      "consulta": "¿Qué zonas de Biguaçu no tienen programas de empleo?",
+      "score": 0.625,
+      "passed": 5,
+      "total": 8,
+      "latencia": 2.9,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "simple",
+          "expected": "simple"
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "EMPLEO",
+          "expected": "EMPLEO"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Biguaçu",
+          "expected": "Biguaçu"
+        },
+        "schema_decision.endpoint": {
+          "pass": false,
+          "actual": "/mapa/indicadores",
+          "expected": "/brechas"
+        },
+        "schema_decision.params.servicio": {
+          "pass": false,
+          "actual": null,
+          "expected": "EMPLEO"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        },
+        "visualizacion_sugerida": {
+          "pass": false,
+          "actual": "mapa_indicadores",
+          "expected": "mapa_brechas"
+        }
+      }
+    },
+    {
+      "id": "eval_014",
+      "categoria": "programas",
+      "consulta": "¿Qué programas de formación hay en Florianópolis?",
+      "score": 0.75,
+      "passed": 6,
+      "total": 8,
+      "latencia": 5.18,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "simple",
+          "expected": "simple"
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "FORMACION",
+          "expected": "FORMACION"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Florianópolis",
+          "expected": "Florianópolis"
+        },
+        "schema_decision.endpoint": {
+          "pass": false,
+          "actual": "/brechas",
+          "expected": "/programas"
+        },
+        "schema_decision.params.tipo": {
+          "pass": false,
+          "actual": null,
+          "expected": "FORMACION"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        },
+        "visualizacion_sugerida": {
+          "pass": true,
+          "actual": "tabla_datos",
+          "expected": "tabla_datos"
+        }
+      }
+    },
+    {
+      "id": "eval_030",
+      "categoria": "ambigua_dominio",
+      "consulta": "¿Cómo está la conectividad en la región?",
+      "score": 1.0,
+      "passed": 4,
+      "total": 4,
+      "latencia": 3.16,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "simple",
+          "expected": "simple"
+        },
+        "schema_decision.endpoint": {
+          "pass": true,
+          "actual": "/mapa",
+          "expected": "/mapa"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_025",
+      "categoria": "fuera_dominio",
+      "consulta": "Hola, ¿cómo estás?",
+      "score": 1.0,
+      "passed": 1,
+      "total": 1,
+      "latencia": 2.79,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_010",
+      "categoria": "red_pura",
+      "consulta": "¿Cómo es la conectividad móvil en Florianópolis?",
+      "score": 1.0,
+      "passed": 5,
+      "total": 5,
+      "latencia": 3.91,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "simple",
+          "expected": "simple"
+        },
+        "schema_decision.endpoint": {
+          "pass": true,
+          "actual": "/mapa",
+          "expected": "/mapa"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        },
+        "visualizacion_sugerida": {
+          "pass": true,
+          "actual": "mapa_indicadores",
+          "expected": "mapa_indicadores"
+        }
+      }
+    },
+    {
+      "id": "eval_020",
+      "categoria": "compuesta",
+      "consulta": "¿Cómo se compara el empleo entre Florianópolis y São José?",
+      "score": 0.6666666666666666,
+      "passed": 2,
+      "total": 3,
+      "latencia": 3.98,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": false,
+          "actual": "simple",
+          "expected": "compuesta"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_005",
+      "categoria": "brecha_servicio",
+      "consulta": "¿Dónde hay brechas de salud mental en Florianópolis?",
+      "score": 0.625,
+      "passed": 5,
+      "total": 8,
+      "latencia": 4.63,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": false,
+          "actual": "compuesta",
+          "expected": "simple"
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "SALUD_MENTAL",
+          "expected": "SALUD_MENTAL"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Florianópolis",
+          "expected": "Florianópolis"
+        },
+        "schema_decision.endpoint": {
+          "pass": false,
+          "actual": null,
+          "expected": "/brechas"
+        },
+        "schema_decision.params.servicio": {
+          "pass": false,
+          "actual": null,
+          "expected": "SALUD_MENTAL"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        },
+        "visualizacion_sugerida": {
+          "pass": true,
+          "actual": "mapa_brechas",
+          "expected": "mapa_brechas"
+        }
+      }
+    },
+    {
+      "id": "eval_015",
+      "categoria": "compuesta",
+      "consulta": "¿Qué relación hay entre conectividad y educación en Florianópolis?",
+      "score": 1.0,
+      "passed": 4,
+      "total": 4,
+      "latencia": 4.98,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "compuesta",
+          "expected": "compuesta"
+        },
+        "merge_strategy": {
+          "pass": true,
+          "actual": "relacional",
+          "expected": "relacional"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_026",
+      "categoria": "fuera_dominio",
+      "consulta": "¿Cuál es la capital de Francia?",
+      "score": 1.0,
+      "passed": 1,
+      "total": 1,
+      "latencia": 1.73,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_011",
+      "categoria": "red_pura",
+      "consulta": "¿Qué zonas de São José tienen mayor congestión de red?",
+      "score": 1.0,
+      "passed": 6,
+      "total": 6,
+      "latencia": 4.05,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "simple",
+          "expected": "simple"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "São José",
+          "expected": "São José"
+        },
+        "schema_decision.endpoint": {
+          "pass": true,
+          "actual": "/mapa",
+          "expected": "/mapa"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        },
+        "visualizacion_sugerida": {
+          "pass": true,
+          "actual": "mapa_indicadores",
+          "expected": "mapa_indicadores"
+        }
+      }
+    },
+    {
+      "id": "eval_021",
+      "categoria": "evolucion_temporal",
+      "consulta": "¿Cómo evolucionó la tasa de desempleo en Florianópolis en el último añ",
+      "score": 1.0,
+      "passed": 5,
+      "total": 5,
+      "latencia": 3.75,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "EMPLEO",
+          "expected": "EMPLEO"
+        },
+        "plan.indicador": {
+          "pass": true,
+          "actual": "taxa_desemprego",
+          "expected": "taxa_desemprego"
+        },
+        "schema_decision.endpoint": {
+          "pass": true,
+          "actual": "/indicadores/evolucion",
+          "expected": "/indicadores/evolucion"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_006",
+      "categoria": "indicador_simple",
+      "consulta": "¿Cuál es la tasa de desempleo en Florianópolis?",
+      "score": 1.0,
+      "passed": 9,
+      "total": 9,
+      "latencia": 4.03,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "simple",
+          "expected": "simple"
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "EMPLEO",
+          "expected": "EMPLEO"
+        },
+        "plan.indicador": {
+          "pass": true,
+          "actual": "taxa_desemprego",
+          "expected": "taxa_desemprego"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Florianópolis",
+          "expected": "Florianópolis"
+        },
+        "schema_decision.endpoint": {
+          "pass": true,
+          "actual": "/mapa/indicadores",
+          "expected": "/mapa/indicadores"
+        },
+        "schema_decision.params.categoria": {
+          "pass": true,
+          "actual": "EMPLEO",
+          "expected": "EMPLEO"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        },
+        "visualizacion_sugerida": {
+          "pass": true,
+          "actual": "mapa_indicadores",
+          "expected": "mapa_indicadores"
+        }
+      }
+    },
+    {
+      "id": "eval_016",
+      "categoria": "compuesta",
+      "consulta": "¿Dónde hay alto desempleo y baja conectividad?",
+      "score": 1.0,
+      "passed": 3,
+      "total": 3,
+      "latencia": 5.69,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "compuesta",
+          "expected": "compuesta"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_002",
+      "categoria": "brecha_servicio",
+      "consulta": "¿Dónde faltan programas de mentoría en São José?",
+      "score": 0.625,
+      "passed": 5,
+      "total": 8,
+      "latencia": 4.59,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": false,
+          "actual": "compuesta",
+          "expected": "simple"
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "MENTORIA",
+          "expected": "MENTORIA"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "São José",
+          "expected": "São José"
+        },
+        "schema_decision.endpoint": {
+          "pass": false,
+          "actual": null,
+          "expected": "/brechas"
+        },
+        "schema_decision.params.servicio": {
+          "pass": false,
+          "actual": null,
+          "expected": "MENTORIA"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        },
+        "visualizacion_sugerida": {
+          "pass": true,
+          "actual": "mapa_brechas",
+          "expected": "mapa_brechas"
+        }
+      }
+    },
+    {
+      "id": "eval_027",
+      "categoria": "fuera_dominio",
+      "consulta": "Contame un chiste",
+      "score": 1.0,
+      "passed": 1,
+      "total": 1,
+      "latencia": 0.95,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_017",
+      "categoria": "compuesta",
+      "consulta": "¿Cómo se relaciona la salud mental con la congestión de red en São Jos",
+      "score": 1.0,
+      "passed": 4,
+      "total": 4,
+      "latencia": 4.41,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "compuesta",
+          "expected": "compuesta"
+        },
+        "merge_strategy": {
+          "pass": true,
+          "actual": "relacional",
+          "expected": "relacional"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_022",
+      "categoria": "evolucion_temporal",
+      "consulta": "¿Cuál es la tendencia de la tasa de internación psiquiátrica?",
+      "score": 1.0,
+      "passed": 5,
+      "total": 5,
+      "latencia": 3.87,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "SALUD_MENTAL",
+          "expected": "SALUD_MENTAL"
+        },
+        "plan.indicador": {
+          "pass": true,
+          "actual": "taxa_internacao_psiquiatrica",
+          "expected": "taxa_internacao_psiquiatrica"
+        },
+        "schema_decision.endpoint": {
+          "pass": true,
+          "actual": "/indicadores/evolucion",
+          "expected": "/indicadores/evolucion"
+        },
+        "tool_results_not_empty": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "eval_007",
+      "categoria": "indicador_simple",
+      "consulta": "¿Cómo está la educación en São José?",
+      "score": 0.625,
+      "passed": 5,
+      "total": 8,
+      "latencia": 15.32,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "query_type": {
+          "pass": true,
+          "actual": "simple",
+          "expected": "simple"
+        },
+        "plan.servicio": {
+          "pass": false,
+          "actual": "FORMACION",
+          "expected": "EDUCACION"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "São José",
+          "expected": "São José"
+        },
+        "schema_decision.endpoint": {
+          "pass": true,
+          "actual": "/mapa/indicadores",
+          "expected": "/mapa/indicadores"
+        },
+        "schema_decision.params.categoria": {
+          "pass": false,
+          "actual": null,
+          "expected": "EDUCACION"
+        },
+        "tool_results_not_empty": {
+          "pass": false,
+          "actual": false,
+          "expected": true
+        },
+        "visualizacion_sugerida": {
+          "pass": true,
+          "actual": "mapa_indicadores",
+          "expected": "mapa_indicadores"
+        }
+      }
+    }
+  ]
+}

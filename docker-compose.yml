@@ -4,19 +4,17 @@ services:
     image: phpmyadmin/phpmyadmin
     container_name: Appbitb2g_PhpMyAdmin
     restart: always
-
+    mem_limit: 50M
+    mem_reservation: 50M
     ports:
       - "8081:80"
-
     environment:
       PMA_HOST: db
       PMA_PORT: 3306
       PMA_USER: ${DB_USER}
       PMA_PASSWORD: ${DB_PASSWORD}
-
     depends_on:
       - db
-
     networks:
       - app-network
 
@@ -24,16 +22,20 @@ services:
     image: mysql:8.0
     container_name: Appbitb2g_Mysql
     restart: always
+    mem_limit: 600M
+    memswap_limit: 600M
     command: >
       --default-authentication-plugin=mysql_native_password
       --local-infile=1
-      --innodb-redo-log-capacity=512M
-      --innodb-log-buffer-size=64M
+      --innodb-redo-log-capacity=64M
+      --innodb-log-buffer-size=8M
       --innodb-flush-log-at-trx-commit=2
-      --innodb-buffer-pool-size=512M
+      --innodb-buffer-pool-size=128M
       --slow_query_log=1
       --long_query_time=0
       --log_queries_not_using_indexes=1
+      --performance-schema=OFF
+      --max-connections=20
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
@@ -45,9 +47,10 @@ services:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql-init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER}", "-p${DB_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 5s
       retries: 10
+      start_period: 30s
     networks:
       - app-network
 
@@ -57,6 +60,8 @@ services:
       dockerfile: Dockerfile.dev
     container_name: Appbitb2g
     restart: always
+    mem_limit: 1200M
+    memswap_limit: 1200M
     ports:
       - "8080:8080"
     volumes:
@@ -74,6 +79,12 @@ services:
       - SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
       - LOGGING_LEVEL_ORG_HIBERNATE_ORM_RESULTS_BASIC=TRACE
       - AI_SERVICE_URL=${AI_SERVICE_URL}
+      # Optimizaciones JVM para desarrollo
+      - JAVA_TOOL_OPTIONS=-XX:+UseSerialGC -Xss512k -XX:MaxRAMPercentage=70.0 -XX:+UseContainerSupport
+      - SPRING_MAIN_LAZY_INITIALIZATION=true
+      - SERVER_TOMCAT_MAX_CONNECTIONS=20
+      - SERVER_TOMCAT_THREADS_MAX=5
+      - SERVER_TOMCAT_THREADS_MIN_SPARE=1
     depends_on:
       db:
         condition: service_healthy
@@ -86,23 +97,23 @@ services:
     networks:
       - app-network
 
-
-
   react-frontend:
     container_name: react_app
     build:
       context: ./front
       dockerfile: Dockerfile
+    mem_limit: 600M
+    memswap_limit: 600M
     restart: always
-
     environment:
       - VITE_API_URL=${VITE_API_URL}
       - HOST=0.0.0.0
       - NODE_ENV=development
-
+      # Limitar heap de Node a 350MB (deja margen para overhead del proceso)
+      - NODE_OPTIONS=--max-old-space-size=350
     volumes:
       - ./front:/app
-      - /app/node_modules  
+      - /app/node_modules
     ports:
       - "5173:5173"
     depends_on:
@@ -114,6 +125,8 @@ services:
     image: qdrant/qdrant:v1.18.0
     container_name: Appbitb2g_Qdrant
     restart: always
+    mem_limit: 400M
+    memswap_limit: 400M
     ports:
       - "6333:6333"
       - "6334:6334"
@@ -128,6 +141,8 @@ services:
       dockerfile: Dockerfile
     container_name: Appbitb2g_AI
     restart: always
+    mem_limit: 900M
+    memswap_limit: 900M
     ports:
       - "8000:8000"
     volumes:
@@ -135,7 +150,7 @@ services:
       - /app/__pycache__
       - ./ai/data:/app/data
     env_file:
-      - ./ai/.env  # Usa el .env del directorio ai/
+      - ./ai/.env
     environment:
       - DB_READONLY_USER=${DB_READONLY_USER}
       - DB_READONLY_PASSWORD=${DB_READONLY_PASSWORD}
@@ -149,7 +164,6 @@ services:
     networks:
       - app-network
 
-
 volumes:
   mysql_data:
   qdrant_data:
@@ -157,4 +171,3 @@ volumes:
 networks:
   app-network:
     driver: bridge
-

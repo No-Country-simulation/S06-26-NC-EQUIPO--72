@@ -8,7 +8,8 @@ public enum ServiceType {
 	MENTORIA("MENTORIA"),
 	EXPERIENCIA("EXPERIENCIA"),
 	FORMACION("FORMACION"),
-	EMPLEO("EMPLEO");
+	EMPLEO("EMPLEO"),
+	EDUCACION("EDUCACION");
 
 	private final String value;
 
