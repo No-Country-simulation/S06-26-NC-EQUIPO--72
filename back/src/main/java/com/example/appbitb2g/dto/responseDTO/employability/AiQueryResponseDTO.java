@@ -20,5 +20,13 @@ public record AiQueryResponseDTO(
     @Schema(description = "Cantidad total de registros devueltos", example = "12")
     @JsonProperty("total_registros") Integer totalRegistros,
     @Schema(description = "Idioma de la respuesta", example = "es")
-    @JsonProperty("idioma") String idioma
+    @JsonProperty("idioma") String idioma,
+    @Schema(description = "ID de sesión HITL para reanudar la consulta pausada", example = "a1b2c3d4")
+    @JsonProperty("session_id") String sessionId,
+    @Schema(description = "True si el agente pausó y necesita clarificación del gestor", example = "false")
+    @JsonProperty("requiere_clarificacion") Boolean requiereClarificacion,
+    @Schema(description = "Pregunta de clarificación al gestor")
+    @JsonProperty("pregunta_clarificacion") String preguntaClarificacion,
+    @Schema(description = "Opciones de respuesta para la clarificación")
+    @JsonProperty("opciones_clarificacion") List<String> opcionesClarificacion
 ) {}

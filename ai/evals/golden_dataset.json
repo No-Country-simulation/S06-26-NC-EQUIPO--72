@@ -392,5 +392,53 @@
       "schema_decision.endpoint": "/mapa",
       "tool_results_not_empty": true
     }
+  },
+  {
+    "id": "hitl_001",
+    "categoria": "hitl_ambiguedad_servicio",
+    "consulta": "¿Cómo están la mentoría y la formación en São José?",
+    "idioma": "es",
+    "expected": {
+      "necesita_clarificacion": true,
+      "pregunta_clarificacion_not_null": true
+    }
+  },
+  {
+    "id": "hitl_002",
+    "categoria": "hitl_sin_ambiguedad",
+    "consulta": "¿Dónde faltan programas de mentoría?",
+    "idioma": "es",
+    "expected": {
+      "necesita_clarificacion": false
+    }
+  },
+  {
+    "id": "hitl_003",
+    "categoria": "hitl_consulta_corta",
+    "consulta": "qué hay",
+    "idioma": "es",
+    "expected": {
+      "necesita_clarificacion": true,
+      "pregunta_clarificacion_not_null": true
+    }
+  },
+  {
+    "id": "hitl_004",
+    "categoria": "hitl_cluster_intermunicipal",
+    "consulta": "cómo está ESTREITO_CAPOEIRAS",
+    "idioma": "es",
+    "expected": {
+      "necesita_clarificacion": true,
+      "opciones_clarificacion_not_null": true
+    }
+  },
+  {
+    "id": "hitl_005",
+    "categoria": "hitl_temporal_ambiguo",
+    "consulta": "qué zonas tienen brechas recientes",
+    "idioma": "es",
+    "expected": {
+      "necesita_clarificacion": true
+    }
   }
 ]

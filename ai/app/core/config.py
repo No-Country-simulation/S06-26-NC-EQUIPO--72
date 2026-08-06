@@ -64,6 +64,10 @@ class Settings(BaseSettings):
     reflector_min_quality_score: float = 0.6
     reflector_max_retries: int = 1
 
+    # HITL — pausas de clarificación con el gestor
+    hitl_session_ttl_seconds: int = 900  # 15 min entre pausa y reanudación
+    hitl_cleanup_interval_seconds: int = 60
+
     model_config = SettingsConfigDict(
         env_file=".env",
         case_sensitive=False,

@@ -1,7 +1,7 @@
 
 from fastapi import APIRouter
 from app.controllers.ai_controller import AIController
-from app.models.schemas import ConsultaRequest, ConsultaResponse
+from app.models.schemas import ConsultaRequest, ConsultaResponse, ResumeRequest
 
 router = APIRouter()
 ai_controller = AIController()
@@ -14,3 +14,12 @@ async def consulta(request: ConsultaRequest) -> ConsultaResponse:
     """
     return await ai_controller.handle_consulta(request)
 
+
+@router.post("/consulta/respuesta", response_model=ConsultaResponse)
+async def resume_consulta(request: ResumeRequest) -> ConsultaResponse:
+    """
+    Reanuda una consulta pausada con la respuesta del gestor.
+    Requiere session_id devuelto por POST /consulta cuando
+    requiere_clarificacion era true.
+    """
+    return await ai_controller.handle_resume(request)

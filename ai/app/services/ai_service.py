@@ -1,15 +1,44 @@
 import asyncio
 import logging
+import time
 import uuid
 from fastapi import HTTPException
 from langdetect import detect, LangDetectException
+from langgraph.types import Command
 from openai import APIStatusError, RateLimitError
-from app.models.schemas import ConsultaRequest, ConsultaResponse
-from app.agent.graph import agent
+from app.models.schemas import ConsultaRequest, ConsultaResponse, ResumeRequest
+from app.agent.graph import agent, _checkpointer
 from app.agent.state import get_tool_results
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+# Session store en memoria — mapea session_id → (thread_id, timestamp).
+# Simple dict es suficiente para MVP de una sola instancia y pausas cortas.
+_session_store: dict[str, tuple[str, float]] = {}
+
+
+def _limpiar_sesiones_expiradas() -> list[str]:
+    """Devuelve los session_ids expirados (los threads se limpian aparte)."""
+    ahora = time.monotonic()
+    return [
+        sid for sid, (_, creada) in _session_store.items()
+        if ahora - creada > settings.hitl_session_ttl_seconds
+    ]
+
+
+async def limpiar_sesiones_expiradas() -> list[str]:
+    """Elimina sesiones HITL expiradas del store y sus threads del checkpointer.
+
+    Llamado periódicamente por main.py (loop de background).
+    """
+    expirados = _limpiar_sesiones_expiradas()
+    for sid in expirados:
+        thread_id = _session_store.pop(sid, (None, 0))[0]
+        if thread_id:
+            await _checkpointer.adelete_thread(thread_id)
+    return expirados
 
 
 # pre-clasificación determinística SIN LLM para elegir el timeout
@@ -47,13 +76,28 @@ def _detectar_idioma(consulta: str, idioma_solicitado: str) -> str:
 class AIService:
     async def process_query(self, request: ConsultaRequest) -> ConsultaResponse:
         """
-        Procesa una consulta del usuario
+        Procesa una consulta del usuario.
+
+        Si el agente pausa con interrupt() (HITL), devuelve un
+        ConsultaResponse con requiere_clarificacion=True, session_id y la
+        pregunta/opciones para que Spring Boot la reenvíe al frontend.
         """
         request_id = str(uuid.uuid4())[:8]
         # si no hay idioma explícito (o pidió es), detectar del texto
-        idioma = _detectar_idioma(request.consulta, request.idioma)
+        idioma = _detectar_idioma(request.consulta, request.idioma or "es")
         logger.info("[%s] CONSULTA | idioma_solicitado=%s | idioma_efectivo=%s",
                     request_id, request.idioma, idioma)
+        thread_id = str(uuid.uuid4())
+        config = {
+            "configurable": {"thread_id": thread_id},
+            "recursion_limit": settings.agent_recursion_limit,
+        }
+        initial_state = {
+            "consulta": request.consulta,
+            "idioma": idioma,
+            "request_id": request_id,
+            "filtros": {},
+        }
         try:
             # timeout global por pre-clasificación (sin LLM).
             # simple = agent_timeout_simple (falla rápido bajo rate limiting);
@@ -64,16 +108,8 @@ class AIService:
                 else settings.agent_timeout_simple
             )
             try:
-                state = await asyncio.wait_for(
-                    agent.ainvoke(
-                        {
-                            "consulta": request.consulta,
-                            "idioma": idioma,
-                            "request_id": request_id,
-                            "filtros": {},
-                        },
-                        config={"recursion_limit": settings.agent_recursion_limit},
-                    ),
+                result = await asyncio.wait_for(
+                    agent.ainvoke(initial_state, config=config),
                     timeout=timeout,
                 )
             except asyncio.TimeoutError:
@@ -89,26 +125,25 @@ class AIService:
                     }
                 )
 
-            if state.get("fuera_de_dominio"):
-                raise HTTPException(
-                    status_code=422,
-                    detail={
-                        "error": "CONSULTA_FUERA_DE_DOMINIO",
-                        "mensaje": state.get("respuesta_ia"),
-                    }
+            # El agente pausó por interrupt(): devolver la pregunta al gestor.
+            if "__interrupt__" in result:
+                interrupt_data = result["__interrupt__"][0].value
+                _session_store[interrupt_data["session_id"]] = (thread_id, time.monotonic())
+                logger.info(
+                    "[%s] HITL | pausa registrada | session_id=%s",
+                    request_id, interrupt_data["session_id"],
                 )
-            
-            # Extrae los datos de la respuesta
-            # get_tool_results garantiza list[dict]
-            datos = get_tool_results(state)
+                return ConsultaResponse(
+                    idioma=idioma,
+                    session_id=interrupt_data["session_id"],
+                    requiere_clarificacion=True,
+                    pregunta_clarificacion=interrupt_data["pregunta_clarificacion"],
+                    opciones_clarificacion=interrupt_data.get("opciones_clarificacion"),
+                )
 
-            return ConsultaResponse(
-                respuesta_ia=state.get("respuesta_ia", ""),
-                datos=datos,
-                fuentes=state.get("fuentes", []),
-                visualizacion_sugerida=state.get("visualizacion_sugerida", "tabla_datos"),
-                idioma=idioma,
-            )
+            # No pausó: limpiar el thread del checkpointer y seguir el flujo normal.
+            await _checkpointer.adelete_thread(thread_id)
+            return self._build_response(result)
 
         except HTTPException:
             raise  # re-lanza HTTPExceptions sin modificar
@@ -161,3 +196,77 @@ class AIService:
                     "mensaje": "Ocurrió un error procesando la consulta.",
                 }
             )
+
+    async def resume_query(self, request: ResumeRequest) -> ConsultaResponse:
+        """Reanuda un grafo pausado con la respuesta del gestor."""
+        thread_id = _session_store.get(request.session_id, (None, 0))[0]
+        if not thread_id:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "error": "SESION_NO_ENCONTRADA",
+                    "mensaje": "La sesión expiró o no existe. Enviá la consulta de nuevo.",
+                }
+            )
+
+        config = {
+            "configurable": {"thread_id": thread_id},
+            "recursion_limit": settings.agent_recursion_limit,
+        }
+
+        try:
+            try:
+                result = await asyncio.wait_for(
+                    agent.ainvoke(Command(resume=request.respuesta_gestor), config=config),
+                    timeout=settings.agent_timeout_compuesta,
+                )
+            except asyncio.TimeoutError:
+                raise HTTPException(
+                    status_code=504,
+                    detail={
+                        "error": "TIMEOUT",
+                        "mensaje": "La consulta tardó demasiado al reanudar.",
+                    }
+                )
+            finally:
+                # Limpiar el thread pase lo que pase (Corrección 4).
+                _session_store.pop(request.session_id, None)
+                await _checkpointer.adelete_thread(thread_id)
+
+            return self._build_response(result)
+
+        except HTTPException:
+            raise
+
+        except Exception as e:
+            logger.exception("Error inesperado reanudando consulta: %s", request.session_id)
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "error": "ERROR_INTERNO",
+                    "mensaje": "Ocurrió un error reanudando la consulta.",
+                }
+            )
+
+    def _build_response(self, state: dict) -> ConsultaResponse:
+        """Construye la respuesta final a partir del estado del grafo."""
+        # Fuera de dominio sigue lanzando 422 (handler existente).
+        if state.get("fuera_de_dominio"):
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "error": "CONSULTA_FUERA_DE_DOMINIO",
+                    "mensaje": state.get("respuesta_ia"),
+                }
+            )
+
+        # idioma efectivo conservado en el estado para la reanudación
+        idioma = state.get("idioma", "es")
+
+        return ConsultaResponse(
+            respuesta_ia=state.get("respuesta_ia", ""),
+            datos=get_tool_results(state),  # getter real: garantiza list[dict]
+            fuentes=state.get("fuentes", []),
+            visualizacion_sugerida=state.get("visualizacion_sugerida", "tabla_datos"),
+            idioma=idioma,
+        )

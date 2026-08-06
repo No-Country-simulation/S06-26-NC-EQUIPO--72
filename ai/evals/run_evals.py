@@ -51,6 +51,16 @@ AGENT_TIMEOUT_EVAL = 90.0
 _TRANSIENT = ("RateLimitError", "APIStatusError", "APITimeoutError",
               "APIConnectionError")
 
+# Instancia de eval con su PROPIO checkpointer (Corrección 4): los evals
+# crean un thread_id por consulta y el InMemorySaver persiste un checkpoint
+# por thread; así no se contamina el checkpointer de producción ni se
+# acumula memoria entre corridas.
+from langgraph.checkpoint.memory import InMemorySaver
+from app.agent import graph as agent_module
+
+_eval_checkpointer = InMemorySaver()
+_eval_agent = agent_module.build_graph(checkpointer=_eval_checkpointer)
+
 
 def _norm(s) -> str:
     if s is None:
@@ -61,6 +71,16 @@ def _norm(s) -> str:
     )
 
 
+def _state_serializable(state: dict) -> dict:
+    """Convierte objetos no serializables (Interrupt del HITL) a dicts."""
+    if "__interrupt__" in state:
+        state = {
+            **state,
+            "__interrupt__": [getattr(i, "value", None) for i in state["__interrupt__"]],
+        }
+    return state
+
+
 def _get_actual(state: dict, check_key: str):
     if check_key == "tool_results_not_empty":
         return bool(state.get("tool_results") or state.get("merged_results"))
@@ -69,6 +89,20 @@ def _get_actual(state: dict, check_key: str):
     if check_key == "fuera_de_dominio":
         # El agente solo setea True; en consultas en-dominio queda ausente.
         return bool(state.get("fuera_de_dominio"))
+    if check_key in ("necesita_clarificacion",
+                     "pregunta_clarificacion_not_null",
+                     "opciones_clarificacion_not_null"):
+        # El estado tras un interrupt() no llega a setear necesita_clarificacion
+        # en el state (el nodo pausa antes de retornar). Se deriva de __interrupt__.
+        interrupts = state.get("__interrupt__") or []
+        if check_key == "necesita_clarificacion":
+            return bool(interrupts)
+        if not interrupts:
+            return False
+        valor = interrupts[0].value
+        if check_key == "pregunta_clarificacion_not_null":
+            return bool(valor.get("pregunta_clarificacion"))
+        return bool(valor.get("opciones_clarificacion"))
     actual = state
     for part in check_key.split("."):
         if not isinstance(actual, dict):
@@ -101,12 +135,18 @@ async def eval_consulta(entry: dict, agent, sem: asyncio.Semaphore) -> dict:
             t0 = time.perf_counter()
             try:
                 state = await asyncio.wait_for(
-                    agent.ainvoke({
-                        "consulta": entry["consulta"],
-                        "idioma": entry["idioma"],
-                        "request_id": f"eval_{entry['id']}",
-                        "filtros": {},
-                    }),
+                    agent.ainvoke(
+                        {
+                            "consulta": entry["consulta"],
+                            "idioma": entry["idioma"],
+                            "request_id": f"eval_{entry['id']}",
+                            "filtros": {},
+                        },
+                        config={
+                            "configurable": {"thread_id": f"eval_{entry['id']}"},
+                            "recursion_limit": 25,
+                        },
+                    ),
                     timeout=AGENT_TIMEOUT_EVAL,
                 )
                 error = None
@@ -150,7 +190,7 @@ async def eval_consulta(entry: dict, agent, sem: asyncio.Semaphore) -> dict:
             "latencia": round(latencia, 2),
             "error": error,
             "checks": checks,
-            "state": state,
+            "state": _state_serializable(state),
         }
 
 
@@ -289,8 +329,6 @@ def _imprimir_reporte(results: list[dict]) -> None:
 
 
 async def run_all_evals(ruta_dataset: str | None = None) -> None:
-    from app.agent.graph import agent
-
     # CLI: [dataset_path] [--json salida.json] (orden indistinto)
     if ruta_dataset is None or "--json" in sys.argv:
         positional, ruta_json = [], None
@@ -327,7 +365,7 @@ async def run_all_evals(ruta_dataset: str | None = None) -> None:
     print(f"Pendientes: {len(pendientes)} de {len(dataset)}")
 
     sem = asyncio.Semaphore(CONCURRENCIA)
-    tasks = [eval_consulta(e, agent, sem) for e in pendientes]
+    tasks = [eval_consulta(e, _eval_agent, sem) for e in pendientes]
     for coro in asyncio.as_completed(tasks):
         r = await coro
         results.append(r)
@@ -336,7 +374,8 @@ async def run_all_evals(ruta_dataset: str | None = None) -> None:
               f"{r['consulta'][:45]}", flush=True)
         if parcial:
             parcial.write_text(json.dumps(
-                {"detalle": results}, ensure_ascii=False, indent=2))
+                {"detalle": results}, ensure_ascii=False, indent=2,
+                default=str))
 
     # /indicadores/evolucion ya implementado (backend + router + prompt).
     _imprimir_reporte(results)
@@ -352,7 +391,7 @@ async def run_all_evals(ruta_dataset: str | None = None) -> None:
                 {k: v for k, v in r.items() if k != "state"}
                 for r in results
             ],
-        }, ensure_ascii=False, indent=2))
+        }, ensure_ascii=False, indent=2, default=str))
         print(f"\nReporte JSON guardado en {ruta_json}")
 
 

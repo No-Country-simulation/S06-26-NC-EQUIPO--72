@@ -25,6 +25,8 @@ from app.api.routes import router
 from app.middlewares.logging_middleware import LoggingMiddleware
 from app.etl.pipeline import run_pipeline
 from app.vectorstore.indexer import init_vectorstore
+from app.services.ai_service import limpiar_sesiones_expiradas
+from app.core.config import settings
 
 
 app = FastAPI(
@@ -73,6 +75,21 @@ async def _init_vectorstore_con_retry(reintentos: int = 5, espera: float = 3.0) 
     logger.error("[VectorStore] No se pudo inicializar después de todos los intentos.")
 
 
+_cleanup_task: asyncio.Task | None = None
+
+
+async def _session_cleanup_loop() -> None:
+    """Loop en background: elimina sesiones HITL expiradas y sus threads."""
+    while True:
+        await asyncio.sleep(settings.hitl_cleanup_interval_seconds)
+        try:
+            limpiadas = await limpiar_sesiones_expiradas()
+            if limpiadas:
+                logger.info("Sesiones HITL expiradas limpiadas: %s", limpiadas)
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Error en limpieza de sesiones HITL: %s", e)
+
+
 @app.on_event("startup")
 async def startup_event():
     """Evento de inicio: inicia el ETL en background y vectorstore con reintentos"""
@@ -81,6 +98,20 @@ async def startup_event():
     logger.info("ETL iniciado en background - el servicio está listo para recibir peticiones")
 
     await _init_vectorstore_con_retry()
+
+    # Limpieza periódica de sesiones HITL expiradas (Corrección 4).
+    global _cleanup_task
+    _cleanup_task = asyncio.create_task(_session_cleanup_loop())
+    logger.info("Limpieza de sesiones HITL iniciada (cada %ds, TTL %ds)",
+                settings.hitl_cleanup_interval_seconds,
+                settings.hitl_session_ttl_seconds)
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    if _cleanup_task is not None:
+        _cleanup_task.cancel()
+
 
 @app.get("/health")
 def health():

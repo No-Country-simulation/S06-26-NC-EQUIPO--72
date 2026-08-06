@@ -2,6 +2,7 @@ package com.example.appbitb2g.controller;
 
 
 import com.example.appbitb2g.dto.requestDTO.queryrRequestDto.AiQueryRequestDTO;
+import com.example.appbitb2g.dto.requestDTO.queryrRequestDto.ResumeRequestDTO;
 import com.example.appbitb2g.dto.responseDTO.employability.AiQueryResponseDTO;
 import com.example.appbitb2g.dto.responseDTO.errorResponse.ErrorResponseDto;
 import com.example.appbitb2g.service.DataService;
@@ -66,6 +67,36 @@ public class DataController {
 	@PostMapping("/datos")
 	public ResponseEntity<AiQueryResponseDTO> datosQuery(@RequestBody AiQueryRequestDTO requestDto) {
 		var response = dataService.aiQueryAgent(requestDto);
+		return ResponseEntity.ok(response);
+	}
+
+	@Operation(
+			summary = "Reanudar consulta de IA pausada",
+			description = "Reanuda una consulta que pausó por clarificación, con la respuesta del gestor."
+	)
+	@ApiResponses({
+			@ApiResponse(
+					responseCode = "200",
+					description = "Consulta reanudada y procesada correctamente",
+					content = @Content(schema = @Schema(implementation = AiQueryResponseDTO.class))
+			),
+			@ApiResponse(
+					responseCode = "404",
+					description = "Sesión expirada o inexistente",
+					content = @Content(
+							mediaType = "application/json",
+							schema = @Schema(implementation = ErrorResponseDto.class)
+					)
+			)
+	})
+	@io.swagger.v3.oas.annotations.parameters.RequestBody(
+			description = "Sesión y respuesta del gestor para reanudar",
+			required = true,
+			content = @Content(schema = @Schema(implementation = ResumeRequestDTO.class))
+	)
+	@PostMapping("/datos/respuesta")
+	public ResponseEntity<AiQueryResponseDTO> resumeQuery(@RequestBody ResumeRequestDTO requestDto) {
+		var response = dataService.resumirConsulta(requestDto);
 		return ResponseEntity.ok(response);
 	}
 }

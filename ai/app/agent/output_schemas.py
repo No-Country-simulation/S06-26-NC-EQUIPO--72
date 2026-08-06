@@ -51,3 +51,10 @@ class FormatterOutput(BaseModel):
     visualizacion_sugerida: Literal[
         "mapa_brechas", "mapa_indicadores", "tabla_datos", "grafico_barras"
     ]
+
+
+class ClarificationDecision(BaseModel):
+    necesita_clarificacion: bool
+    pregunta: str | None = None
+    opciones: list[str] | None = None
+    razon: str = ""

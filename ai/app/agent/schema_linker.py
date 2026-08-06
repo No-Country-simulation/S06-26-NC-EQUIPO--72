@@ -105,9 +105,10 @@ def _route_por_plan(plan: dict, consulta_lower: str) -> dict | None:
             "score": 1.0,
         }
 
-    # 5. Si el servicio es uno de los que tienen indicador social (EMPLEO, SALUD_MENTAL)
-    #    y no es consulta de brecha, también es /mapa/indicadores.
-    if plan.get("servicio") in ("EMPLEO", "SALUD_MENTAL"):
+    # 5. Si el servicio es uno de los que tienen indicador social
+    #    (EMPLEO, SALUD_MENTAL, EDUCACION) y no es consulta de brecha,
+    #    también es /mapa/indicadores.
+    if plan.get("servicio") in ("EMPLEO", "SALUD_MENTAL", "EDUCACION"):
         return {
             "id": "ep_mapa_indicadores",
             "tipo": "endpoint",

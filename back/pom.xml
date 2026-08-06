@@ -40,6 +40,14 @@
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 
+		<!-- WebClient reactivo (no bloqueante) para llamar al AI Service.
+		     coexiste con webmvc: la app sigue siendo servlet; solo se aporta
+		     la clase WebClient para las llamadas al servicio de IA. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
