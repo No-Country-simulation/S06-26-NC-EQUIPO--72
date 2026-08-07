@@ -83,6 +83,20 @@ class Settings(BaseSettings):
     hitl_session_ttl_seconds: int = 900  # 15 min entre pausa y reanudación
     hitl_cleanup_interval_seconds: int = 60
 
+    # Seguridad de la API (auth + rate limit)
+    # API key compartida con el backend: si está vacía/None la auth queda
+    # DESHABILITADA (compatible con el backend actual que no envía header).
+    # Para activarla: fijar AI_API_AUTH_TOKEN en .env y que el backend envíe
+    # el header "X-API-Key". El valor del header se compara en tiempo
+    # constante (secret-strcmp) para evitar timing attacks.
+    api_auth_token: SecretStr | None = None
+    # Rate limit por IP de cliente sobre POST /consulta y /consulta/respuesta.
+    # Ventana deslizante en memoria (un solo worker). El AI Service solo
+    # recibe tráfico del backend, así que un límite generoso basta para
+    # frenar abuso directo al puerto 8000 sin cortar consultas legítimas.
+    rate_limit_max_requests: int = 30
+    rate_limit_window_seconds: int = 60
+
     model_config = SettingsConfigDict(
         env_file=".env",
         case_sensitive=False,

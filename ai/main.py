@@ -23,10 +23,10 @@ setup_observability()
 
 from app.api.routes import router
 from app.middlewares.logging_middleware import LoggingMiddleware
+from app.middlewares.security_middleware import SecurityMiddleware
 from app.etl.pipeline import run_pipeline
 from app.vectorstore.indexer import init_vectorstore
 from app.services.ai_service import limpiar_sesiones_expiradas
-from app.core.config import settings
 
 
 app = FastAPI(
@@ -36,6 +36,7 @@ app = FastAPI(
 )
 
 app.add_middleware(LoggingMiddleware)
+app.add_middleware(SecurityMiddleware)
 
 app.include_router(router)
 
@@ -115,10 +116,10 @@ async def shutdown_event():
 
 @app.get("/health")
 def health():
-    return { 
-        "status": "ok", 
-        "backend_url": settings.backend_url,
-        "etl": etl_status 
+    #  no exponer backend_url (info de infraestructura interna).
+    return {
+        "status": "ok",
+        "etl": etl_status,
     }
 
 @app.get("/etl/status")

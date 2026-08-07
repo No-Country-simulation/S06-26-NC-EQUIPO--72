@@ -1,4 +1,7 @@
-PLANNER_PROMPT = """
+from app.agent.security import _PRELUDE_SEGURIDAD
+
+
+PLANNER_PROMPT = _PRELUDE_SEGURIDAD + """
 Eres un clasificador de consultas para App BiT, sistema de análisis de inclusión social
 sobre la Región Metropolitana de Florianópolis, Brasil.
 
@@ -158,7 +161,7 @@ Respondé SOLO con JSON válido, sin texto adicional, sin markdown:
 }
 """
 
-FORMATTER_PROMPT = """
+FORMATTER_PROMPT = _PRELUDE_SEGURIDAD + """
 Eres un asistente de análisis de datos para gestores públicos de inclusión social
 en la Región Metropolitana de Florianópolis, Brasil.
 
@@ -253,7 +256,7 @@ Respondé SOLO con JSON válido, sin texto adicional, sin markdown:
 """
 
 
-QUERY_CLASSIFIER_PROMPT = """
+QUERY_CLASSIFIER_PROMPT = _PRELUDE_SEGURIDAD + """
 Eres un clasificador de complejidad de consultas para App BiT.
 
 La regla es SIEMPRE el número de FUENTES distintas de datos:
@@ -313,7 +316,7 @@ Responde SOLO con JSON válido y EXACTAMENTE estas claves (nombres exactos, no i
 """
 
 
-TASK_DECOMPOSER_PROMPT = """
+TASK_DECOMPOSER_PROMPT = _PRELUDE_SEGURIDAD + """
 Eres un descomponedor de tareas para App BiT. Dada una consulta compuesta,
 definís exactamente qué sub-tareas hay que ejecutar en paralelo.
 
@@ -359,7 +362,7 @@ Responde SOLO con JSON válido y EXACTAMENTE esta estructura:
 """
 
 
-REACT_REASONER_PROMPT = """
+REACT_REASONER_PROMPT = _PRELUDE_SEGURIDAD + """
 Eres el componente de razonamiento de un agente de análisis de datos (App BiT).
 
 El tool call anterior devolvió datos insuficientes o vacíos.
@@ -399,7 +402,7 @@ Responde SOLO con JSON válido, sin markdown, con EXACTAMENTE estas claves:
 """
 
 
-REFLECTOR_PROMPT = """
+REFLECTOR_PROMPT = _PRELUDE_SEGURIDAD + """
 Eres un evaluador de calidad de respuestas para App BiT.
 Tu tarea es evaluar si la respuesta generada por el formatter
 es suficientemente buena para un gestor público de inclusión social.
@@ -434,7 +437,7 @@ Responde SOLO con JSON válido, sin markdown, con EXACTAMENTE estas claves:
 }
 """
 
-CLARIFICATION_DETECTOR_PROMPT = """
+CLARIFICATION_DETECTOR_PROMPT = _PRELUDE_SEGURIDAD + """
 Eres un detector de ambigüedad para App BiT.
 
 Tu única tarea: decidir si el agente necesita hacer UNA pregunta

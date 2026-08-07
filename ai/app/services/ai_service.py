@@ -9,6 +9,7 @@ from openai import APIStatusError, RateLimitError
 from app.models.schemas import ConsultaRequest, ConsultaResponse, ResumeRequest
 from app.agent.graph import agent, _checkpointer
 from app.agent.state import get_tool_results
+from app.agent.guardrails import _sanitizar_respuesta_gestor
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -153,7 +154,7 @@ class AIService:
             # de tenacity (1-8s) no alcanzan a esperar la ventana, así que
             # tras agotarlos degradamos a 503 con mensaje de reintento.
             logger.warning(
-                "Rate limit de Groq tras retries: %s", request.consulta
+                "[%s] Rate limit de Groq tras retries", request_id
             )
             raise HTTPException(
                 status_code=503,
@@ -172,8 +173,8 @@ class AIService:
             # del modelo) no se resuelve con retries. Degradar con 503 en
             # vez de 500.
             logger.warning(
-                "Groq rechazó la llamada (status=%s): %s",
-                e.status_code, request.consulta,
+                "[%s] Groq rechazó la llamada (status=%s)",
+                request_id, e.status_code,
             )
             raise HTTPException(
                 status_code=503,
@@ -188,7 +189,9 @@ class AIService:
             )
 
         except Exception as e:
-            logger.exception("Error inesperado procesando consulta: %s", request.consulta)
+            logger.exception(
+                "[%s] Error inesperado procesando consulta", request_id
+            )
             raise HTTPException(
                 status_code=500,
                 detail={
@@ -216,8 +219,16 @@ class AIService:
 
         try:
             try:
+                #  sanitizar la respuesta del gestor (canal HITL) antes
+                # de reinyectarla al grafo- trunca y elimina caracteres de
+                # control para que no llegue texto arbitrario a los prompts.
+                respuesta_limpia = _sanitizar_respuesta_gestor(
+                    request.respuesta_gestor
+                )
                 result = await asyncio.wait_for(
-                    agent.ainvoke(Command(resume=request.respuesta_gestor), config=config),
+                    agent.ainvoke(
+                        Command(resume=respuesta_limpia), config=config
+                    ),
                     timeout=settings.agent_timeout_compuesta,
                 )
             except asyncio.TimeoutError:

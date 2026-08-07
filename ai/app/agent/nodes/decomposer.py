@@ -13,6 +13,7 @@ from app.agent.llm_layer import (
     _decomposer_models,
     _decomposer_fallback_model,
 )
+from app.agent.security import envolver_consulta
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ async def task_decomposer(state: AgentState) -> AgentState:
             [
                 SystemMessage(content=TASK_DECOMPOSER_PROMPT),
                 HumanMessage(content=(
-                    f"Consulta: {state['consulta']}\n"
+                    f"Consulta: {envolver_consulta(state['consulta'])}\n"
                     f"Plan del planner: {json.dumps(plan, ensure_ascii=False)}\n"
                     f"Merge strategy: {state.get('merge_strategy', 'join')}"
                 ))

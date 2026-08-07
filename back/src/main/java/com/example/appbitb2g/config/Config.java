@@ -17,17 +17,26 @@ public class Config {
     @Value("${ai.service.url:http://localhost:8000}")
     private String aiServiceUrl;
 
+    @Value("${ai.service.api-token:}")
+    private String aiServiceApiToken;
+
     @Bean
     public WebClient aiServiceWebClient() {
-        return WebClient.builder()
+        WebClient.Builder builder = WebClient.builder()
                 .baseUrl(aiServiceUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 // Timeout generoso: las consultas compuestas del AI Service
                 // tienen p95 ~15s, así que 60s cubre el peor caso sin cortar.
                 .clientConnector(new ReactorClientHttpConnector(
                         HttpClient.create().responseTimeout(Duration.ofSeconds(60))
-                ))
-                .build();
+                ));
+        // API key compartida con el AI Service (si está configurada).
+        // Solo se envía el header cuando hay token, para no romper el dev
+        // local donde el AI Service corre sin auth.
+        if (aiServiceApiToken != null && !aiServiceApiToken.isBlank()) {
+            builder.defaultHeader("X-API-Key", aiServiceApiToken);
+        }
+        return builder.build();
     }
 
     public String getAiServiceUrl() {

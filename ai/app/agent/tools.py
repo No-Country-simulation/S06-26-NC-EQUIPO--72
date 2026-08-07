@@ -8,12 +8,29 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from openai import RateLimitError
 from app.core.config import settings
 from app.agent.retry import http_retry
+from app.agent.security import validar_endpoint, filtrar_params, envolver_consulta
 
 logger = logging.getLogger(__name__)
 
 
 # Claves de resultado conocidas del backend (orden importa- más específica primero)
 _CLAVES_RESULTADO = ("brechas", "evolucion", "programas", "regiones")
+
+# Tablas conocidas del esquema (only-read). Cualquier tabla fuera de esta lista
+# referenciada en el SQL generado por el LLM se rechaza (exfiltración).
+# `dual` es la pseudo-tabla de MySQL (SELECT 1) — inofensiva.
+_TABLAS_PERMITIDAS = frozenset({
+    "concentracao", "mobilidade_agregada", "mobilidade",
+    "flujo_od", "fluxo_vias", "indicadores_territoriales", "dual",
+})
+
+# Keywords que anulan el SQL completo. Se verifica por substring case-insensitive
+# sobre el SQL en mayúsculas (defensa en capas, no única).
+_KEYWORDS_PELIGROSAS = (
+    "INSERT", "UPDATE", "DELETE", "DROP", "ALTER", "CREATE", "TRUNCATE",
+    "UNION", "INTO OUTFILE", "INTO DUMPFILE", "LOAD_FILE", "SLEEP",
+    "INFORMATION_SCHEMA", "@@", "/*",
+)
 
 
 @http_retry(max_attempts=settings.max_retries_tool + 1)
@@ -34,6 +51,134 @@ async def _do_request(metodo: str, url: str, params: dict) -> dict:
 def _limpiar_sql(raw: str) -> str:
     cleaned = re.sub(r"```(?:sql)?\s*", "", raw).strip()
     return cleaned
+
+
+def _limitar_filas(sql: str, request_id: str, max_filas: int = 50) -> str:
+    """
+    Garantiza LIMIT siempre presente y acotado:
+    - Si no hay LIMIT, agrega LIMIT {max_filas}.
+    - Si hay LIMIT N con N > max_filas, lo reescribe a LIMIT {max_filas}
+      (el modelo inducido puede emitir LIMIT 1000000 para exfiltrar).
+    - Si hay LIMIT N con N <= max_filas, no lo toca.
+    """
+    limite = re.search(r"\blimit\s+(\d+)\s*;?\s*$", sql, re.IGNORECASE)
+    if limite:
+        n = int(limite.group(1))
+        if n > max_filas:
+            logger.warning(
+                "[%s] SQL | LIMIT %d excede el máximo- reescribiendo a LIMIT %d",
+                request_id, n, max_filas
+            )
+            base = sql[:limite.start()].rstrip(" \n\t;")
+            return f"{base} LIMIT {max_filas}"
+        return sql
+    logger.warning("[%s] SQL sin LIMIT- agregando LIMIT %d", request_id, max_filas)
+    return sql.rstrip(";") + f" LIMIT {max_filas}"
+
+
+def _tablas_uso(sql: str) -> list[str]:
+    """Extrae los nombres de tabla referenciados en FROM/JOIN (con prefijo opcional)."""
+    tablas = re.findall(
+        r"\b(?:FROM|JOIN)\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)",
+        sql,
+        re.IGNORECASE,
+    )
+    # Quitar el prefijo de esquema (p.ej. "db.concentracao" -> "concentracao")
+    return [t.split(".")[-1] for t in tablas]
+
+
+def _where_filtra_fecha(sql: str) -> bool:
+    """
+    True si la cláusula WHERE (hasta el LIMIT o el final) filtra day_date.
+    Busca en el segmento WHERE real, no en todo el SQL: un substring
+    de "day_date" en otra posición (p.ej. dentro de un SELECT) no se considera
+    filtro de fecha, así el full-scan guard no se puede engañar con eso.
+    """
+    m_where = re.search(r"\bWHERE\b", sql, re.IGNORECASE)
+    if not m_where:
+        return False
+    m_limit = re.search(r"\bLIMIT\b", sql, re.IGNORECASE)
+    fin = m_limit.start() if m_limit else len(sql)
+    clausula_where = sql[m_where.start():fin]
+    return "day_date" in clausula_where.lower()
+
+
+def _sanitizar_sql(sql: str, request_id: str) -> str | None:
+    """
+    Validación de seguridad del SQL generado por el LLM.
+    Devuelve el SQL saneado, o None si es inseguro (abortar sin ejecutar).
+
+    Checks (defensa en profundidad, ninguno es la única barrera):
+    1. Debe empezar con SELECT.
+    2. Sin multi-statement (punto y coma seguido de más contenido).
+    3. Sin keywords peligrosas (substring case-insensitive).
+    4. Tablas referenciadas solo dentro de la allowlist.
+    5. LIMIT siempre presente y <= 50.
+    6. Full scan en tablas grandes requiere filtro de fecha en el WHERE real.
+    """
+    sql_upper = sql.upper()
+
+    # 1. Solo SELECT
+    if not sql_upper.startswith("SELECT"):
+        logger.warning("[%s] SQL generado no es SELECT - abortando: %s", request_id, sql)
+        return None
+
+    # 2. Multi-statement: ";" seguido de más contenido (no solo el final).
+    if re.search(r";\s*\S", sql):
+        logger.warning("[%s] SQL multi-statement - abortando: %s", request_id, sql)
+        return None
+
+    # 3. Keywords peligrosas
+    for keyword in _KEYWORDS_PELIGROSAS:
+        if keyword in sql_upper:
+            logger.warning(
+                "[%s] SQL contiene keyword peligroso '%s' - abortando.",
+                request_id, keyword
+            )
+            return None
+
+    # 4. Tablas dentro de la allowlist (exfiltración de tablas arbitrarias).
+    for tabla in _tablas_uso(sql):
+        if tabla not in _TABLAS_PERMITIDAS:
+            logger.warning(
+                "[%s] SQL referencia tabla fuera de allowlist '%s' - abortando: %s",
+                request_id, tabla, sql
+            )
+            return None
+
+    # 5. LIMIT acotado (después de los checks, para operar sobre SQL confiable).
+    sql = _limitar_filas(sql, request_id)
+
+    # 6. Full scan en tablas grandes: sin filtro de fecha en el WHERE real,
+    #    agregar filtro por el día más reciente (evita barrer el histórico).
+    #    Bug previo: se comparaba "where" (minúscula) contra sql_upper
+    #    (MAYÚSCULA) -> nunca matcheaba -> el guard disparaba SIEMPRE y
+    #    duplicaba el filtro de fecha -> syntax error 1064 (eval_028).
+    _TABLAS_GRANDES = ("concentracao", "mobilidade_agregada")
+    for tabla in _TABLAS_GRANDES:
+        if tabla in sql.lower():
+            tiene_where = re.search(r"\bWHERE\b", sql, re.IGNORECASE) is not None
+            filtra_fecha = _where_filtra_fecha(sql)
+            if not tiene_where or not filtra_fecha:
+                logger.warning(
+                    "[%s] Full scan en tabla grande '%s'- agregando filtro de fecha",
+                    request_id, tabla
+                )
+                cond = f"{tabla}.day_date = (SELECT MAX(day_date) FROM {tabla})"
+                conector = " AND " if tiene_where else " WHERE "
+                # WHERE/AND después de LIMIT es syntax error. El LIMIT puede
+                # venir con salto de línea ("LIMIT\n50")- regex tolera
+                # cualquier whitespace y el punto y coma final.
+                limite = re.search(r"\blimit\s+(\d+)\s*;?\s*$", sql, re.IGNORECASE)
+                if limite:
+                    base = sql[:limite.start()].rstrip(" \n\t;")
+                    sql = f"{base}{conector}{cond} LIMIT {limite.group(1)}"
+                else:
+                    base = sql.rstrip(" \n\t;")
+                    sql = f"{base}{conector}{cond} LIMIT 50"
+                break
+
+    return sql
 
 
 TEXT_TO_SQL_PROMPT = """
@@ -74,6 +219,16 @@ async def llamar_endpoint(metodo: str, endpoint: str, params: dict, request_id: 
     Los errores transitorios se reintentan en _do_request (tenacity);
     tras agotar intentos se degrada a lista vacía sin romper el pipeline.
     """
+    # Security el endpoint y params pueden venir del LLM
+    # (decomposer/react_reasoner) y ser manipulados por prompt injection.
+    # Allowlist determinística fuera del control del modelo.
+    if not validar_endpoint(endpoint, request_id):
+        return {
+            "resultado": [],
+            "fuentes": [],
+            "error": f"endpoint '{endpoint}' no permitido",
+        }
+    params = filtrar_params(endpoint, params, request_id)
     url = f"{settings.backend_url}{endpoint}"
 
     try:
@@ -149,7 +304,7 @@ async def ejecutar_sql(
         try:
             response = await m.ainvoke([
                 SystemMessage(content=prompt),
-                HumanMessage(content=consulta)
+                HumanMessage(content=envolver_consulta(consulta))
             ])
             break
         except RateLimitError:
@@ -162,57 +317,17 @@ async def ejecutar_sql(
                        request_id, model_fallback.model_name)
         response = await model_fallback.ainvoke([
             SystemMessage(content=prompt),
-            HumanMessage(content=consulta)
+            HumanMessage(content=envolver_consulta(consulta))
         ])
     
     sql = _limpiar_sql(response.content.strip())
 
     logger.debug("[%s] SQL generado por el agente:\n%s", request_id, sql)
 
-    # Validación mínima de seguridad
-    sql_upper = sql.upper()
-    if not sql_upper.startswith("SELECT"):
-        logger.warning("[%s] SQL generado no es SELECT - abortando: %s", request_id, sql)
+    # --- Validación de seguridad  ---
+    sql = _sanitizar_sql(sql, request_id)
+    if sql is None:
         return {"resultado": [], "fuentes": []}
-
-    for keyword in ("INSERT", "UPDATE", "DELETE", "DROP", "ALTER", "CREATE", "TRUNCATE"):
-        if keyword in sql_upper:
-            logger.warning("[%s] SQL contiene keyword peligroso '%s' - abortando.", request_id, keyword)
-            return {"resultado": [], "fuentes": []}
-
-    # validación SQL reforzada
-    # Garantizar LIMIT
-    if "LIMIT" not in sql_upper:
-        logger.warning("[%s] SQL sin LIMIT- agregando LIMIT 50", request_id)
-        sql = sql.rstrip(";") + " LIMIT 50"
-
-    # Prevenir full scan en tablas grandes: solo si falta WHERE o si el WHERE
-    # no filtra day_date. Bug previo: se comparaba "where" (minúscula) contra
-    # sql_upper (MAYÚSCULA) -> nunca matcheaba -> el guard disparaba SIEMPRE y
-    # duplicaba el filtro de fecha -> syntax error 1064 (eval_028).
-    _TABLAS_GRANDES = ("concentracao", "mobilidade_agregada")
-    for tabla in _TABLAS_GRANDES:
-        if tabla in sql.lower():
-            tiene_where = "WHERE" in sql_upper
-            filtra_fecha = "day_date" in sql.lower()
-            if not tiene_where or not filtra_fecha:
-                logger.warning(
-                    "[%s] Full scan en tabla grande '%s'- agregando filtro de fecha",
-                    request_id, tabla
-                )
-                cond = f"{tabla}.day_date = (SELECT MAX(day_date) FROM {tabla})"
-                conector = " AND " if tiene_where else " WHERE "
-                # WHERE/AND después de LIMIT es syntax error. El LIMIT puede
-                # venir con salto de línea ("LIMIT\n50")- regex tolera
-                # cualquier whitespace y el punto y coma final.
-                limite = re.search(r"\blimit\s+(\d+)\s*;?\s*$", sql, re.IGNORECASE)
-                if limite:
-                    base = sql[:limite.start()].rstrip(" \n\t;")
-                    sql = f"{base}{conector}{cond} LIMIT {limite.group(1)}"
-                else:
-                    base = sql.rstrip(" \n\t;")
-                    sql = f"{base}{conector}{cond} LIMIT 50"
-                break
 
     # 2. Ejecuta el SQL
     try:

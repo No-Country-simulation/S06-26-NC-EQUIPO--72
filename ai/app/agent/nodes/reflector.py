@@ -12,6 +12,7 @@ from app.agent.llm_layer import (
     _reflector_models,
     _reflector_fallback_model,
 )
+from app.agent.security import envolver_consulta, envolver_datos
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -50,11 +51,11 @@ async def reflector(state: AgentState) -> AgentState:
         return {**state, "reflection_score": 1.0}
 
     context = (
-        f"Consulta original: {state['consulta']}\n"
+        f"Consulta original: {envolver_consulta(state['consulta'])}\n"
         f"Idioma esperado: {state['idioma']}\n"
         f"Respuesta del formatter: {respuesta_ia}\n"
         f"Datos disponibles (muestra): "
-        f"{json.dumps(datos[:3], ensure_ascii=False, default=json_default)}\n"
+        f"{envolver_datos(json.dumps(datos[:3], ensure_ascii=False, default=json_default))}\n"
         f"Total de registros: {len(datos)}\n"
         f"Hay datos: {'SÍ' if datos else 'NO'}"
     )

@@ -12,6 +12,7 @@ from app.agent.retry import llm_retry
 from app.agent.parsing import _extraer_json_con_fallback
 from app.agent.json_utils import json_default
 from app.agent.normalizer import normalizar_plan
+from app.agent.security import envolver_consulta
 from app.agent.llm_layer import (
     _llm_ainvoke_con_fallback,
     _planner_models,
@@ -96,7 +97,7 @@ async def planner(state: AgentState) -> AgentState:
             _planner_models, _planner_fallback_model,
             [
                 SystemMessage(content=PLANNER_PROMPT),
-                HumanMessage(content=state["consulta"])
+                HumanMessage(content=envolver_consulta(state["consulta"]))
             ],
             request_id, "PLANNER",
         )
@@ -110,7 +111,7 @@ async def planner(state: AgentState) -> AgentState:
             _light_models, _fallback_model,
             [
                 SystemMessage(content=PLANNER_PROMPT),
-                HumanMessage(content=state["consulta"])
+                HumanMessage(content=envolver_consulta(state["consulta"]))
             ],
             request_id, "PLANNER",
         )

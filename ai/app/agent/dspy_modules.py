@@ -1,5 +1,5 @@
 """
-Módulos DSPy (Fase B del plan).
+Módulos DSPy.
 
 Cada módulo envuelve un nodo LLM del agente con una Signature DSPy.
 Instancias de producción al final del archivo: compiladas si existen

@@ -18,6 +18,7 @@ from app.agent.llm_layer import (
     _primary_models,
     _fallback_model,
 )
+from app.agent.security import validar_endpoint, filtrar_params, envolver_consulta
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -101,6 +102,18 @@ def _aplicar_correccion_react(decision: dict, reasoning: dict) -> dict:
     nuevo_endpoint = reasoning.get("nuevo_endpoint")
     nuevos_params = reasoning.get("nuevos_params", {})
 
+    #  el reasoner es un LLM que un prompt injection puede
+    # manipular para proponer rutas arbitrarias del backend. Solo se acepta
+    # si el endpoint está en la allowlist (y params filtrados a claves válidas).
+    if isinstance(nuevo_endpoint, str) and nuevo_endpoint.startswith("/"):
+        if not validar_endpoint(nuevo_endpoint):
+            # Endpoint fuera de la allowlist: no corregir la decisión.
+            logger.warning("REACT | endpoint propuesto fuera de allowlist: %s",
+                           nuevo_endpoint)
+            nuevo_endpoint = None
+        elif isinstance(nuevos_params, dict):
+            nuevos_params = filtrar_params(nuevo_endpoint, nuevos_params)
+
     if isinstance(nuevo_endpoint, str) and nuevo_endpoint.startswith("/"):
         nueva_decision["tipo"] = "endpoint"
         nueva_decision["endpoint"] = nuevo_endpoint
@@ -137,7 +150,7 @@ async def react_reasoner(state: AgentState) -> AgentState:
     plan = get_plan(state)
 
     context = (
-        f"Consulta: {state['consulta']}\n"
+        f"Consulta: {envolver_consulta(state['consulta'])}\n"
         f"Endpoint llamado: {decision.get('endpoint', 'sql')}\n"
         f"Parámetros usados: {json.dumps(decision.get('params', {}), ensure_ascii=False)}\n"
         f"Resultado: {'vacío' if not tool_results else f'{len(tool_results)} registros'}\n"

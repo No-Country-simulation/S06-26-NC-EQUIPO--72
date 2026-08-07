@@ -16,6 +16,7 @@ from app.agent.llm_layer import (
     _primary_models,
     _fallback_model,
 )
+from app.agent.security import envolver_consulta
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ async def query_classifier(state: AgentState) -> AgentState:
             [
                 SystemMessage(content=QUERY_CLASSIFIER_PROMPT),
                 HumanMessage(content=(
-                    f"Consulta: {state['consulta']}\n"
+                    f"Consulta: {envolver_consulta(state['consulta'])}\n"
                     f"Plan del planner: {json.dumps(state.get('plan', {}), ensure_ascii=False)}"
                 ))
             ],
@@ -63,7 +64,7 @@ async def query_classifier(state: AgentState) -> AgentState:
                 [
                     SystemMessage(content=QUERY_CLASSIFIER_PROMPT),
                     HumanMessage(content=(
-                        f"Consulta: {state['consulta']}\n"
+                        f"Consulta: {envolver_consulta(state['consulta'])}\n"
                         f"Plan del planner: {json.dumps(state.get('plan', {}), ensure_ascii=False)}"
                     ))
                 ],

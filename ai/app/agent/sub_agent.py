@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 
 from app.agent.tools import llamar_endpoint
 from app.agent.schema_linker import _CATEGORIAS_VALIDAS_MAPA
+from app.agent.security import validar_endpoint, filtrar_params
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,18 @@ async def run_sub_agent(sub_task: dict, request_id: str) -> SubAgentResult:
         "[%s] SUB_AGENT %s | endpoint=%s | params=%s",
         request_id, sub_agent_id, endpoint, params
     )
+
+    # Security: endpoint y params vienen del decomposer LLM, que un
+    # prompt injection puede manipular. Allowlist determinística.
+    if not validar_endpoint(endpoint, request_id):
+        return SubAgentResult(
+            sub_agent_id=sub_agent_id,
+            endpoint=endpoint,
+            results=[],
+            fuentes=[],
+            error=f"endpoint '{endpoint}' no permitido",
+        )
+    params = filtrar_params(endpoint, params, request_id)
 
     # Guarda determinística: /mapa/indicadores solo acepta categorias válidas
     # (SALUD_MENTAL/EMPLEO/EDUCACION). Evita llamadas 400 al backend y

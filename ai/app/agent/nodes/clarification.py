@@ -14,6 +14,8 @@ from app.agent.llm_layer import (
     _clarification_models,
     _clarification_fallback_model,
 )
+from app.agent.security import envolver_consulta
+from app.agent.guardrails import _detectar_inyeccion
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -183,10 +185,22 @@ def _integrar_respuesta_al_plan(
     if "ambas" in respuesta_lower or "todos" in respuesta_lower:
         plan["servicio"] = None
 
-    # Siempre agregar la respuesta como contexto adicional
-    plan["razon"] = (
-        f"{plan.get('razon', '')} | respuesta_gestor: {respuesta}"
-    ).strip(" |")
+    # el texto crudo del gestor NO debe llegar a
+    # otros prompts si contiene señales de inyección. Solo se apenda el valor
+    # canónico (servicio/municipio/periodo) ya mapeado arriba; el texto libre
+    # solo viaja a plan["razon"] cuando está limpio.
+    inyeccion = _detectar_inyeccion(respuesta)
+    if inyeccion:
+        logger.warning(
+            "[%s] CLARIFICATION | respuesta_gestor con inyección descartada "
+            "de 'razon': %s",
+            state.get("request_id", "-"), inyeccion,
+        )
+    else:
+        # Siempre agregar la respuesta como contexto adicional
+        plan["razon"] = (
+            f"{plan.get('razon', '')} | respuesta_gestor: {respuesta}"
+        ).strip(" |")
 
     return plan
 
@@ -242,7 +256,7 @@ async def clarification_detector(state: AgentState) -> AgentState:
                 [
                     SystemMessage(content=CLARIFICATION_DETECTOR_PROMPT),
                     HumanMessage(content=(
-                        f"Consulta: {consulta}\n"
+                        f"Consulta: {envolver_consulta(consulta)}\n"
                         f"Plan extraído: {json.dumps(plan, ensure_ascii=False)}"
                     ))
                 ],

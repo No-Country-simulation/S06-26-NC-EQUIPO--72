@@ -79,6 +79,7 @@ services:
       - SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
       - LOGGING_LEVEL_ORG_HIBERNATE_ORM_RESULTS_BASIC=TRACE
       - AI_SERVICE_URL=${AI_SERVICE_URL}
+      - AI_SERVICE_API_TOKEN=${AI_SERVICE_API_TOKEN}
       # Optimizaciones JVM para desarrollo
       - JAVA_TOOL_OPTIONS=-XX:+UseSerialGC -Xss512k -XX:MaxRAMPercentage=70.0 -XX:+UseContainerSupport
       - SPRING_MAIN_LAZY_INITIALIZATION=true
