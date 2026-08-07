@@ -256,6 +256,9 @@ Respondé SOLO con JSON válido, sin texto adicional, sin markdown:
 QUERY_CLASSIFIER_PROMPT = """
 Eres un clasificador de complejidad de consultas para App BiT.
 
+La regla es SIEMPRE el número de FUENTES distintas de datos:
+UNA fuente -> simple. DOS O MÁS -> compuesta.
+
 Una consulta es SIMPLE si puede responderse con UNA sola llamada a
 UN endpoint o UNA consulta SQL.
 Ejemplos simples:
@@ -264,6 +267,12 @@ Ejemplos simples:
 - "Tasa de desempleo en Florianópolis" -> solo /mapa/indicadores
 - "¿Qué zonas de Biguaçu no tienen programas de empleo?" -> solo /brechas (es UNA
   brecha social para UN municipio- no es compuesta por mencionar "zonas")
+- "¿Dónde hay brechas de salud mental en Florianópolis?" -> solo /brechas. Mencionar
+  el servicio (salud mental, empleo, formación) en una consulta de brechas es SOLO
+  un filtro del endpoint /brechas, NO una segunda fuente. NUNCA clasifiques
+  "brechas de X" como compuesta.
+- "¿Dónde faltan programas de mentoría en São José?" -> solo /brechas (ídem: el
+  servicio es filtro, no fuente adicional).
 
 Una consulta es COMPUESTA si requiere datos de DOS O MÁS fuentes
 diferentes y combinarlos.
@@ -289,6 +298,10 @@ Fuentes disponibles:
 Para merge_strategy:
 - "join" -> si la consulta pide combinar métricas por zona (mismo cluster como clave)
 - "relacional" -> si la consulta pide entender una RELACIÓN o CORRELACIÓN
+
+REGLA FINAL: el campo "fuentes_necesarias" decide la clase. Si tiene UN solo
+elemento -> query_type "simple". Si tiene DOS O MÁS -> "compuesta". Revisá que
+fuentes_necesarias y query_type sean consistentes antes de responder.
 
 Responde SOLO con JSON válido y EXACTAMENTE estas claves (nombres exactos, no inventes otros):
 {

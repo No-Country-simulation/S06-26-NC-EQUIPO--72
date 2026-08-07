@@ -1,0 +1,608 @@
+{
+  "resumen": {
+    "score_total": 1.0,
+    "consultas": 20
+  },
+  "metricas_por_nodo": {
+    "PLANNER": {
+      "accuracy_servicio": {
+        "valor": 1.0,
+        "pass": 11,
+        "total": 11
+      },
+      "accuracy_municipio": {
+        "valor": 1.0,
+        "pass": 18,
+        "total": 18
+      },
+      "fuera_dominio_precision": {
+        "valor": 1.0,
+        "pass": 2,
+        "total": 2
+      },
+      "fuera_dominio_recall": {
+        "valor": 1.0,
+        "pass": 2,
+        "total": 2
+      }
+    },
+    "QUERY_CLASSIFIER": {
+      "accuracy_query_type": null,
+      "accuracy_merge_strategy": null
+    },
+    "SCHEMA_LINKER": {
+      "endpoint_accuracy": null
+    },
+    "FORMATTER": {
+      "visualizacion_accuracy": null
+    },
+    "TOOL_CALLER": {
+      "empty_rate": null,
+      "react_retry_count": 0,
+      "sub_agent_errors": 0
+    },
+    "REFLECTOR": {
+      "mean_quality_score": 0.992,
+      "retry_rate": 0.0,
+      "con_llm": 18
+    },
+    "END_TO_END": {
+      "latencia_p50": 6.58,
+      "latencia_p95": 10.88,
+      "errores_por_rate_limit": 0,
+      "queries": 20
+    }
+  },
+  "detalle": [
+    {
+      "id": "ood_planner_010",
+      "categoria": "parafraseo_cluster",
+      "consulta": "¿Cómo es la señal de celular en Coqueiros?",
+      "score": 1.0,
+      "passed": 3,
+      "total": 3,
+      "latencia": 6.03,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.cluster": {
+          "pass": true,
+          "actual": "COQUEIROS",
+          "expected": "COQUEIROS"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Florianópolis",
+          "expected": "Florianópolis"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_005",
+      "categoria": "parafraseo_servicio",
+      "consulta": "¿Cómo está la deserción escolar en Florianópolis?",
+      "score": 1.0,
+      "passed": 3,
+      "total": 3,
+      "latencia": 7.14,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "EDUCACION",
+          "expected": "EDUCACION"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Florianópolis",
+          "expected": "Florianópolis"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_002",
+      "categoria": "parafraseo_servicio",
+      "consulta": "¿En qué barrios de São José faltan tutores para jóvenes?",
+      "score": 1.0,
+      "passed": 3,
+      "total": 3,
+      "latencia": 5.44,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "MENTORIA",
+          "expected": "MENTORIA"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "São José",
+          "expected": "São José"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_016",
+      "categoria": "parafraseo_fuera_dominio",
+      "consulta": "¿Dónde hay mejores restaurantes en São José?",
+      "score": 1.0,
+      "passed": 1,
+      "total": 1,
+      "latencia": 1.64,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    },
+    {
+      "id": "ood_planner_011",
+      "categoria": "parafraseo_cluster",
+      "consulta": "¿Cuánta gente se conecta a la red en la zona de la UFSC?",
+      "score": 1.0,
+      "passed": 3,
+      "total": 3,
+      "latencia": 5.86,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.cluster": {
+          "pass": true,
+          "actual": "UFSC",
+          "expected": "UFSC"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Florianópolis",
+          "expected": "Florianópolis"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_006",
+      "categoria": "parafraseo_servicio",
+      "consulta": "¿Qué comunidades de São José no tienen proyectos de integración?",
+      "score": 1.0,
+      "passed": 3,
+      "total": 3,
+      "latencia": 4.64,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "EXPERIENCIA",
+          "expected": "EXPERIENCIA"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "São José",
+          "expected": "São José"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_017",
+      "categoria": "generalizacion_municipio",
+      "consulta": "¿Cómo está la finalización del secundario en la isla?",
+      "score": 1.0,
+      "passed": 4,
+      "total": 4,
+      "latencia": 7.4,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "EDUCACION",
+          "expected": "EDUCACION"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Florianópolis",
+          "expected": "Florianópolis"
+        },
+        "plan.indicador": {
+          "pass": true,
+          "actual": "taxa_conclusao_ensino_medio",
+          "expected": "taxa_conclusao_ensino_medio"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_012",
+      "categoria": "parafraseo_periodo",
+      "consulta": "¿Dónde hay más movimiento de gente en Palhoça de madrugada?",
+      "score": 1.0,
+      "passed": 3,
+      "total": 3,
+      "latencia": 9.05,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Palhoça",
+          "expected": "Palhoça"
+        },
+        "plan.periodo": {
+          "pass": true,
+          "actual": "MADRUGADA",
+          "expected": "MADRUGADA"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_007",
+      "categoria": "parafraseo_indicador",
+      "consulta": "¿Cuál es la tasa de empleo formal en Palhoça?",
+      "score": 1.0,
+      "passed": 4,
+      "total": 4,
+      "latencia": 6.45,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "EMPLEO",
+          "expected": "EMPLEO"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Palhoça",
+          "expected": "Palhoça"
+        },
+        "plan.indicador": {
+          "pass": true,
+          "actual": "taxa_emprego_formal",
+          "expected": "taxa_emprego_formal"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_003",
+      "categoria": "parafraseo_servicio",
+      "consulta": "¿Qué zonas de Palhoça tienen menos ofertas de trabajo?",
+      "score": 1.0,
+      "passed": 3,
+      "total": 3,
+      "latencia": 6.58,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "EMPLEO",
+          "expected": "EMPLEO"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Palhoça",
+          "expected": "Palhoça"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_018",
+      "categoria": "generalizacion_cluster",
+      "consulta": "¿Cómo es el acceso a la red en Campeche?",
+      "score": 1.0,
+      "passed": 3,
+      "total": 3,
+      "latencia": 6.02,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.cluster": {
+          "pass": true,
+          "actual": "CAMPECHE",
+          "expected": "CAMPECHE"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Florianópolis",
+          "expected": "Florianópolis"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_013",
+      "categoria": "parafraseo_periodo",
+      "consulta": "¿Qué zonas de Florianópolis se llenan de gente a la noche?",
+      "score": 1.0,
+      "passed": 3,
+      "total": 3,
+      "latencia": 7.68,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Florianópolis",
+          "expected": "Florianópolis"
+        },
+        "plan.periodo": {
+          "pass": true,
+          "actual": "NOITE",
+          "expected": "NOITE"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_008",
+      "categoria": "parafraseo_indicador",
+      "consulta": "¿Cuánta evasión escolar hay en las escuelas de São José?",
+      "score": 1.0,
+      "passed": 4,
+      "total": 4,
+      "latencia": 6.51,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "EDUCACION",
+          "expected": "EDUCACION"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "São José",
+          "expected": "São José"
+        },
+        "plan.indicador": {
+          "pass": true,
+          "actual": "evasao_escolar",
+          "expected": "evasao_escolar"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_004",
+      "categoria": "parafraseo_servicio",
+      "consulta": "¿Dónde no hay atención psiquiátrica en Biguaçu?",
+      "score": 1.0,
+      "passed": 3,
+      "total": 3,
+      "latencia": 5.79,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "SALUD_MENTAL",
+          "expected": "SALUD_MENTAL"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Biguaçu",
+          "expected": "Biguaçu"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_001",
+      "categoria": "parafraseo_servicio",
+      "consulta": "¿Dónde hay cursos de capacitación en Florianópolis?",
+      "score": 1.0,
+      "passed": 3,
+      "total": 3,
+      "latencia": 8.18,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "FORMACION",
+          "expected": "FORMACION"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Florianópolis",
+          "expected": "Florianópolis"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_019",
+      "categoria": "generalizacion_income",
+      "consulta": "comunidades carentes de Biguaçu têm programas?",
+      "score": 1.0,
+      "passed": 3,
+      "total": 3,
+      "latencia": 8.8,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Biguaçu",
+          "expected": "Biguaçu"
+        },
+        "plan.income_cluster": {
+          "pass": true,
+          "actual": "D",
+          "expected": "D"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_014",
+      "categoria": "parafraseo_income",
+      "consulta": "¿Qué zonas de Palhoça con población vulnerable no tienen programas de ",
+      "score": 1.0,
+      "passed": 4,
+      "total": 4,
+      "latencia": 10.88,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "EMPLEO",
+          "expected": "EMPLEO"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Palhoça",
+          "expected": "Palhoça"
+        },
+        "plan.income_cluster": {
+          "pass": true,
+          "actual": "D",
+          "expected": "D"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_009",
+      "categoria": "parafraseo_indicador",
+      "consulta": "¿Cuál es la tasa de conclusión del secundario en Florianópolis?",
+      "score": 1.0,
+      "passed": 4,
+      "total": 4,
+      "latencia": 6.8,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.servicio": {
+          "pass": true,
+          "actual": "EDUCACION",
+          "expected": "EDUCACION"
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "Florianópolis",
+          "expected": "Florianópolis"
+        },
+        "plan.indicador": {
+          "pass": true,
+          "actual": "taxa_conclusao_ensino_medio",
+          "expected": "taxa_conclusao_ensino_medio"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_020",
+      "categoria": "parafraseo_periodo",
+      "consulta": "¿Dónde se juntan más personas en el centro de São José de noche?",
+      "score": 1.0,
+      "passed": 4,
+      "total": 4,
+      "latencia": 7.9,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": false,
+          "expected": false
+        },
+        "plan.municipio": {
+          "pass": true,
+          "actual": "São José",
+          "expected": "São José"
+        },
+        "plan.cluster": {
+          "pass": true,
+          "actual": "SAO_JOSE_CENTRO",
+          "expected": "SAO_JOSE_CENTRO"
+        },
+        "plan.periodo": {
+          "pass": true,
+          "actual": "NOITE",
+          "expected": "NOITE"
+        }
+      }
+    },
+    {
+      "id": "ood_planner_015",
+      "categoria": "parafraseo_fuera_dominio",
+      "consulta": "¿Cuál es el precio de la nafta en Florianópolis?",
+      "score": 1.0,
+      "passed": 1,
+      "total": 1,
+      "latencia": 2.0,
+      "error": null,
+      "checks": {
+        "fuera_de_dominio": {
+          "pass": true,
+          "actual": true,
+          "expected": true
+        }
+      }
+    }
+  ]
+}

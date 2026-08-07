@@ -141,8 +141,10 @@ services:
       dockerfile: Dockerfile
     container_name: Appbitb2g_AI
     restart: always
-    mem_limit: 900M
-    memswap_limit: 900M
+    # 1600M: el eval DSPy (--use-compiled) carga dspy+optuna+litellm además del
+    # agente completo; con 900M el OOM killer mataba el proceso.
+    mem_limit: 1600M
+    memswap_limit: 1600M
     ports:
       - "8000:8000"
     volumes:

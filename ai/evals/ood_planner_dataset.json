@@ -1,0 +1,224 @@
+[
+  {
+    "id": "ood_planner_001",
+    "categoria": "parafraseo_servicio",
+    "consulta": "¿Dónde hay cursos de capacitación en Florianópolis?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.servicio": "FORMACION",
+      "plan.municipio": "Florianópolis"
+    }
+  },
+  {
+    "id": "ood_planner_002",
+    "categoria": "parafraseo_servicio",
+    "consulta": "¿En qué barrios de São José faltan tutores para jóvenes?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.servicio": "MENTORIA",
+      "plan.municipio": "São José"
+    }
+  },
+  {
+    "id": "ood_planner_003",
+    "categoria": "parafraseo_servicio",
+    "consulta": "¿Qué zonas de Palhoça tienen menos ofertas de trabajo?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.servicio": "EMPLEO",
+      "plan.municipio": "Palhoça"
+    }
+  },
+  {
+    "id": "ood_planner_004",
+    "categoria": "parafraseo_servicio",
+    "consulta": "¿Dónde no hay atención psiquiátrica en Biguaçu?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.servicio": "SALUD_MENTAL",
+      "plan.municipio": "Biguaçu"
+    }
+  },
+  {
+    "id": "ood_planner_005",
+    "categoria": "parafraseo_servicio",
+    "consulta": "¿Cómo está la deserción escolar en Florianópolis?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.servicio": "EDUCACION",
+      "plan.municipio": "Florianópolis"
+    }
+  },
+  {
+    "id": "ood_planner_006",
+    "categoria": "parafraseo_servicio",
+    "consulta": "¿Qué comunidades de São José no tienen proyectos de integración?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.servicio": "EXPERIENCIA",
+      "plan.municipio": "São José"
+    }
+  },
+  {
+    "id": "ood_planner_007",
+    "categoria": "parafraseo_indicador",
+    "consulta": "¿Cuál es la tasa de empleo formal en Palhoça?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.servicio": "EMPLEO",
+      "plan.municipio": "Palhoça",
+      "plan.indicador": "taxa_emprego_formal"
+    }
+  },
+  {
+    "id": "ood_planner_008",
+    "categoria": "parafraseo_indicador",
+    "consulta": "¿Cuánta evasión escolar hay en las escuelas de São José?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.servicio": "EDUCACION",
+      "plan.municipio": "São José",
+      "plan.indicador": "evasao_escolar"
+    }
+  },
+  {
+    "id": "ood_planner_009",
+    "categoria": "parafraseo_indicador",
+    "consulta": "¿Cuál es la tasa de conclusión del secundario en Florianópolis?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.servicio": "EDUCACION",
+      "plan.municipio": "Florianópolis",
+      "plan.indicador": "taxa_conclusao_ensino_medio"
+    }
+  },
+  {
+    "id": "ood_planner_010",
+    "categoria": "parafraseo_cluster",
+    "consulta": "¿Cómo es la señal de celular en Coqueiros?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.cluster": "COQUEIROS",
+      "plan.municipio": "Florianópolis"
+    }
+  },
+  {
+    "id": "ood_planner_011",
+    "categoria": "parafraseo_cluster",
+    "consulta": "¿Cuánta gente se conecta a la red en la zona de la UFSC?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.cluster": "UFSC",
+      "plan.municipio": "Florianópolis"
+    }
+  },
+  {
+    "id": "ood_planner_012",
+    "categoria": "parafraseo_periodo",
+    "consulta": "¿Dónde hay más movimiento de gente en Palhoça de madrugada?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.municipio": "Palhoça",
+      "plan.periodo": "MADRUGADA"
+    }
+  },
+  {
+    "id": "ood_planner_013",
+    "categoria": "parafraseo_periodo",
+    "consulta": "¿Qué zonas de Florianópolis se llenan de gente a la noche?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.municipio": "Florianópolis",
+      "plan.periodo": "NOITE"
+    }
+  },
+  {
+    "id": "ood_planner_014",
+    "categoria": "parafraseo_income",
+    "consulta": "¿Qué zonas de Palhoça con población vulnerable no tienen programas de empleo?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.servicio": "EMPLEO",
+      "plan.municipio": "Palhoça",
+      "plan.income_cluster": "D"
+    }
+  },
+  {
+    "id": "ood_planner_015",
+    "categoria": "parafraseo_fuera_dominio",
+    "consulta": "¿Cuál es el precio de la nafta en Florianópolis?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": true
+    }
+  },
+  {
+    "id": "ood_planner_016",
+    "categoria": "parafraseo_fuera_dominio",
+    "consulta": "¿Dónde hay mejores restaurantes en São José?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": true
+    }
+  },
+  {
+    "id": "ood_planner_017",
+    "categoria": "generalizacion_municipio",
+    "consulta": "¿Cómo está la finalización del secundario en la isla?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.servicio": "EDUCACION",
+      "plan.municipio": "Florianópolis",
+      "plan.indicador": "taxa_conclusao_ensino_medio"
+    }
+  },
+  {
+    "id": "ood_planner_018",
+    "categoria": "generalizacion_cluster",
+    "consulta": "¿Cómo es el acceso a la red en Campeche?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.cluster": "CAMPECHE",
+      "plan.municipio": "Florianópolis"
+    }
+  },
+  {
+    "id": "ood_planner_019",
+    "categoria": "generalizacion_income",
+    "consulta": "comunidades carentes de Biguaçu têm programas?",
+    "idioma": "pt",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.municipio": "Biguaçu",
+      "plan.income_cluster": "D"
+    }
+  },
+  {
+    "id": "ood_planner_020",
+    "categoria": "parafraseo_periodo",
+    "consulta": "¿Dónde se juntan más personas en el centro de São José de noche?",
+    "idioma": "es",
+    "expected": {
+      "fuera_de_dominio": false,
+      "plan.municipio": "São José",
+      "plan.cluster": "SAO_JOSE_CENTRO",
+      "plan.periodo": "NOITE"
+    }
+  }
+]

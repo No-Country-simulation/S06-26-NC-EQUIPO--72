@@ -13,6 +13,7 @@ Uso (dentro del contenedor AI, desde /app):
 """
 import asyncio
 import json
+import os
 import sys
 import time
 import unicodedata
@@ -30,17 +31,16 @@ if str(ROOT) not in sys.path:
 # Campos cuyo comparador normaliza acentos/case.
 _NORM_CHECKS = ("plan.municipio", "schema_decision.params.municipio")
 
-# El TPM free-tier de Groq (6000/min para el 8B) es chico: las consultas en
-# paralelo chocan y re-exhaustan la ventana sin recuperarse. Secuencial con
-# cooldown + backoff de 60s (duración de la ventana) es lo confiable.
+# El TPM free-tier de Groq es chico: las consultas en paralelo chocan y
+# re-exhaustan la ventana sin recuperarse. Secuencial con cooldown es lo
+# confiable. El cooldown se puede ajustar por env (EVAL_COOLDOWN_SEGUNDOS /
+# EVAL_BACKOFF_RATE_LIMIT). Con light groq/compound-mini (enruta prompts
+# largos a llama-3.3-70b-versatile, 12K TPM) ~8K tok/consulta permite ~1.5
+# consultas/min -> cooldown 45s es seguro; 60s era el valor del gpt-oss-20b.
 CONCURRENCIA = 1
 INTENTOS_POR_QUERY = 3
-# Pacing para el 8B: cuando el fallback (Gemini 2.0 Flash Lite) no tiene cuota
-# o el 70B agotó su TPD diario, todo el pipeline cae al 8B: ~5700 tokens por
-# consulta simple sobre su TPM de 6000. Cooldown ~60s deja drenar la ventana
-# de 60s para que la siguiente arranque limpia.
-COOLDOWN_ENTRE_QUERIES = 60  # segundos entre consultas exitosas
-BACKOFF_RATE_LIMIT = 90  # > ventana de TPM (60s): garantiza ventana limpia al reintentar
+COOLDOWN_ENTRE_QUERIES = int(os.environ.get("EVAL_COOLDOWN_SEGUNDOS", "45"))  # segundos entre consultas exitosas
+BACKOFF_RATE_LIMIT = int(os.environ.get("EVAL_BACKOFF_RATE_LIMIT", "90"))  # > ventana de TPM: ventana limpia al reintentar
 # Timeout por consulta: ai_service lo aplica (simple 30s / compuesta 60s) pero
 # eval_consulta llamaba a agent.ainvoke sin timeout -> una llamada colgada
 # bloqueaba todo el run para siempre (visto con eval_017). 90s cubre la peor
@@ -57,6 +57,7 @@ _TRANSIENT = ("RateLimitError", "APIStatusError", "APITimeoutError",
 # acumula memoria entre corridas.
 from langgraph.checkpoint.memory import InMemorySaver
 from app.agent import graph as agent_module
+from app.core.config import settings
 
 _eval_checkpointer = InMemorySaver()
 _eval_agent = agent_module.build_graph(checkpointer=_eval_checkpointer)
@@ -329,8 +330,9 @@ def _imprimir_reporte(results: list[dict]) -> None:
 
 
 async def run_all_evals(ruta_dataset: str | None = None) -> None:
-    # CLI: [dataset_path] [--json salida.json] (orden indistinto)
-    if ruta_dataset is None or "--json" in sys.argv:
+    # CLI: [dataset_path] [--json salida.json] [--use-compiled] (orden indistinto)
+    use_compiled = False
+    if ruta_dataset is None or "--json" in sys.argv or "--use-compiled" in sys.argv:
         positional, ruta_json = [], None
         args = sys.argv[1:]
         i = 0
@@ -338,12 +340,27 @@ async def run_all_evals(ruta_dataset: str | None = None) -> None:
             if args[i] == "--json":
                 ruta_json = args[i + 1]
                 i += 2
+            elif args[i] == "--use-compiled":
+                use_compiled = True
+                i += 1
             else:
                 positional.append(args[i])
                 i += 1
         ruta_dataset = ruta_dataset or positional[0] if positional else "evals/golden_dataset.json"
     else:
         ruta_json = None
+
+    # Sección 8 del plan: --use-compiled activa el planner DSPy compilado
+    # (settings.dspy_compiled + compiled_modules/planner.json). Sin compilar,
+    # el baseline (ChatOpenAI) sigue intacto. El grafo consulta el flag en
+    # _plan_via_dspy() (graph.py) — no basta con init_modules().
+    if use_compiled:
+        from app.agent.dspy_modules import init_modules
+        init_modules(use_compiled=True)
+        settings.dspy_compiled = True
+        print("Usando módulos DSPy compilados")
+    else:
+        print("Usando módulos baseline")
 
     dataset = json.loads(Path(ruta_dataset).read_text())
     print(f"Cargadas {len(dataset)} consultas de {ruta_dataset}")

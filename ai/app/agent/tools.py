@@ -112,16 +112,19 @@ async def llamar_endpoint(metodo: str, endpoint: str, params: dict, request_id: 
 async def ejecutar_sql(
     consulta: str,
     schema_minimo: str,
-    model: ChatOpenAI,
+    model: ChatOpenAI | None = None,
     fecha: str | None = None,
     filtros: dict | None = None,
     request_id: str = "-",
+    model_alt: ChatOpenAI | None = None,
+    modelos: list[ChatOpenAI] | None = None,
     model_fallback: ChatOpenAI | None = None,
 ) -> dict:
     """
     Genera SQL con el modelo primary y lo ejecuta contra MySQL (solo SELECT).
-    Si el modelo primary rate-limita (429 TPM/TPD), usa model_fallback (pool
-    de límites separado) en vez de esperar el rate-limit.
+    Ante rate-limit 429 (TPM/TPD) rota a la siguiente cuenta del pool
+    (`modelos` = una instancia por cuenta Groq, o `model`/`model_alt`) y, si
+    todas agotan, usa model_fallback (pool de límites separado, Gemini).
     """
     filtros = filtros or {}
     if fecha:
@@ -136,16 +139,27 @@ async def ejecutar_sql(
         consulta=consulta,
         filtros=filtros_texto,
     )
-    try:
-        response = await model.ainvoke([
-            SystemMessage(content=prompt),
-            HumanMessage(content=consulta)
-        ])
-    except RateLimitError:
+    if modelos:
+        cadena = list(modelos)
+    else:
+        cadena = [model] + ([model_alt] if model_alt else [])
+    cadena = [m for m in cadena if m is not None]
+    response = None
+    for m in cadena:
+        try:
+            response = await m.ainvoke([
+                SystemMessage(content=prompt),
+                HumanMessage(content=consulta)
+            ])
+            break
+        except RateLimitError:
+            logger.warning("[%s] SQL | rate limit en %s- probando siguiente cuenta Groq",
+                           request_id, m.model_name)
+    if response is None:
         if model_fallback is None:
-            raise
-        logger.warning("[%s] SQL | rate limit en %s- fallback a %s",
-                       request_id, model.model_name, model_fallback.model_name)
+            raise RuntimeError("sin modelos válidos para SQL")
+        logger.warning("[%s] SQL | todas las cuentas Groq rate-limit - fallback a %s",
+                       request_id, model_fallback.model_name)
         response = await model_fallback.ainvoke([
             SystemMessage(content=prompt),
             HumanMessage(content=consulta)

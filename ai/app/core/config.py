@@ -1,16 +1,24 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import SecretStr
+from pydantic import Field, SecretStr
 
 
 class Settings(BaseSettings):
     # Groq
     groq_base_url: str = "https://api.groq.com/openai/v1"
-    # llama-3.3-70b-versatile
+    # openai/gpt-oss-120b (migrado post-deprecación 16/08/2026)
     groq_api_key_primary: SecretStr
-    # llama-3.1-8b-instant
+    # groq/compound-mini (light) y openai/gpt-oss-120b (primary)
     groq_api_key_light: SecretStr
-    groq_model_primary: str = "llama-3.3-70b-versatile"
-    groq_model_light: str = "llama-3.1-8b-instant"
+    # Cuenta Groq adicional (rotación): ante rate-limit TPM/TPD de la cuenta
+    # principal, los nodos reutilizan la misma consulta con esta key antes
+    # de degradar al fallback Gemini. Duplica el presupuesto diario free.
+    groq_api_key_extra: SecretStr | None = None
+    # Claves Groq adicionales para rotación (JSON array, ej.
+    # GROQ_API_KEYS_ROTACION='["gsk_..","gsk_.."]'). Cada cuenta nueva suma
+    # su cuota diaria de TPM/TPD al pool de rotación.
+    groq_api_keys_rotacion: list[str] = Field(default_factory=list)
+    groq_model_primary: str = "openai/gpt-oss-120b"
+    groq_model_light: str = "groq/compound-mini"
 
     # Google (embeddings + fallback)
     google_api_key: SecretStr
@@ -46,6 +54,13 @@ class Settings(BaseSettings):
     max_retries_llm: int = 2
     max_retries_tool: int = 2
 
+    # DSPy compilado (sección 7.2 del plan). OFF por defecto: el nodo planner
+    # usa compiled_modules/planner.json SOLO si existe el archivo Y este flag
+    # está en True. Los evals de aceptación (golden + OOD, sin regresión) se
+    # corren antes de habilitarlo; si regresan, se borra el archivo o se deja
+    # False (revertir).
+    dspy_compiled: bool = False
+
     # Ejecución acotada
     # recursion_limit 25: el límite 15 era justo al borde del peor caso
     # tras los loops de Fases 5-6 (ReAct + reflexion pueden ejecutar ~14
@@ -73,7 +88,24 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
     
-    schema_linker_threshold: float = 0.67
+    schema_linker_threshold: float = 0.68
+
+    def claves_groq(self) -> list[str]:
+        """Pool de claves Groq en orden de rotación (dedup, sin vacías).
+
+        El runtime (graph.py) y el compile DSPy (dspy_config.py) comparten
+        este pool: cada clave es una cuenta con su propia cuota diaria de
+        TPM/TPD. Ante un 429 se rota a la siguiente clave antes de degradar
+        al fallback Gemini.
+        """
+        claves = [self.groq_api_key_primary.get_secret_value(),
+                  self.groq_api_key_light.get_secret_value()]
+        if self.groq_api_key_extra:
+            claves.append(self.groq_api_key_extra.get_secret_value())
+        for k in self.groq_api_keys_rotacion:
+            if k and k not in claves:
+                claves.append(k)
+        return claves
 
 
 
