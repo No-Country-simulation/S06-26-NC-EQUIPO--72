@@ -20,15 +20,16 @@ Este README documenta cómo funciona el sistema por dentro para que un desarroll
 10. [HITL: pausas de clarificación con el gestor](#10-hitl-pausas-de-clarificacin-con-el-gestor)
 11. [Consultas compuestas: sub-agentes paralelos y merge](#11-consultas-compuestas-sub-agentes-paralelos-y-merge)
 12. [Patrones de robustez: ReAct loop y Reflexión](#12-patrones-de-robustez-react-loop-y-reflexin)
-13. [DSPy: optimización offline de prompts (inactiva por defecto)](#13-dspy-optimizacin-offline-de-prompts-inactiva-por-defecto)
-14. [Vectorstore (Qdrant)](#14-vectorstore-qdrant)
-15. [Pipeline ETL](#15-pipeline-etl)
-16. [Evaluaciones](#16-evaluaciones)
-17. [Tests](#17-tests)
-18. [Configuración y variables de entorno](#18-configuracin-y-variables-de-entorno)
-19. [Endpoints de la API](#19-endpoints-de-la-api)
-20. [Scripts útiles](#20-scripts-tiles)
-21. [Documentación relacionada](#21-documentacin-relacionada)
+13. [Seguridad: defensa contra prompt injection](#13-seguridad-defensa-contra-prompt-injection)
+14. [DSPy: optimización offline de prompts (inactiva por defecto)](#14-dspy-optimizacin-offline-de-prompts-inactiva-por-defecto)
+15. [Vectorstore (Qdrant)](#15-vectorstore-qdrant)
+16. [Pipeline ETL](#16-pipeline-etl)
+17. [Evaluaciones](#17-evaluaciones)
+18. [Tests](#18-tests)
+19. [Configuración y variables de entorno](#19-configuracin-y-variables-de-entorno)
+20. [Endpoints de la API](#20-endpoints-de-la-api)
+21. [Scripts útiles](#21-scripts-tiles)
+22. [Documentación relacionada](#22-documentacin-relacionada)
 
 ---
 
@@ -81,37 +82,53 @@ Componentes externos y su responsabilidad:
 
 ```
 ai/
-├── main.py                     # Punto de entrada FastAPI: startup (ETL + vectorstore + limpieza HITL)
+├── main.py                     # Punto de entrada FastAPI: startup (ETL + vectorstore + limpieza HITL) + middlewares
 ├── app/
 │   ├── agent/                  # ★ Núcleo del agente (LangGraph)
-│   │   ├── graph.py            # Construcción del grafo, nodos, routing, integración DSPy
+│   │   ├── graph.py            # Ensamblador del grafo (StateGraph): registra nodos y routing
+│   │   ├── nodes/              # ★ Nodos del grafo, uno por archivo (planner, classifier, tool_caller, ...)
+│   │   │   ├── planner.py      #   planner + normalización del plan
+│   │   │   ├── classifier.py   #   query_classifier (simple/compuesta)
+│   │   │   ├── decomposer.py   #   task_decomposer (compuestas)
+│   │   │   ├── executor.py     #   parallel_executor + result_merger
+│   │   │   ├── tool_caller.py  #   tool_caller + react_reasoner (loop ReAct)
+│   │   │   ├── formatter.py    #   formatter + _corregir_visualizacion
+│   │   │   ├── reflector.py    #   _gate_reflexion + reflector
+│   │   │   ├── clarification.py#   clarification_detector + _integrar_respuesta_al_plan (HITL)
+│   │   │   ├── fuera_de_dominio.py
+│   │   │   └── routing.py      #   funciones _route_after_* (routing condicional)
 │   │   ├── state.py            # AgentState (TypedDict) + getters seguros
-│   │   ├── prompts.py          # Prompts de todos los nodos (PLANNER, FORMATTER, etc.)
+│   │   ├── prompts.py          # Prompts de todos los nodos (PLANNER, FORMATTER, etc.) + preludio de seguridad
 │   │   ├── schema_linker.py    # Reglas determinísticas + fallback a embeddings (Qdrant)
-│   │   ├── tools.py            # llamar_endpoint() y ejecutar_sql() (Text-to-SQL)
-│   │   ├── sub_agent.py        # Ejecutor de sub-tareas de consultas compuestas
+│   │   ├── tools.py            # llamar_endpoint() y ejecutar_sql() (Text-to-SQL) + hardening SQL
+│   │   ├── sub_agent.py        # Ejecutor de sub-tareas de consultas compuestas (validación de allowlist)
 │   │   ├── merge.py            # Join exacto en Python puro (_merge_join)
-│   │   ├── guardrails.py       # input_guardrail y output_guardrail (determinísticos, sin LLM)
+│   │   ├── guardrails.py       # input_guardrail y output_guardrail + detección de inyección/fuga
+│   │   ├── security.py         # ★ Allowlists de endpoints/params + preludio y delimitadores instrucciones/datos
 │   │   ├── normalizer.py       # Corrección determinística del plan (municipio/cluster/indicador)
-│   │   ├── resumir.py          # Resumen/contexto para el formatter
+│   │   ├── resumir.py          # Resumen/contexto para el formatter (envuelve datos como <datos_herramientas>)
 │   │   ├── retry.py            # Decoradores tenacity: llm_retry y http_retry
+│   │   ├── llm_layer.py        # ★ Construcción de chains, rotación de cuentas y _llm_ainvoke_con_fallback
+│   │   ├── parsing.py          # ★ _extraer_json_con_fallback (parseo JSON robusto)
 │   │   ├── output_schemas.py   # Schemas Pydantic de salida de cada nodo (structured output)
 │   │   ├── json_utils.py       # Serialización de tipos MySQL (Decimal, date, timedelta)
 │   │   ├── dspy_config.py      # LMs de DSPy (rotación de claves Groq) — solo offline
 │   │   └── dspy_modules.py     # Módulos DSPy baseline (Planner/Classifier/Clarification)
 │   ├── api/routes.py           # Rutas HTTP: POST /consulta, POST /consulta/respuesta
 │   ├── controllers/ai_controller.py  # Capa de controlador (delgada)
-│   ├── services/ai_service.py  # Lógica de negocio: timeout, idioma, HITL, respuestas
-│   ├── core/config.py          # Settings (pydantic-settings, lee .env)
+│   ├── services/ai_service.py  # Lógica de negocio: timeout, idioma, HITL, sanitización, respuestas
+│   ├── core/config.py          # Settings (pydantic-settings, lee .env) — incluye auth/rate-limit
 │   ├── core/observability.py   # Activa tracing de LangSmith si está configurado
 │   ├── models/schemas.py       # Pydantic: ConsultaRequest, ConsultaResponse, ResumeRequest
-│   ├── middlewares/logging_middleware.py  # Header X-Process-Time
+│   ├── middlewares/
+│   │   ├── logging_middleware.py    # Header X-Process-Time
+│   │   └── security_middleware.py   # ★ Auth por X-API-Key + rate limit por IP
 │   ├── vectorstore/            # Qdrant: documents, indexer, searcher
 │   └── etl/                    # pipeline.py, database.py, loaders_fast.py
 ├── dspy_optimize/              # Compilación MIPROv2 offline (compile, dataset, metrics, inspect)
 ├── evals/                      # Datasets golden/OOD y runner de evaluación
 ├── scripts/                    # Utilidades (corregir CSV, optimizar threshold, etc.)
-├── tests/                      # Pytest (151 tests); conftest.py (raíz) con fixture de grafo aislado
+├── tests/                      # Pytest (193 tests); conftest.py (raíz) con fixture de grafo aislado
 ├── data/                       # CSVs del ETL (ignorados por Git)
 ├── compiled_modules/           # Módulos DSPy compilados (VACÍO por defecto -> DSPy inactivo)
 ├── Dockerfile
@@ -157,17 +174,17 @@ HITL (clarificación):
   -> el nodo integra la respuesta al plan y continúa
 ```
 
-Ver `app/services/ai_service.py` para la capa de servicio y `app/agent/graph.py:1311` para la construcción del grafo.
+Ver `app/services/ai_service.py` para la capa de servicio y `app/agent/graph.py:79` (`build_graph`) para la construcción del grafo.
 
 ---
 
 ## 4. El grafo multi-agente (LangGraph)
 
-Definido en `app/agent/graph.py`, se construye con `StateGraph(AgentState)`. Un único grafo con routing condicional maneja todos los flujos (simple, compuesta, fuera de dominio, HITL).
+Definido en `app/agent/graph.py:79` (`build_graph`), se construye con `StateGraph(AgentState)`. Un único grafo con routing condicional maneja todos los flujos (simple, compuesta, fuera de dominio, HITL). **Los nodos viven en `app/agent/nodes/`** (un archivo por nodo); `graph.py` solo los registra y conecta.
 
-**Nodos registrados** (`graph.py:1315`): `planner`, `fuera_de_dominio`, `input_guardrail`, `output_guardrail`, `clarification_detector`, `query_classifier`, `task_decomposer`, `parallel_executor`, `result_merger`, `schema_linker`, `tool_caller`, `react_reasoner`, `formatter`, `reflector`.
+**Nodos registrados** (`graph.py:82`): `planner`, `fuera_de_dominio`, `input_guardrail`, `output_guardrail`, `clarification_detector`, `query_classifier`, `task_decomposer`, `parallel_executor`, `result_merger`, `schema_linker`, `tool_caller`, `react_reasoner`, `formatter`, `reflector`.
 
-**Routing condicional** (funciones `_route_after_*`):
+**Routing condicional** (funciones `_route_after_*`, definidas en `app/agent/nodes/routing.py`):
 
 | Desde | Función de routing | Decisiones |
 |---|---|---|
@@ -178,7 +195,7 @@ Definido en `app/agent/graph.py`, se construye con `StateGraph(AgentState)`. Un 
 | `tool_caller` | `_route_after_tool_caller` | `react_reasoner` si datos vacíos + hay retries + es simple, si no `output_guardrail` |
 | `reflector` | `_route_after_reflector` | `formatter` si score pobre + hay presupuesto de retry, si no `END` |
 
-**Checkpointer**: `_checkpointer = InMemorySaver()` global (`graph.py:1308`). Es **requerido** para que `interrupt()` funcione (HITL). Tests y evals pasan su propia instancia (`build_graph(checkpointer=...)`) para no contaminar el de producción.
+**Checkpointer**: `_checkpointer = InMemorySaver()` global (`graph.py:75`). Es **requerido** para que `interrupt()` funcione (HITL). Tests y evals pasan su propia instancia (`build_graph(checkpointer=...)`) para no contaminar el de producción.
 
 **Cómo se ejecuta el grafo**: `agent.ainvoke(initial_state, config)`. `config` lleva `thread_id` y `recursion_limit` (25). El estado inicial mínimo es `{consulta, idioma, request_id, filtros}`.
 
@@ -189,9 +206,9 @@ Definido en `app/agent/graph.py`, se construye con `StateGraph(AgentState)`. Un 
 Cada nodo es una función async que recibe el `state` completo y devuelve un `state` actualizado (patrón reducer de LangGraph). Salvo `input_guardrail`, `output_guardrail`, `schema_linker`, `tool_caller`, `parallel_executor`, `result_merger` y los routers, todos los nodos LLM usan el decorador `@llm_retry`.
 
 ### input_guardrail (`app/agent/guardrails.py`)
-Determinístico, sin LLM. Valida que la consulta no esté vacía (< 3 chars -> corta con mensaje), la trunca a 500 chars y elimina caracteres de control. Sanea el input antes de gastar cualquier llamada LLM.
+Determinístico, sin LLM. Valida que la consulta no esté vacía (< 3 chars -> corta con mensaje), la trunca a 500 chars y elimina caracteres de control. **Detecta prompt injection** (`_detectar_inyeccion`: regex + base64 largo + typoglycemia fuzzy) y corta el flujo con `flag_inyeccion` y una respuesta genérica de seguridad. Sanea el input antes de gastar cualquier llamada LLM.
 
-### planner (`graph.py:317`)
+### planner (`app/agent/nodes/planner.py:82`)
 Clasifica la intención y extrae filtros. Usa el modelo **light** (`groq/compound-mini`) con **structured output** (Pydantic `PlanOutput`). Produce un `plan`:
 
 ```json
@@ -209,25 +226,25 @@ Clasifica la intención y extrae filtros. Usa el modelo **light** (`groq/compoun
 ```
 
 - Antes de usar el resultado, pasa por `normalizar_plan()` (`app/agent/normalizer.py`): **corrección determinística post-LLM** de municipio/cluster/indicador contra listas canónicas (tolerando typos y tildes con `difflib`), infiere el `servicio` si quedó null y **revierte FOD alucinado** si la consulta tiene señales claras de dominio.
-- Si el structured output falla, hay un fallback manual de parseo JSON (`_extraer_json_con_fallback`, `graph.py:59`) que nunca tira el pipeline.
-- Si DSPy está habilitado (ver [§13](#13-dspy-optimizacin-offline-de-prompts-inactiva-por-defecto)), intenta primero el módulo compilado.
+- Si el structured output falla, hay un fallback manual de parseo JSON (`_extraer_json_con_fallback`, `app/agent/parsing.py:8`) que nunca tira el pipeline.
+- Si DSPy está habilitado (ver [§14](#14-dspy-optimizacin-offline-de-prompts-inactiva-por-defecto)), intenta primero el módulo compilado.
 
-### fuera_de_dominio (`graph.py:383`)
+### fuera_de_dominio (`app/agent/nodes/fuera_de_dominio.py:28`)
 Corta el flujo temprano sin gastar llamadas a Qdrant/backend/LLM. Devuelve un mensaje en el idioma detectado y marca `fuera_de_dominio=True` (que el servicio traduce a HTTP 422 `CONSULTA_FUERA_DE_DOMINIO`).
 
-### clarification_detector (`graph.py:571`) — HITL
+### clarification_detector (`app/agent/nodes/clarification.py:209`) — HITL
 Detecta ambigüedad. Primero evalúa **señales determinísticas sin LLM** (`_evaluar_señales_deterministicas`): múltiples servicios mencionados, cluster inter-municipal sin municipio, consulta muy corta sin filtros. Si no hay señal, y solo si la consulta lo merece (`_merece_evaluacion_llm`), evalúa con LLM light. Si decide que necesita clarificación, **pausa el grafo con `interrupt()`** (ver [§10](#10-hitl-pausas-de-clarificacin-con-el-gestor)).
 
-### query_classifier (`graph.py:696`)
+### query_classifier (`app/agent/nodes/classifier.py:26`)
 Decide **simple** (una fuente) vs **compuesta** (dos o más fuentes a combinar). Usa el modelo **primary** (`openai/gpt-oss-120b`) con structured output (`QueryClassification`). Determina además `merge_strategy`: `join` (combinar métricas por zona/cluster) o `relacional` (analizar correlación). Tiene un fallback manual robusto si el modelo omite `merge_strategy`.
 
-### task_decomposer (`graph.py:772`)
+### task_decomposer (`app/agent/nodes/decomposer.py:23`)
 Solo para compuestas. Descompone la consulta en sub-tareas (`SubTaskDefinition`: `sub_agent_id`, `endpoint`, `params`, `descripcion`). Usa el modelo primary. Si falla, revierte a `query_type="simple"` y sigue el flujo simple.
 
-### parallel_executor (`graph.py:815`)
-Ejecuta todas las sub-tareas **en paralelo** con `asyncio.gather` (con `return_exceptions=True` para que un fallo no cancele el resto). Cada sub-tarea la ejecuta `run_sub_agent` (`app/agent/sub_agent.py`), que llama al endpoint del backend y normaliza el resultado a `list[dict]`. Deduplica las fuentes.
+### parallel_executor (`app/agent/nodes/executor.py:11`)
+Ejecuta todas las sub-tareas **en paralelo** con `asyncio.gather` (con `return_exceptions=True` para que un fallo no cancele el resto). Cada sub-tarea la ejecuta `run_sub_agent` (`app/agent/sub_agent.py`), que valida el endpoint/params contra la allowlist de seguridad y llama al endpoint del backend normalizando el resultado a `list[dict]`. Deduplica las fuentes.
 
-### result_merger (`graph.py:870`)
+### result_merger (`app/agent/nodes/executor.py:65`)
 Combina los resultados de los sub-agentes según `merge_strategy`:
 - **join**: `_merge_join()` en Python puro (`app/agent/merge.py`) por `join_key` (default `cluster`). A tiene prioridad sobre B en campos con el mismo nombre.
 - **relacional**: pasa ambos datasets por separado al formatter con metadata (`tool_results_meta.datasets`) para que el LLM analice la correlación.
@@ -236,29 +253,29 @@ Combina los resultados de los sub-agentes según `merge_strategy`:
 ### schema_linker (`app/agent/schema_linker.py`)
 Decide **cómo** obtener los datos: llamar a un endpoint del backend o generar Text-to-SQL. Primero intenta reglas determinísticas sobre el plan; si no hay señal clara, usa embeddings en Qdrant. Devuelve `schema_decision`. Detalle completo en [§8](#8-schema-linking-cmo-se-decide-de-dnde-sacar-los-datos).
 
-### tool_caller (`graph.py:940`)
+### tool_caller (`app/agent/nodes/tool_caller.py:27`)
 Ejecuta la decisión del schema_linker:
 - `tipo == "endpoint"` -> `llamar_endpoint()` (HTTP GET al backend).
 - `tipo == "sql"` -> `ejecutar_sql()` (genera SQL con el modelo primary y lo ejecuta contra MySQL).
 
 Normaliza el resultado a `list[dict]` (contrato de estado) y guarda las fuentes.
 
-### react_reasoner (`graph.py:1044`) — ReAct loop
-Si el tool call devolvió datos vacíos (y hay retries y es simple), razona con el modelo primary por qué falló y propone un ajuste (`nuevo_endpoint` / `nuevos_params`). `_aplicar_correccion_react` actualiza `schema_decision` y `tool_caller` re-intenta. Su propio contador (`react_retry_count`) no interfiere con el presupuesto del reflector.
+### react_reasoner (`app/agent/nodes/tool_caller.py:136`) — ReAct loop
+Si el tool call devolvió datos vacíos (y hay retries y es simple), razona con el modelo primary por qué falló y propone un ajuste (`nuevo_endpoint` / `nuevos_params`). `_aplicar_correccion_react` actualiza `schema_decision` y `tool_caller` re-intenta. El ajuste valida el endpoint contra la allowlist de seguridad antes de aplicarse. Su propio contador (`react_retry_count`) no interfiere con el presupuesto del reflector.
 
 ### output_guardrail (`app/agent/guardrails.py`)
-Determinístico. Registra advertencias en `tool_results_meta` (datos vacíos, tool_error, `/brechas` sin `severidad_brecha`, sub-agentes con error) y calcula `datos_validos`.
+Determinístico. Registra advertencias en `tool_results_meta` (datos vacíos, tool_error, `/brechas` sin `severidad_brecha`, sub-agentes con error) y calcula `datos_validos`. **Detecta fugas de información sensible en la respuesta** (`_detectar_fuga_respuesta`: credenciales/API keys, markup de exfiltración, URLs externas, base64) y reemplaza la respuesta por una genérica (ver [§13](#13-seguridad-defensa-contra-prompt-injection)).
 
-### formatter (`graph.py:1127`)
+### formatter (`app/agent/nodes/formatter.py:47`)
 Genera la respuesta final en lenguaje natural. Usa el modelo **light** con structured output (`FormatterOutput`: `respuesta_ia` + `visualizacion_sugerida`). Antes de llamar al LLM:
 1. Filtra campos técnicos internos (`_limpiar_para_formatter`).
 2. Resume datasets grandes por **estimación de tokens** (`resumir_para_formatter`, `app/agent/resumir.py`) para no exceder el TPM del modelo.
-3. Construye un contexto enriquecido (`_construir_contexto_formatter`) con tipo de datos detectado, merge, total de registros y feedback de reflexión previo.
+3. Construye un contexto enriquecido (`_construir_contexto_formatter`) con tipo de datos detectado, merge, total de registros y feedback de reflexión previo. Los datos de las tools se envuelven como `<datos_herramientas>` (tratar como DATOS, no instrucciones).
 
-Luego corrige la visualización con un mapa determinístico endpoint -> visualización (`_corregir_visualizacion`, `graph.py:1189`): `/brechas`->`mapa_brechas`, `/mapa*`->`mapa_indicadores`, `/indicadores/evolucion`->`grafico_barras`, `/programas`->`tabla_datos`.
+Luego corrige la visualización con un mapa determinístico endpoint -> visualización (`_corregir_visualizacion`, `app/agent/nodes/formatter.py:28`): `/brechas`->`mapa_brechas`, `/mapa*`->`mapa_indicadores`, `/indicadores/evolucion`->`grafico_barras`, `/programas`->`tabla_datos`.
 
-### reflector (`graph.py:1229`) — Reflexión
-Evalúa la calidad de la respuesta con el modelo primary. Para no gastar llamadas de más, `_gate_reflexion` solo invoca el LLM si hay señales determinísticas de respuesta pobre (datos vacíos, tool_error, respuesta < 80 chars, o ya hubo un retry). Si `quality_score < 0.6` y `reflection_retry_count < reflector_max_retries` (1), vuelve al formatter con `feedback_al_formatter` explícito.
+### reflector (`app/agent/nodes/reflector.py:39`) — Reflexión
+Evalúa la calidad de la respuesta con el modelo primary. Para no gastar llamadas de más, `_gate_reflexion` (`app/agent/nodes/reflector.py:21`) solo invoca el LLM si hay señales determinísticas de respuesta pobre (datos vacíos, tool_error, respuesta < 80 chars, o ya hubo un retry). Si `quality_score < 0.6` y `reflection_retry_count < reflector_max_retries` (1), vuelve al formatter con `feedback_al_formatter` explícito.
 
 ---
 
@@ -294,7 +311,7 @@ Definido en `app/agent/state.py` como `TypedDict`. Campos principales:
 
 ## 7. Capa de LLMs: modelos, rotación y fallback
 
-Todo está en `app/core/config.py` y `app/agent/graph.py:141`.
+Todo está en `app/core/config.py` y `app/agent/llm_layer.py`.
 
 ### Modelos (migrados en ago-2026 por deprecación de `llama-3.x`)
 
@@ -313,7 +330,7 @@ Notas operativas:
 
 `settings.claves_groq()` (`config.py:93`) arma un **pool de claves** a partir de `GROQ_API_KEY_PRIMARY` + `GROQ_API_KEY_LIGHT` + `GROQ_API_KEY_EXTRA` + `GROQ_API_KEYS_ROTACION` (JSON array), con deduplicación. Cada clave es una cuenta con su propia cuota diaria de TPM/TPD.
 
-En runtime (`_construir_chain`, `graph.py:141`) se crea **una instancia `ChatOpenAI` por cuenta del pool** (mismo modelo, key distinta, `max_retries=0`). `_llm_ainvoke_con_fallback` (`graph.py:208`) recorre el pool ante un 429; si todas agotan, usa el fallback Gemini (pool de límites separado). Este mismo pool lo reutiliza DSPy offline con `_RotatingLM` (`app/agent/dspy_config.py:24`).
+En runtime (`_construir_chain`, `app/agent/llm_layer.py:27`) se crea **una instancia `ChatOpenAI` por cuenta del pool** (mismo modelo, key distinta, `max_retries=0`). `_llm_ainvoke_con_fallback` (`app/agent/llm_layer.py:94`) recorre el pool ante un 429; si todas agotan, usa el fallback Gemini (pool de límites separado). Este mismo pool lo reutiliza DSPy offline con `_RotatingLM` (`app/agent/dspy_config.py:24`).
 
 **¿Por qué `max_retries=0`?** El cliente openai reintenta internamente con backoff que puede llegar a 54s en un 429, comiéndose el timeout global. Con 0, el `RateLimitError` propaga a la rotación de cuentas y luego al decorador `@llm_retry`.
 
@@ -369,14 +386,20 @@ Si el score del mejor match queda bajo el umbral, se descarta y se usa el siguie
 
 Archivo: `app/agent/tools.py`.
 
-### `llamar_endpoint` (`tools.py:71`)
+### `llamar_endpoint` (`tools.py:216`)
 
-Hace HTTP al backend (`BACKEND_URL` + endpoint) con retry `@http_retry`. Normaliza la respuesta a `list[dict]` (maneja que el backend devuelva un dict anidado en claves `brechas`/`evolucion`/`programas`/`regiones`, o un array top-level como `/programas`). Ante errores HTTP/red persistentes degrada a lista vacía sin romper el pipeline.
+Hace HTTP al backend (`BACKEND_URL` + endpoint) con retry `@http_retry`. **Valida el endpoint contra la allowlist de seguridad** (`validar_endpoint`, ver [§13](#13-seguridad-defensa-contra-prompt-injection)) y **filtra los params a las claves permitidas** (`filtrar_params`); un endpoint fuera de la allowlist devuelve `{"resultado": [], "fuentes": [], "error": "endpoint no permitido"}`. Normaliza la respuesta a `list[dict]` (maneja que el backend devuelva un dict anidado en claves `brechas`/`evolucion`/`programas`/`regiones`, o un array top-level como `/programas`). Ante errores HTTP/red persistentes degrada a lista vacía sin romper el pipeline.
 
-### `ejecutar_sql` (`tools.py:112`) — Text-to-SQL
+### `ejecutar_sql` (`tools.py:267`) — Text-to-SQL
 
 1. Genera SQL con el modelo **primary** (con rotación de cuentas y fallback Gemini) usando `TEXT_TO_SQL_PROMPT` y el **schema mínimo** relevante (no el schema completo -> ~75% menos tokens).
-2. **Validaciones de seguridad**: solo `SELECT` (si no, aborta), rechaza keywords peligrosas (`INSERT`, `DROP`, etc.), garantiza `LIMIT 50`, y previene **full scans** en tablas grandes (`concentracao`, `mobilidade_agregada`) agregando el filtro de día más reciente si falta.
+2. **Validaciones de seguridad** (`_sanitizar_sql`, `tools.py:106`, Fase 2 del plan de seguridad):
+   - Solo `SELECT` (si no, aborta).
+   - Rechaza **multi-statement** (`;` seguido de otra query).
+   - Rechaza keywords peligrosas (`UNION`, `INSERT`, `DROP`, `INTO OUTFILE/DUMPFILE`, `LOAD_FILE`, `SLEEP`, `@@`, `INFORMATION_SCHEMA`, `/*`).
+   - Solo tablas de la **allowlist** (`_TABLAS_PERMITIDAS`).
+   - Garantiza **`LIMIT 50`** (reescribe si el LLM pidió más).
+   - Previene **full scans** en tablas grandes (`concentracao`, `mobilidade_agregada`): si la cláusula `WHERE` real no filtra `day_date`, agrega el filtro del día más reciente.
 3. Ejecuta contra MySQL con el usuario de **solo lectura** (`DB_READONLY_USER`) vía `aiomysql`. Devuelve filas como `list[dict]` y la fuente `Vísent CDRView v2`.
 
 **Prioridad de datos**: primero endpoints (lógica de negocio del backend), SQL solo como fallback.
@@ -385,7 +408,7 @@ Hace HTTP al backend (`BACKEND_URL` + endpoint) con retry `@http_retry`. Normali
 
 ## 10. HITL: pausas de clarificación con el gestor
 
-El sistema puede **pausar** una consulta y pedir clarificación al gestor antes de responder. Implementado con `interrupt()` de LangGraph (ver `graph.py:571` y `app/services/ai_service.py:200`).
+El sistema puede **pausar** una consulta y pedir clarificación al gestor antes de responder. Implementado con `interrupt()` de LangGraph (ver `app/agent/nodes/clarification.py:209` y `app/services/ai_service.py:203`).
 
 ### Flujo
 
@@ -411,7 +434,8 @@ POST /consulta/respuesta { session_id, respuesta_gestor: "Mentoría" }
 ### Mecánica
 
 - El estado completo se persiste en el checkpointer entre pausa y reanudación.
-- `_integrar_respuesta_al_plan` (`graph.py:491`) mapea la respuesta del gestor a valores canónicos del dominio. La respuesta es **autoritativa**: sobrescribe lo que el planner infirió.
+- `_integrar_respuesta_al_plan` (`app/agent/nodes/clarification.py:116`) mapea la respuesta del gestor a valores canónicos del dominio. La respuesta es **autoritativa**: sobrescribe lo que el planner infirió.
+- **Seguridad (Fase 4.3)**: `ai_service.py` sanitiza la respuesta del gestor antes de reinyectarla al grafo (trunca a 500 chars y elimina caracteres de control), y `_integrar_respuesta_al_plan` **no apenda el texto crudo a `plan["razon"]`** si `_detectar_inyeccion` detecta señales (solo se aplican los valores canónicos). Así, una respuesta del gestor con instrucciones maliciosas no llega a otros prompts.
 - **Una sola oportunidad de clarificación por consulta** (MVP). Si la respuesta no desambigua del todo, el agente continúa con lo que pudo inferir.
 - Las sesiones expiran a los 15 min (`hitl_session_ttl_seconds`); `main.py` corre un loop de limpieza que elimina sesiones y threads expirados.
 
@@ -455,14 +479,56 @@ El gate `_gate_reflexion` evita invocar el LLM reflector en consultas que aparen
 
 ---
 
-## 13. DSPy: optimización offline de prompts (inactiva por defecto)
+## 13. Seguridad: defensa contra prompt injection
+
+El servicio expone un agente LLM con herramientas (HTTP + Text-to-SQL), por lo que es un objetivo de **prompt injection** (LLM01 del OWASP LLM Top 10 2025). La defensa sigue el principio de OWASP de **no confiar en el filtrado de input como única barrera**: es **defensa en profundidad**, 100% determinística (sin guardrail de modelo tipo Llama Guard). Está implementada en 7 fases:
+
+### 13.1 Allowlist de endpoints y params (Fase 1) — `app/agent/security.py`
+
+El agente solo puede llamar a los endpoints del backend incluidos en `ENDPOINTS_PERMITIDOS`: `/brechas`, `/mapa`, `/mapa/indicadores`, `/indicadores/evolucion`, `/programas`. Cada endpoint tiene sus params permitidos (`PARAMS_PERMITIDOS_POR_ENDPOINT`). Se aplica en tres puntos:
+- `tools.py:llamar_endpoint` — un endpoint fuera de la allowlist devuelve resultado vacío con error.
+- `sub_agent.py:run_sub_agent` — valida antes de llamar (consultas compuestas).
+- `nodes/tool_caller.py:_aplicar_correccion_react` — el ajuste propuesto por el ReAct loop debe pasar la allowlist.
+
+### 13.2 Hardening del Text-to-SQL (Fase 2) — `tools.py:_sanitizar_sql`
+
+Todo SQL generado por el LLM pasa validación antes de ejecutarse: solo `SELECT`, sin multi-statement, sin keywords peligrosas, solo tablas de la allowlist, `LIMIT 50` forzado, y filtro de día más reciente para evitar full scans en tablas grandes (ver [§9](#9-herramientas-tools-endpoints-y-text-to-sql)).
+
+### 13.3 Separación estructural instrucciones/datos (Fase 3) — `app/agent/security.py`
+
+Todos los prompts incluyen un **preludio de jerarquía de instrucciones** (`_PRELUDE_SEGURIDAD`) que ordena al modelo tratar el contenido delimitado como DATOS, nunca como instrucciones. La consulta del usuario viaja entre `<consulta_usuario>...</consulta_usuario>` (`envolver_consulta`) y los datos de las tools entre `<datos_herramientas>...</datos_herramientas>` (`envolver_datos`). Esto evita que texto inyectado en datos o en la consulta se interprete como orden.
+
+### 13.4 Sanitización y detección en el input (Fase 4) — `app/agent/guardrails.py`
+
+- `input_guardrail` corre `_detectar_inyeccion` sobre la consulta: regex de patrones clásicos ("ignora las instrucciones", "developer mode", "system prompt", "override", etc.), base64 largo (instrucciones ofuscadas) y **typoglycemia fuzzy** ("ignroe" ~ "ignore"). Ante detección corta el flujo con `flag_inyeccion` y una respuesta genérica de seguridad.
+- `ai_service.py:resume_query` sanitiza la **respuesta del gestor** (canal HITL) antes de reinyectarla: trunca a 500 chars y elimina caracteres de control. Además, `_integrar_respuesta_al_plan` no apenda texto crudo a `plan["razon"]` si detecta inyección (ver [§10](#10-hitl-pausas-de-clarificacin-con-el-gestor)).
+
+### 13.5 Validación de output zero-trust (Fase 5) — `app/agent/guardrails.py`
+
+`output_guardrail` corre `_detectar_fuga_respuesta` sobre la respuesta generada: credenciales/API keys (`api_key`, `secret`, `password`, `sk-`, `AIza`, `gsk_`), markup de exfiltración (`<img src=http...>`, imágenes markdown), URLs externas largas y bloques base64. Ante fuga, **reemplaza la respuesta por una genérica** — nunca se entrega contenido con credenciales o exfiltración.
+
+### 13.6 Auth, rate limit y logs (Fase 6) — `app/middlewares/security_middleware.py`
+
+- **Auth**: `POST /consulta` y `POST /consulta/respuesta` requieren el header `X-API-Key` con el valor de `API_AUTH_TOKEN` (comparación en tiempo constante). Si la variable está vacía, la auth queda deshabilitada (compatibilidad con dev local). El backend Spring Boot envía el header vía `ai.service.api-token` (ver `back/src/main/java/.../config/Config.java`).
+- **Rate limit**: ventana deslizante en memoria por IP (default 30 req/60s) que devuelve `429` con `Retry-After`. Las peticiones autenticadas con la key válida se **eximen** (todo el tráfico del backend llega como una sola IP; el backend es quien limita por usuario).
+- **Logs redactados**: `ai_service.py` no loguea el texto de `request.consulta` (solo `request_id`). `/health` no expone `backend_url`.
+
+### 13.7 Tests de seguridad (Fase 7) — `tests/test_security.py`
+
+42 tests con payloads del OWASP LLM Prompt Injection Cheat Sheet + casos del sistema: inyección en `_detectar_inyeccion`/`input_guardrail`, bypass SQL (UNION, `;DROP`, LIMIT excesivo, INTO OUTFILE, full-scan con `WHERE 1=1`), endpoints no permitidos desde sub_agent/react_reasoner, respuesta del gestor con instrucciones que no llega a `plan["razon"]`, datos de tools con instrucciones que el formatter trata como dato, y auth/rate-limit del middleware.
+
+> **Nota**: el `normalizer.py` deliberadamente **no** endurece los valores no canónicos (municipio/cluster/indicador siguen como texto libre) — decisión de producto. La defensa contra inyección no depende de ello.
+
+---
+
+## 14. DSPy: optimización offline de prompts (inactiva por defecto)
 
 El proyecto evaluó **DSPy + MIPROv2** para optimizar los prompts de los nodos. Conclusión (ago-2026, ver `plan.md`): **sin mejora** — el golden ya da 100% con los prompts artesanales, así que no hay headroom. El pipeline queda documentado y reproducible pero **no está activo en producción**.
 
 Estado actual:
 - `settings.dspy_compiled = False` (default). El nodo planner usa el módulo DSPy compilado **solo si** el flag está en True **y** existe `compiled_modules/planner.json`.
 - El archivo `planner.json` **fue borrado** tras los evals de aceptación (regresión en golden: 97.86% vs 100%). `compiled_modules/` está vacío.
-- La integración está codificada en `graph.py` (`_plan_via_dspy`, `_plan_desde_prediccion`, `_run_dspy_async`) pero es **inerte** sin el flag + archivo.
+- La integración está codificada en `app/agent/nodes/planner.py` (`_plan_via_dspy`, `_plan_desde_prediccion`, `_run_dspy_async`) pero es **inerte** sin el flag + archivo.
 - El fallback Groq->Gemini queda intacto: cualquier error del módulo DSPy cae a la infra actual.
 
 Archivos:
@@ -477,7 +543,7 @@ Para habilitar en el futuro: compilar con `compile.py`, correr los evals de acep
 
 ---
 
-## 14. Vectorstore (Qdrant)
+## 15. Vectorstore (Qdrant)
 
 Archivos: `app/vectorstore/{documents,indexer,searcher}.py`.
 
@@ -487,9 +553,9 @@ Archivos: `app/vectorstore/{documents,indexer,searcher}.py`.
 
 ---
 
-## 15. Pipeline ETL
+## 16. Pipeline ETL
 
-El pipeline ETL carga los CSVs de `ai/data/` a MySQL **automáticamente al arrancar el servicio** (hilo en background, `main.py:49`). Idempotente: salta tablas que ya tienen datos.
+El pipeline ETL carga los CSVs de `ai/data/` a MySQL **automáticamente al arrancar el servicio** (hilo en background, `main.py:97`). Idempotente: salta tablas que ya tienen datos.
 
 **Orden de carga** (`app/etl/pipeline.py`): `antenas` -> `assinantes` -> `mobilidade_agregada` -> `concentracao` (depende de mobilidade) -> `flujo_od` -> `fluxo_vias`. Si `mobilidade_agregada` falla, salta `concentracao` (dependencia).
 
@@ -501,7 +567,7 @@ El pipeline ETL carga los CSVs de `ai/data/` a MySQL **automáticamente al arran
 
 ---
 
-## 16. Evaluaciones
+## 17. Evaluaciones
 
 Archivos en `evals/` y `app/../`:
 
@@ -524,15 +590,16 @@ PYTHONUNBUFFERED=1 python evals/run_evals.py --json evals/reporte_full.json
 
 ---
 
-## 17. Tests
+## 18. Tests
 
-151 tests con pytest en `tests/`. El `conftest.py` de la raíz provee una fixture `test_agent` con un **checkpointer aislado** por test (no contamina el de producción). Temas cubiertos:
+193 tests con pytest en `tests/`. El `conftest.py` de la raíz provee una fixture `test_agent` con un **checkpointer aislado** por test (no contamina el de producción). Temas cubiertos:
 
 | Archivo | Qué valida |
 |---|---|
 | `test_routing.py` | Routing del grafo (simple/compuesta/FOD) |
 | `test_normalizer.py` | Corrección determinística del plan |
 | `test_guardrails.py` | input/output guardrails |
+| `test_security.py` | Defensa anti prompt injection (Fases 1-7): allowlists, SQL, inyección, fugas, auth/rate-limit |
 | `test_extraer_json.py` | Parseo JSON con fallback |
 | `test_llm_fallback.py` | Rotación de cuentas / fallback Gemini |
 | `test_merge_join.py` | `_merge_join` |
@@ -548,7 +615,7 @@ python -m pytest tests/ -q
 
 ---
 
-## 18. Configuración y variables de entorno
+## 19. Configuración y variables de entorno
 
 Config centralizada en `app/core/config.py` (pydantic-settings, lee `ai/.env`). Las variables principales:
 
@@ -594,6 +661,13 @@ Config centralizada en `app/core/config.py` (pydantic-settings, lee `ai/.env`). 
 | `LANGSMITH_*` | Tracing de LangSmith (opcional) | desactivado |
 | `DSPY_COMPILED` | Habilita módulo DSPy compilado | `false` |
 
+### Seguridad (Fase 6)
+| Variable | Descripción | Default |
+|---|---|---|
+| `API_AUTH_TOKEN` | API key compartida con el backend; si está vacía la auth de `/consulta` queda deshabilitada. El backend la envía como header `X-API-Key` (via `AI_SERVICE_API_TOKEN` del `.env` raíz) | vacío |
+| `RATE_LIMIT_MAX_REQUESTS` | Máximo de requests por IP en la ventana | `30` |
+| `RATE_LIMIT_WINDOW_SECONDS` | Ventana del rate limit (segundos) | `60` |
+
 ### Ejecutar en Docker
 
 ```bash
@@ -607,16 +681,18 @@ docker compose up --build       # AI Service en http://localhost:8000
 
 ---
 
-## 19. Endpoints de la API
+## 20. Endpoints de la API
 
 Definidos en `app/api/routes.py` y `app/models/schemas.py`.
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| `POST` | `/consulta` | Envía una consulta al agente (`{consulta, filtros?, idioma?}`) -> `ConsultaResponse` o 422 (fuera de dominio) / 503 / 504 |
-| `POST` | `/consulta/respuesta` | Reanuda una consulta pausada (`{session_id, respuesta_gestor}`) |
+| `POST` | `/consulta` | Envía una consulta al agente (`{consulta, filtros?, idioma?}`) -> `ConsultaResponse` o 422 (fuera de dominio) / 401 (sin API key) / 429 (rate limit) / 503 / 504 |
+| `POST` | `/consulta/respuesta` | Reanuda una consulta pausada (`{session_id, respuesta_gestor}`) — misma auth/rate limit |
 | `GET` | `/health` | Estado del servicio + ETL |
 | `GET` | `/etl/status` | Estado del pipeline ETL |
+
+**Auth y rate limit (Fase 6)**: si `API_AUTH_TOKEN` está configurado, los `POST` a `/consulta` y `/consulta/respuesta` exigen el header `X-API-Key: <token>`; sin él responden `401 {"error":"NO_AUTORIZADO"}`. El rate limit por IP (default 30 req/60s) responde `429` con `Retry-After`; las peticiones con key válida se eximen (ver [§13.6](#136-auth-rate-limit-y-logs-fase-6)).
 
 **`ConsultaResponse`** (`schemas.py:11`):
 ```json
@@ -637,7 +713,7 @@ Swagger UI: `http://localhost:8000/docs` · Redoc: `/redoc` · OpenAPI: `/openap
 
 ---
 
-## 20. Scripts útiles
+## 21. Scripts útiles
 
 | Script | Función |
 |---|---|
@@ -650,11 +726,11 @@ Swagger UI: `http://localhost:8000/docs` · Redoc: `/redoc` · OpenAPI: `/openap
 
 ---
 
-## 21. Documentación relacionada
+## 22. Documentación relacionada
 
 - [Análisis del dataset](README_DATASET.md) — entendimiento de los datos y las preguntas clave.
 - [Arquitectura de integración de IA](../docs/ARQUITECTURA_AI.md) — integración end-to-end con el backend/frontend.
 - [Contratos de la API](../docs/API_CONTRATOS.md) — contratos de los endpoints del backend.
 - [Esquema de la BD](../docs/SCHEMA.md) — esquema MySQL.
 - [Referencia técnica CDRView](../docs/CDRView_AppBiT_TechnicalReference_v2_es.md) — contexto de los datos de Vísent.
-- [plan.md](plan.md) — plan de trabajo DSPy (historial de decisiones del proyecto).
+- [plan.md](plan.md) — plan de trabajo DSPy y plan de seguridad anti prompt injection (historial de decisiones del proyecto).
